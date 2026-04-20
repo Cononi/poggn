@@ -1,0 +1,39 @@
+{
+  "name": "@pgg/cli",
+  "version": "0.1.0",
+  "description": "CLI for initializing and operating the pgg workflow workspace",
+  "type": "module",
+  "bin": {
+    "pgg": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Cononi/ygg.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/Cononi/ygg/tree/main/packages/cli",
+  "bugs": {
+    "url": "https://github.com/Cononi/ygg/issues"
+  },
+  "keywords": [
+    "pgg",
+    "codex",
+    "workflow",
+    "cli",
+    "pnpm"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@pgg/core": "workspace:*"
+  }
+}

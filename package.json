@@ -1,0 +1,21 @@
+{
+  "name": "pgg-workspace",
+  "description": "Development workspace for the pgg CLI, core generator, and dashboard",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.33.0",
+  "scripts": {
+    "build": "pnpm -r build",
+    "build:readme": "pnpm --filter @pgg/core build && node --input-type=module -e \"import('./packages/core/dist/readme.js').then(({ writeRootReadme }) => writeRootReadme(process.cwd()))\"",
+    "dev:dashboard": "pnpm --filter @pgg/dashboard dev",
+    "build:dashboard": "pnpm --filter @pgg/dashboard build"
+  },
+  "bin": {
+    "pgg": "./packages/cli/dist/index.js"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "typescript": "latest"
+  }
+}
