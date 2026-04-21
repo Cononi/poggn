@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { createInterface } from "node:readline/promises";
+import { clearScreenDown, cursorTo, emitKeypressEvents, moveCursor } from "node:readline";
 import { spawn } from "node:child_process";
 import { stdin as input, stdout as output } from "node:process";
 import path from "node:path";
@@ -11,14 +11,16 @@ import {
   MANIFEST_RELATIVE_PATH,
   type PggAutoMode,
   type PggLanguage,
+  type PggTeamsMode,
   updateProject,
   updateProjectAutoMode,
   updateProjectDashboardPort,
   updateProjectLanguage,
+  updateProjectTeamsMode,
   writeDashboardSnapshotFile
 } from "@pgg/core";
 
-type CommandName = "init" | "update" | "lang" | "auto" | "dashboard";
+type CommandName = "init" | "update" | "lang" | "auto" | "teams" | "dashboard";
 
 interface ParsedArgs {
   command: CommandName | null;
@@ -27,7 +29,7 @@ interface ParsedArgs {
 
 function parseArgs(argv: string[]): ParsedArgs {
   const [commandToken, ...rest] = argv;
-  const command = (["init", "update", "lang", "auto", "dashboard"].includes(commandToken ?? "")
+  const command = (["init", "update", "lang", "auto", "teams", "dashboard"].includes(commandToken ?? "")
     ? commandToken
     : null) as CommandName | null;
   const options: Record<string, string | boolean> = {};
@@ -63,30 +65,80 @@ function parseArgs(argv: string[]): ParsedArgs {
 }
 
 async function choose<T extends string>(question: string, options: Array<{ value: T; label: string }>): Promise<T> {
-  if (!process.stdin.isTTY) {
+  if (!process.stdin.isTTY || !process.stdout.isTTY) {
     throw new Error(`${question} requires an interactive terminal or an explicit flag.`);
   }
-
-  const rl = createInterface({ input, output });
-  output.write(`${question}\n`);
-  options.forEach((option, index) => {
-    output.write(`  ${index + 1}. ${option.label}\n`);
-  });
-
-  while (true) {
-    const answer = (await rl.question("> ")).trim();
-    const byIndex = Number(answer);
-    if (Number.isInteger(byIndex) && byIndex >= 1 && byIndex <= options.length) {
-      rl.close();
-      return options[byIndex - 1]!.value;
-    }
-
-    const byValue = options.find((option) => option.value === answer);
-    if (byValue) {
-      rl.close();
-      return byValue.value;
-    }
+  if (options.length === 0) {
+    throw new Error("At least one choice option is required.");
   }
+
+  emitKeypressEvents(input);
+  input.resume();
+
+  const priorRawMode = input.isRaw ?? false;
+  if (typeof input.setRawMode === "function") {
+    input.setRawMode(true);
+  }
+
+  let selectedIndex = 0;
+  let renderedLines = 0;
+
+  const render = (): void => {
+    const lines = [
+      `${question} (Use Up/Down and Enter)`,
+      ...options.map((option, index) => `${index === selectedIndex ? ">" : " "} ${option.label}`)
+    ];
+
+    if (renderedLines > 1) {
+      moveCursor(output, 0, -(renderedLines - 1));
+    }
+    if (renderedLines > 0) {
+      cursorTo(output, 0);
+    }
+
+    output.write(lines.join("\n"));
+    clearScreenDown(output);
+    renderedLines = lines.length;
+  };
+
+  return await new Promise<T>((resolve, reject) => {
+    const cleanup = (): void => {
+      input.off("keypress", onKeypress);
+      if (typeof input.setRawMode === "function") {
+        input.setRawMode(priorRawMode);
+      }
+      output.write("\n");
+    };
+
+    const onKeypress = (_value: string, key: { ctrl?: boolean; name?: string }): void => {
+      if (key.ctrl && key.name === "c") {
+        cleanup();
+        reject(new Error("Interactive selection was cancelled."));
+        return;
+      }
+
+      if (key.name === "up") {
+        selectedIndex = (selectedIndex - 1 + options.length) % options.length;
+        render();
+        return;
+      }
+
+      if (key.name === "down") {
+        selectedIndex = (selectedIndex + 1) % options.length;
+        render();
+        return;
+      }
+
+      if (key.name === "return") {
+        const selected = options[selectedIndex];
+        cleanup();
+        resolve(selected!.value);
+      }
+    };
+
+    input.on("keypress", onKeypress);
+    render();
+  });
 }
 
 function printHelp(): void {
@@ -95,10 +147,11 @@ function printHelp(): void {
       "Usage: pgg <command> [options]",
       "",
       "Commands:",
-      "  pgg init [--cwd <dir>] [--provider codex] [--lang ko|en] [--auto on|off]",
+      "  pgg init [--cwd <dir>] [--provider codex] [--lang ko|en] [--auto on|off] [--teams on|off]",
       "  pgg update [--cwd <dir>]",
       "  pgg lang [--cwd <dir>] [--value ko|en]",
       "  pgg auto [--cwd <dir>] [--value on|off]",
+      "  pgg teams [--cwd <dir>] [--value on|off]",
       "  pgg dashboard [--cwd <dir>] [--host 127.0.0.1] [--port 4173] [--save-port] [--snapshot-only]",
       ""
     ].join("\n")
@@ -155,6 +208,7 @@ async function run(): Promise<void> {
     const provider = providerValue as "codex";
     const language = (typeof options.lang === "string" ? options.lang : "ko") as PggLanguage;
     const autoMode = (typeof options.auto === "string" ? options.auto : "on") as PggAutoMode;
+    const teamsMode = (typeof options.teams === "string" ? options.teams : "off") as PggTeamsMode;
     const existing = await loadProjectManifest(rootDir);
     if (existing) {
       output.write(
@@ -173,7 +227,8 @@ async function run(): Promise<void> {
     const result = await initializeProject(rootDir, {
       provider,
       language,
-      autoMode
+      autoMode,
+      teamsMode
     });
     output.write(`${formatSyncResult(result)}\n`);
     return;
@@ -209,6 +264,20 @@ async function run(): Promise<void> {
           ])) as PggAutoMode;
 
     const result = await updateProjectAutoMode(rootDir, autoMode);
+    output.write(`${formatSyncResult(result)}\n`);
+    return;
+  }
+
+  if (command === "teams") {
+    const teamsMode =
+      (typeof options.value === "string"
+        ? options.value
+        : await choose("Choose teams mode", [
+            { value: "off", label: "off" },
+            { value: "on", label: "on" }
+          ])) as PggTeamsMode;
+
+    const result = await updateProjectTeamsMode(rootDir, teamsMode);
     output.write(`${formatSyncResult(result)}\n`);
     return;
   }

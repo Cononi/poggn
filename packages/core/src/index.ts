@@ -1,10 +1,17 @@
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
-import { chmod, mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
+import { chmod, mkdir, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 export { buildRootReadme, writeRootReadme } from "./readme.js";
-import { buildGeneratedFiles, type TemplateAutoMode, type TemplateInput, type TemplateLanguage, type TemplateProvider } from "./templates.js";
+import {
+  buildGeneratedFiles,
+  type TemplateAutoMode,
+  type TemplateInput,
+  type TemplateLanguage,
+  type TemplateProvider,
+  type TemplateTeamsMode
+} from "./templates.js";
 
 export const PGG_VERSION = "0.1.0";
 export const MANIFEST_RELATIVE_PATH = ".pgg/project.json";
@@ -13,6 +20,7 @@ export const REGISTRY_RELATIVE_PATH = ".pgg/registry.json";
 export type PggLanguage = TemplateLanguage;
 export type PggAutoMode = TemplateAutoMode;
 export type PggProvider = TemplateProvider;
+export type PggTeamsMode = TemplateTeamsMode;
 
 export interface ManagedFileRecord {
   path: string;
@@ -27,6 +35,7 @@ export interface ProjectManifest {
   provider: PggProvider;
   language: PggLanguage;
   autoMode: PggAutoMode;
+  teamsMode: PggTeamsMode;
   installedVersion: string;
   updatedAt: string;
   dashboard: {
@@ -42,6 +51,7 @@ export interface RegistryProjectEntry {
   provider: PggProvider;
   language: PggLanguage;
   autoMode: PggAutoMode;
+  teamsMode: PggTeamsMode;
   lastOpenedAt: string;
 }
 
@@ -140,6 +150,7 @@ export interface ProjectSnapshot {
   provider: PggProvider;
   language: PggLanguage;
   autoMode: PggAutoMode;
+  teamsMode: PggTeamsMode;
   installedVersion: string | null;
   dashboardDefaultPort: number;
   hasAgents: boolean;
@@ -161,6 +172,7 @@ export interface InitOptions {
   provider?: PggProvider;
   language?: PggLanguage;
   autoMode?: PggAutoMode;
+  teamsMode?: PggTeamsMode;
 }
 
 function checksum(value: string): string {
@@ -278,11 +290,22 @@ function normalizeCategories(
 
 function normalizeRegistryData(registry: GlobalRegistry): { registry: GlobalRegistry; changed: boolean } {
   const timestamp = nowIso();
-  const projectIds = registry.projects.map((entry) => entry.id);
+  let changed = false;
+  const projects = registry.projects.map((entry) => {
+    if (!entry.teamsMode) {
+      changed = true;
+    }
+
+    return {
+      ...entry,
+      teamsMode: entry.teamsMode ?? "off"
+    };
+  });
+  const projectIds = projects.map((entry) => entry.id);
   const normalizedCategories = normalizeCategories(registry.dashboard?.categories, projectIds, timestamp);
   const nextRegistry: GlobalRegistry = {
     version: Math.max(registry.version ?? 1, 2),
-    projects: registry.projects,
+    projects,
     dashboard: {
       categories: normalizedCategories.categories
     }
@@ -291,6 +314,7 @@ function normalizeRegistryData(registry: GlobalRegistry): { registry: GlobalRegi
   return {
     registry: nextRegistry,
     changed:
+      changed ||
       normalizedCategories.changed ||
       nextRegistry.version !== registry.version ||
       !registry.dashboard
@@ -326,19 +350,80 @@ function buildTemplateInput(manifest: ProjectManifest): TemplateInput {
   return {
     language: manifest.language,
     autoMode: manifest.autoMode,
+    teamsMode: manifest.teamsMode,
     provider: manifest.provider,
     version: manifest.installedVersion
   };
 }
 
+function normalizeProjectManifest(manifest: ProjectManifest): ProjectManifest {
+  return {
+    ...manifest,
+    schemaVersion: Math.max(manifest.schemaVersion ?? 1, 2),
+    teamsMode: manifest.teamsMode ?? "off"
+  };
+}
+
+async function removeEmptyParentDirs(rootDir: string, startDir: string): Promise<void> {
+  const resolvedRoot = path.resolve(rootDir);
+  let cursor = path.resolve(startDir);
+
+  while (cursor.startsWith(`${resolvedRoot}${path.sep}`)) {
+    const entries = await readdir(cursor).catch(() => null);
+    if (!entries || entries.length > 0) {
+      return;
+    }
+
+    await rm(cursor, { force: true }).catch(() => null);
+    const parent = path.dirname(cursor);
+    if (parent === cursor) {
+      return;
+    }
+
+    cursor = parent;
+  }
+}
+
+async function retireManagedFile(
+  rootDir: string,
+  record: ManagedFileRecord,
+  timestamp: string,
+  conflicts: SyncConflict[]
+): Promise<boolean> {
+  const target = path.join(rootDir, record.path);
+  const current = await readTextIfExists(target);
+  if (current === null) {
+    return false;
+  }
+
+  if (checksum(current) !== record.checksum) {
+    const backupPath = path.join(
+      rootDir,
+      ".pgg",
+      "backups",
+      `${timestamp.replaceAll(":", "-")}-${sanitizeFileName(record.path)}`
+    );
+    await writeTextFile(backupPath, current);
+    conflicts.push({
+      path: record.path,
+      backupPath: path.relative(rootDir, backupPath)
+    });
+  }
+
+  await rm(target, { force: true });
+  await removeEmptyParentDirs(rootDir, path.dirname(target));
+  return true;
+}
+
 export function createProjectManifest(rootDir: string, options: InitOptions = {}): ProjectManifest {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     projectName: path.basename(rootDir),
     rootDir,
     provider: options.provider ?? "codex",
     language: options.language ?? "ko",
     autoMode: options.autoMode ?? "on",
+    teamsMode: options.teamsMode ?? "off",
     installedVersion: PGG_VERSION,
     updatedAt: nowIso(),
     dashboard: {
@@ -354,12 +439,12 @@ export async function loadProjectManifest(rootDir: string): Promise<ProjectManif
     return null;
   }
 
-  return JSON.parse(raw) as ProjectManifest;
+  return normalizeProjectManifest(JSON.parse(raw) as ProjectManifest);
 }
 
 export async function saveProjectManifest(rootDir: string, manifest: ProjectManifest): Promise<void> {
   const target = manifestPath(rootDir);
-  await writeTextFile(target, `${JSON.stringify(manifest, null, 2)}\n`);
+  await writeTextFile(target, `${JSON.stringify(normalizeProjectManifest(manifest), null, 2)}\n`);
 }
 
 export async function loadGlobalRegistry(): Promise<GlobalRegistry> {
@@ -396,8 +481,9 @@ async function loadPersistedGlobalRegistry(): Promise<GlobalRegistry> {
 }
 
 export async function syncProject(rootDir: string, manifest: ProjectManifest): Promise<SyncResult> {
-  const priorManaged = new Map(manifest.managedFiles.map((entry) => [entry.path, entry]));
-  const templates = buildGeneratedFiles(buildTemplateInput(manifest));
+  const normalizedManifest = normalizeProjectManifest(manifest);
+  const priorManaged = new Map(normalizedManifest.managedFiles.map((entry) => [entry.path, entry]));
+  const templates = buildGeneratedFiles(buildTemplateInput(normalizedManifest));
   const created: string[] = [];
   const updated: string[] = [];
   const unchanged: string[] = [];
@@ -451,8 +537,20 @@ export async function syncProject(rootDir: string, manifest: ProjectManifest): P
     });
   }
 
+  const activeTemplatePaths = new Set(templates.map((template) => template.path));
+  for (const [managedPath, record] of priorManaged.entries()) {
+    if (activeTemplatePaths.has(managedPath)) {
+      continue;
+    }
+
+    const retired = await retireManagedFile(rootDir, record, timestamp, conflicts);
+    if (retired) {
+      updated.push(managedPath);
+    }
+  }
+
   const nextManifest: ProjectManifest = {
-    ...manifest,
+    ...normalizedManifest,
     installedVersion: PGG_VERSION,
     updatedAt: timestamp,
     managedFiles: nextManaged
@@ -478,6 +576,7 @@ export async function registerProject(manifest: ProjectManifest): Promise<Global
     provider: manifest.provider,
     language: manifest.language,
     autoMode: manifest.autoMode,
+    teamsMode: manifest.teamsMode,
     lastOpenedAt: nowIso()
   };
 
@@ -526,6 +625,13 @@ export async function updateProjectLanguage(rootDir: string, language: PggLangua
 export async function updateProjectAutoMode(rootDir: string, autoMode: PggAutoMode): Promise<SyncResult> {
   const manifest = await requireManifest(rootDir);
   const syncResult = await syncProject(rootDir, { ...manifest, autoMode });
+  await registerProject(syncResult.manifest);
+  return syncResult;
+}
+
+export async function updateProjectTeamsMode(rootDir: string, teamsMode: PggTeamsMode): Promise<SyncResult> {
+  const manifest = await requireManifest(rootDir);
+  const syncResult = await syncProject(rootDir, { ...manifest, teamsMode });
   await registerProject(syncResult.manifest);
   return syncResult;
 }
@@ -866,6 +972,7 @@ export async function analyzeProject(rootDir: string, registered = false): Promi
       provider: "codex",
       language: "ko",
       autoMode: "on",
+      teamsMode: "off",
       installedVersion: null,
       dashboardDefaultPort: 4173,
       hasAgents: false,
@@ -890,6 +997,7 @@ export async function analyzeProject(rootDir: string, registered = false): Promi
     provider: manifest?.provider ?? "codex",
     language: manifest?.language ?? "ko",
     autoMode: manifest?.autoMode ?? "on",
+    teamsMode: manifest?.teamsMode ?? "off",
     installedVersion: manifest?.installedVersion ?? null,
     dashboardDefaultPort: manifest?.dashboard.defaultPort ?? 4173,
     hasAgents: existsSync(path.join(rootDir, "AGENTS.md")),

@@ -5,11 +5,15 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  pgg: link:../../../Library/pnpm/global/5/node_modules/pgg
+  pgg: link:../../.local/share/pnpm/global/5/node_modules/pgg
 
 importers:
 
   .:
+    dependencies:
+      pgg:
+        specifier: link:../../.local/share/pnpm/global/5/node_modules/pgg
+        version: link:../../.local/share/pnpm/global/5/node_modules/pgg
     devDependencies:
       '@types/node':
         specifier: latest

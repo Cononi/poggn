@@ -17,5 +17,8 @@
   "devDependencies": {
     "@types/node": "latest",
     "typescript": "latest"
+  },
+  "dependencies": {
+    "pgg": "link:../../.local/share/pnpm/global/5/node_modules/pgg"
   }
 }
