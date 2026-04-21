@@ -12,6 +12,7 @@ import {
   type PggAutoMode,
   type PggLanguage,
   type PggTeamsMode,
+  summarizeSyncResult,
   updateProject,
   updateProjectAutoMode,
   updateProjectDashboardPort,
@@ -25,6 +26,12 @@ type CommandName = "init" | "update" | "lang" | "auto" | "teams" | "dashboard";
 interface ParsedArgs {
   command: CommandName | null;
   options: Record<string, string | boolean>;
+}
+
+class InteractiveCancelError extends Error {
+  constructor() {
+    super("Interactive selection was cancelled.");
+  }
 }
 
 function parseArgs(argv: string[]): ParsedArgs {
@@ -102,10 +109,26 @@ async function choose<T extends string>(question: string, options: Array<{ value
   };
 
   return await new Promise<T>((resolve, reject) => {
+    let cleanedUp = false;
+
     const cleanup = (): void => {
+      if (cleanedUp) {
+        return;
+      }
+      cleanedUp = true;
+
       input.off("keypress", onKeypress);
       if (typeof input.setRawMode === "function") {
         input.setRawMode(priorRawMode);
+      }
+      input.pause();
+
+      if (renderedLines > 1) {
+        moveCursor(output, 0, -(renderedLines - 1));
+      }
+      if (renderedLines > 0) {
+        cursorTo(output, 0);
+        clearScreenDown(output);
       }
       output.write("\n");
     };
@@ -113,7 +136,7 @@ async function choose<T extends string>(question: string, options: Array<{ value
     const onKeypress = (_value: string, key: { ctrl?: boolean; name?: string }): void => {
       if (key.ctrl && key.name === "c") {
         cleanup();
-        reject(new Error("Interactive selection was cancelled."));
+        reject(new InteractiveCancelError());
         return;
       }
 
@@ -169,16 +192,7 @@ function formatSyncResult(result: {
   unchanged: string[];
   conflicts: Array<{ path: string; backupPath: string }>;
 }): string {
-  return JSON.stringify(
-    {
-      created: result.created.length,
-      updated: result.updated.length,
-      unchanged: result.unchanged.length,
-      conflicts: result.conflicts
-    },
-    null,
-    2
-  );
+  return JSON.stringify(summarizeSyncResult(result), null, 2);
 }
 
 async function run(): Promise<void> {
@@ -328,6 +342,12 @@ async function run(): Promise<void> {
 }
 
 run().catch((error: unknown) => {
+  if (error instanceof InteractiveCancelError) {
+    output.write(`${JSON.stringify({ status: "cancelled" }, null, 2)}\n`);
+    process.exitCode = 0;
+    return;
+  }
+
   const message = error instanceof Error ? error.message : String(error);
   output.write(`${JSON.stringify({ error: message }, null, 2)}\n`);
   process.exitCode = 1;

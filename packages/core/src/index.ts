@@ -12,6 +12,19 @@ import {
   type TemplateProvider,
   type TemplateTeamsMode
 } from "./templates.js";
+export {
+  createProjectVerificationPreset,
+  normalizeProjectVerification,
+  resolveProjectVerification,
+  type ProjectVerificationCommand,
+  type ProjectVerificationConfig,
+  type ProjectVerificationMode,
+  type ProjectVerificationPreset,
+  type ProjectVerificationStatus,
+  type ResolvedProjectVerification,
+  type ResolvedProjectVerificationCommand
+} from "./verification.js";
+import { normalizeProjectVerification, resolveProjectVerification } from "./verification.js";
 
 export const PGG_VERSION = "0.1.0";
 export const MANIFEST_RELATIVE_PATH = ".pgg/project.json";
@@ -41,6 +54,7 @@ export interface ProjectManifest {
   dashboard: {
     defaultPort: number;
   };
+  verification: import("./verification.js").ProjectVerificationConfig;
   managedFiles: ManagedFileRecord[];
 }
 
@@ -88,6 +102,20 @@ export interface SyncResult {
   conflicts: SyncConflict[];
 }
 
+export interface SyncSummary {
+  status: "changed" | "unchanged" | "conflicted";
+  created: number;
+  updated: number;
+  unchanged: number;
+  conflicts: number;
+  paths: {
+    created: string[];
+    updated: string[];
+    unchanged: string[];
+    conflicts: SyncConflict[];
+  };
+}
+
 export interface TopicSummary {
   name: string;
   bucket: "active" | "archive";
@@ -97,6 +125,8 @@ export interface TopicSummary {
   score: number | null;
   blockingIssues: string | null;
   status: string | null;
+  version: string | null;
+  changeType: string | null;
   workflow: WorkflowDocument | null;
   health: "ok" | "partial";
 }
@@ -153,6 +183,11 @@ export interface ProjectSnapshot {
   teamsMode: PggTeamsMode;
   installedVersion: string | null;
   dashboardDefaultPort: number;
+  verificationMode: import("./verification.js").ProjectVerificationMode;
+  verificationStatus: import("./verification.js").ProjectVerificationStatus;
+  verificationPreset: import("./verification.js").ProjectVerificationPreset | null;
+  verificationReason: string | null;
+  verificationCommandCount: number;
   hasAgents: boolean;
   hasCodex: boolean;
   hasPoggn: boolean;
@@ -359,8 +394,9 @@ function buildTemplateInput(manifest: ProjectManifest): TemplateInput {
 function normalizeProjectManifest(manifest: ProjectManifest): ProjectManifest {
   return {
     ...manifest,
-    schemaVersion: Math.max(manifest.schemaVersion ?? 1, 2),
-    teamsMode: manifest.teamsMode ?? "off"
+    schemaVersion: Math.max(manifest.schemaVersion ?? 1, 3),
+    teamsMode: manifest.teamsMode ?? "off",
+    verification: normalizeProjectVerification(manifest.verification)
   };
 }
 
@@ -417,7 +453,7 @@ async function retireManagedFile(
 
 export function createProjectManifest(rootDir: string, options: InitOptions = {}): ProjectManifest {
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     projectName: path.basename(rootDir),
     rootDir,
     provider: options.provider ?? "codex",
@@ -429,6 +465,7 @@ export function createProjectManifest(rootDir: string, options: InitOptions = {}
     dashboard: {
       defaultPort: 4173
     },
+    verification: normalizeProjectVerification(undefined),
     managedFiles: []
   };
 }
@@ -482,6 +519,7 @@ async function loadPersistedGlobalRegistry(): Promise<GlobalRegistry> {
 
 export async function syncProject(rootDir: string, manifest: ProjectManifest): Promise<SyncResult> {
   const normalizedManifest = normalizeProjectManifest(manifest);
+  const priorManifestContent = await readTextIfExists(manifestPath(rootDir));
   const priorManaged = new Map(normalizedManifest.managedFiles.map((entry) => [entry.path, entry]));
   const templates = buildGeneratedFiles(buildTemplateInput(normalizedManifest));
   const created: string[] = [];
@@ -496,8 +534,10 @@ export async function syncProject(rootDir: string, manifest: ProjectManifest): P
     const current = await readTextIfExists(target);
     const nextChecksum = checksum(template.content);
     const previousManaged = priorManaged.get(template.path);
+    const preserveExistingContent = template.preserveExistingContent === true;
 
     if (
+      !preserveExistingContent &&
       current !== null &&
       previousManaged &&
       checksum(current) !== previousManaged.checksum &&
@@ -519,6 +559,8 @@ export async function syncProject(rootDir: string, manifest: ProjectManifest): P
     if (current === null) {
       await writeTextFile(target, template.content);
       created.push(template.path);
+    } else if (preserveExistingContent) {
+      unchanged.push(template.path);
     } else if (current !== template.content) {
       await writeTextFile(target, template.content);
       updated.push(template.path);
@@ -549,14 +591,32 @@ export async function syncProject(rootDir: string, manifest: ProjectManifest): P
     }
   }
 
-  const nextManifest: ProjectManifest = {
+  const nextManifestBase: ProjectManifest = {
     ...normalizedManifest,
     installedVersion: PGG_VERSION,
-    updatedAt: timestamp,
+    updatedAt: normalizedManifest.updatedAt,
     managedFiles: nextManaged
   };
+  const manifestChangedWithoutTimestamp =
+    priorManifestContent === null ||
+    `${JSON.stringify(nextManifestBase, null, 2)}\n` !== priorManifestContent;
+  const nextManifest: ProjectManifest = {
+    ...nextManifestBase,
+    updatedAt: manifestChangedWithoutTimestamp ? timestamp : normalizedManifest.updatedAt
+  };
+  const nextManifestContent = `${JSON.stringify(nextManifest, null, 2)}\n`;
 
-  await saveProjectManifest(rootDir, nextManifest);
+  if (priorManifestContent === null) {
+    created.push(MANIFEST_RELATIVE_PATH);
+  } else if (nextManifestContent !== priorManifestContent) {
+    updated.push(MANIFEST_RELATIVE_PATH);
+  } else {
+    unchanged.push(MANIFEST_RELATIVE_PATH);
+  }
+
+  if (priorManifestContent !== nextManifestContent) {
+    await writeTextFile(manifestPath(rootDir), nextManifestContent);
+  }
 
   return {
     manifest: nextManifest,
@@ -564,6 +624,30 @@ export async function syncProject(rootDir: string, manifest: ProjectManifest): P
     updated,
     unchanged,
     conflicts
+  };
+}
+
+export function summarizeSyncResult(
+  result: Pick<SyncResult, "created" | "updated" | "unchanged" | "conflicts">
+): SyncSummary {
+  const created = result.created.length;
+  const updated = result.updated.length;
+  const unchanged = result.unchanged.length;
+  const conflicts = result.conflicts.length;
+  const status = conflicts > 0 ? "conflicted" : created > 0 || updated > 0 ? "changed" : "unchanged";
+
+  return {
+    status,
+    created,
+    updated,
+    unchanged,
+    conflicts,
+    paths: {
+      created: [...result.created],
+      updated: [...result.updated],
+      unchanged: [...result.unchanged],
+      conflicts: result.conflicts.map((conflict) => ({ ...conflict }))
+    }
   };
 }
 
@@ -822,6 +906,31 @@ function parseBlockingIssues(markdown: string): string | null {
   return match?.[1]?.trim() ?? null;
 }
 
+async function readTopicVersion(
+  topicDir: string
+): Promise<{ version: string | null; changeType: string | null }> {
+  const raw = await readTextIfExists(path.join(topicDir, "version.json"));
+  if (!raw) {
+    return {
+      version: null,
+      changeType: null
+    };
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as { version?: string; changeType?: string };
+    return {
+      version: parsed.version ?? null,
+      changeType: parsed.changeType ?? null
+    };
+  } catch {
+    return {
+      version: null,
+      changeType: null
+    };
+  }
+}
+
 function toRelativePath(rootDir: string, absolutePath: string): string {
   return path.relative(rootDir, absolutePath) || path.basename(absolutePath);
 }
@@ -936,6 +1045,7 @@ async function listTopicSummaries(rootDir: string, bucket: "active" | "archive")
     const stateMarkdown = await readTextIfExists(statePath);
     const proposalMarkdown = await readTextIfExists(proposalPath);
     const workflow = await readWorkflow(path.join(topicDir, "workflow.reactflow.json"), rootDir, topicDir);
+    const release = await readTopicVersion(topicDir);
     const stage = stateMarkdown ? parseMarkdownSection(stateMarkdown, "Current Stage") : parseKeyValue(proposalMarkdown ?? "", "stage");
     const goal = stateMarkdown ? parseMarkdownSection(stateMarkdown, "Goal") : null;
     const nextAction = stateMarkdown ? parseMarkdownSection(stateMarkdown, "Next Action") : null;
@@ -952,6 +1062,8 @@ async function listTopicSummaries(rootDir: string, bucket: "active" | "archive")
       score,
       blockingIssues,
       status,
+      version: release.version,
+      changeType: release.changeType,
       workflow,
       health: stateMarkdown && workflow ? "ok" : "partial"
     });
@@ -963,6 +1075,7 @@ async function listTopicSummaries(rootDir: string, bucket: "active" | "archive")
 export async function analyzeProject(rootDir: string, registered = false): Promise<ProjectSnapshot> {
   const missingRoot = !(await stat(rootDir).then(() => true).catch(() => false));
   if (missingRoot) {
+    const verification = resolveProjectVerification(rootDir, undefined);
     return {
       id: stableProjectId(rootDir),
       name: path.basename(rootDir),
@@ -975,6 +1088,11 @@ export async function analyzeProject(rootDir: string, registered = false): Promi
       teamsMode: "off",
       installedVersion: null,
       dashboardDefaultPort: 4173,
+      verificationMode: verification.mode,
+      verificationStatus: verification.status,
+      verificationPreset: verification.preset,
+      verificationReason: verification.reason,
+      verificationCommandCount: verification.commands.length,
       hasAgents: false,
       hasCodex: false,
       hasPoggn: false,
@@ -987,6 +1105,7 @@ export async function analyzeProject(rootDir: string, registered = false): Promi
   const manifest = await loadProjectManifest(rootDir);
   const activeTopics = await listTopicSummaries(rootDir, "active");
   const archivedTopics = await listTopicSummaries(rootDir, "archive");
+  const verification = resolveProjectVerification(rootDir, manifest?.verification);
 
   return {
     id: stableProjectId(rootDir),
@@ -1000,6 +1119,11 @@ export async function analyzeProject(rootDir: string, registered = false): Promi
     teamsMode: manifest?.teamsMode ?? "off",
     installedVersion: manifest?.installedVersion ?? null,
     dashboardDefaultPort: manifest?.dashboard.defaultPort ?? 4173,
+    verificationMode: verification.mode,
+    verificationStatus: verification.status,
+    verificationPreset: verification.preset,
+    verificationReason: verification.reason,
+    verificationCommandCount: verification.commands.length,
     hasAgents: existsSync(path.join(rootDir, "AGENTS.md")),
     hasCodex: existsSync(path.join(rootDir, ".codex")),
     hasPoggn: existsSync(path.join(rootDir, "poggn")),

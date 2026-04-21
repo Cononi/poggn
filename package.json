@@ -9,7 +9,10 @@
     "build": "pnpm -r build",
     "build:readme": "pnpm --filter @pgg/core build && node --input-type=module -e \"import('./packages/core/dist/readme.js').then(({ writeRootReadme }) => writeRootReadme(process.cwd()))\"",
     "dev:dashboard": "pnpm --filter @pgg/dashboard dev",
-    "build:dashboard": "pnpm --filter @pgg/dashboard build"
+    "build:dashboard": "pnpm --filter @pgg/dashboard build",
+    "test": "pnpm test:core",
+    "test:core": "pnpm --filter @pgg/core test",
+    "verify:version-history": "node scripts/verify-version-history-preservation.mjs"
   },
   "bin": {
     "pgg": "./packages/cli/dist/index.js"

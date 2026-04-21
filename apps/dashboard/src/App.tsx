@@ -256,7 +256,7 @@ function App() {
       return true;
     }
 
-    return `${topic.name} ${topic.stage ?? ""} ${topic.goal ?? ""}`
+    return `${topic.name} ${topic.stage ?? ""} ${topic.goal ?? ""} ${topic.version ?? ""} ${topic.changeType ?? ""}`
       .toLowerCase()
       .includes(deferredFilter.toLowerCase());
   });
@@ -754,6 +754,8 @@ function App() {
                               </Typography>
                               <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
                                 {topic.stage ? <Chip size="small" label={topic.stage} /> : null}
+                                {topic.changeType ? <Chip size="small" label={topic.changeType} /> : null}
+                                {topic.version ? <Chip size="small" label={`${dictionary.version}: ${topic.version}`} /> : null}
                                 {typeof topic.score === "number" ? (
                                   <Chip size="small" color="success" label={`${dictionary.topicScore}: ${topic.score}`} />
                                 ) : null}
