@@ -1,0 +1,29 @@
+{
+  "topic": "pgg-major-bump-fix",
+  "version": "0.8.1",
+  "targetVersion": "0.8.1",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "commitTitle": "fix: Major bump contract",
+  "commitSha": "4b16d81041be1579a89717dccbbab9254cee4513",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/0.8.1-major-bump-fix",
+  "workingBranch": "ai/fix/0.8.1-major-bump-fix",
+  "releaseBranch": "release/0.8.1-major-bump-fix",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-22T13:14:52Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/0.8.1-major-bump-fix'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/pgg-major-bump-fix",
+    "versionFile": "poggn/archive/pgg-major-bump-fix/version.json"
+  }
+}
