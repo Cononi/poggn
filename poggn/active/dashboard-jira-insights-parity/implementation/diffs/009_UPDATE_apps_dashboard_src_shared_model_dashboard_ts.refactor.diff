@@ -1,0 +1,13 @@
+diff --git a/apps/dashboard/src/shared/model/dashboard.ts b/apps/dashboard/src/shared/model/dashboard.ts
+index affb282..8b40a28 100644
+--- a/apps/dashboard/src/shared/model/dashboard.ts
++++ b/apps/dashboard/src/shared/model/dashboard.ts
+@@ -185,6 +185,8 @@ export type DashboardWorkspaceFilterState = {
+   stage: "all" | "proposal" | "plan" | "implementation" | "qa" | "blocked";
+ };
+ 
++export type DashboardTone = "primary" | "success" | "warning" | "danger" | "neutral";
++
+ export type FlowStatus = "done" | "current" | "upcoming";
+ 
+ export type FlowNodeData = {

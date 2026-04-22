@@ -6,11 +6,11 @@ dashboard-jira-insights-parity
 
 ## Current Stage
 
-implementation
+refactor
 
 ## Goal
 
-`Insights.png` 기준 dashboard redesign 구현 결과를 기록하고 refactor 단계로 넘긴다.
+`Insights.png` 기준 dashboard redesign 구현을 구조적으로 정리하고 QA 단계로 넘긴다.
 
 ## Confirmed Scope
 
@@ -26,6 +26,7 @@ implementation
 - 우측 insights rail은 workload, trend, progress widget을 docked panel로 제공하며 compact viewport에서는 drawer로 축약된다.
 - shell state는 selected project, active sidebar item, topic filter, insights rail open 상태를 localStorage 기반으로 복원한다.
 - 기존 snapshot/API shape는 유지하고 current project/topic/recent activity projection을 backlog row와 analytics widget으로 재해석한다.
+- refactor 단계에서 `DashboardApp`의 shell presentation은 `DashboardShellChrome.tsx`로 분리했고, backlog/insights tone 계산은 `shared/theme/dashboardTone.ts`로 통합했다.
 - `pnpm build:dashboard`, `pnpm build`, `pnpm test`를 통과했고 current-project verification contract 미선언 상태는 그대로 유지되어 `manual verification required`를 남긴다.
 
 ## Constraints
@@ -97,6 +98,7 @@ implementation
 | CREATE | `poggn/active/dashboard-jira-insights-parity/reviews/task.review.md` | 없음 |
 | CREATE | `poggn/active/dashboard-jira-insights-parity/implementation/index.md` | 없음 |
 | CREATE | `poggn/active/dashboard-jira-insights-parity/reviews/code.review.md` | 없음 |
+| CREATE | `poggn/active/dashboard-jira-insights-parity/reviews/refactor.review.md` | 없음 |
 | CREATE | `poggn/active/dashboard-jira-insights-parity/implementation/diffs/001_UPDATE_apps_dashboard_src_shared_model_dashboard_ts.diff` | 없음 |
 | CREATE | `poggn/active/dashboard-jira-insights-parity/implementation/diffs/002_UPDATE_apps_dashboard_src_shared_store_dashboardStore_ts.diff` | 없음 |
 | CREATE | `poggn/active/dashboard-jira-insights-parity/implementation/diffs/003_UPDATE_apps_dashboard_src_shared_theme_dashboardTheme_ts.diff` | 없음 |
@@ -119,15 +121,30 @@ implementation
 | CREATE | `apps/dashboard/src/features/backlog/BacklogWorkspace.tsx` | `implementation/diffs/006_CREATE_apps_dashboard_src_features_backlog_BacklogWorkspace_tsx.diff` |
 | CREATE | `apps/dashboard/src/features/backlog/InsightsRail.tsx` | `implementation/diffs/007_CREATE_apps_dashboard_src_features_backlog_InsightsRail_tsx.diff` |
 | UPDATE | `apps/dashboard/src/app/DashboardApp.tsx` | `implementation/diffs/008_UPDATE_apps_dashboard_src_app_DashboardApp_tsx.diff` |
+| CREATE | `poggn/active/dashboard-jira-insights-parity/implementation/diffs/009_UPDATE_apps_dashboard_src_shared_model_dashboard_ts.refactor.diff` | 없음 |
+| CREATE | `poggn/active/dashboard-jira-insights-parity/implementation/diffs/010_UPDATE_apps_dashboard_src_app_dashboardShell_ts.refactor.diff` | 없음 |
+| CREATE | `poggn/active/dashboard-jira-insights-parity/implementation/diffs/011_UPDATE_apps_dashboard_src_features_backlog_BacklogWorkspace_tsx.refactor.diff` | 없음 |
+| CREATE | `poggn/active/dashboard-jira-insights-parity/implementation/diffs/012_UPDATE_apps_dashboard_src_features_backlog_InsightsRail_tsx.refactor.diff` | 없음 |
+| CREATE | `poggn/active/dashboard-jira-insights-parity/implementation/diffs/013_CREATE_apps_dashboard_src_shared_theme_dashboardTone_ts.refactor.diff` | 없음 |
+| CREATE | `poggn/active/dashboard-jira-insights-parity/implementation/diffs/014_UPDATE_apps_dashboard_src_app_DashboardApp_tsx.refactor.diff` | 없음 |
+| CREATE | `poggn/active/dashboard-jira-insights-parity/implementation/diffs/015_CREATE_apps_dashboard_src_app_DashboardShellChrome_tsx.refactor.diff` | 없음 |
+| UPDATE | `apps/dashboard/src/shared/model/dashboard.ts` | `implementation/diffs/009_UPDATE_apps_dashboard_src_shared_model_dashboard_ts.refactor.diff` |
+| UPDATE | `apps/dashboard/src/app/dashboardShell.ts` | `implementation/diffs/010_UPDATE_apps_dashboard_src_app_dashboardShell_ts.refactor.diff` |
+| UPDATE | `apps/dashboard/src/features/backlog/BacklogWorkspace.tsx` | `implementation/diffs/011_UPDATE_apps_dashboard_src_features_backlog_BacklogWorkspace_tsx.refactor.diff` |
+| UPDATE | `apps/dashboard/src/features/backlog/InsightsRail.tsx` | `implementation/diffs/012_UPDATE_apps_dashboard_src_features_backlog_InsightsRail_tsx.refactor.diff` |
+| CREATE | `apps/dashboard/src/shared/theme/dashboardTone.ts` | `implementation/diffs/013_CREATE_apps_dashboard_src_shared_theme_dashboardTone_ts.refactor.diff` |
+| UPDATE | `apps/dashboard/src/app/DashboardApp.tsx` | `implementation/diffs/014_UPDATE_apps_dashboard_src_app_DashboardApp_tsx.refactor.diff` |
+| CREATE | `apps/dashboard/src/app/DashboardShellChrome.tsx` | `implementation/diffs/015_CREATE_apps_dashboard_src_app_DashboardShellChrome_tsx.refactor.diff` |
 | UPDATE | `poggn/active/dashboard-jira-insights-parity/state/current.md` | 없음 |
 | UPDATE | `poggn/active/dashboard-jira-insights-parity/state/history.ndjson` | 없음 |
+| UPDATE | `poggn/active/dashboard-jira-insights-parity/implementation/index.md` | 없음 |
 
 ## Last Expert Score
 
-- phase: implementation
-- score: 95
+- phase: refactor
+- score: 96
 - blocking issues: 없음
 
 ## Next Action
 
-`pgg-refactor`로 shell helper, locale copy, widget mapping, component 책임 분리를 정리
+`pgg-qa`로 Jira insights parity의 시각 정합성과 residual chunk warning을 확인

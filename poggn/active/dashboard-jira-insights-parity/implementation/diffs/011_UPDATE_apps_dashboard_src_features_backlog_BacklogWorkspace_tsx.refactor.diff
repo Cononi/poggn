@@ -1,0 +1,76 @@
+diff --git a/apps/dashboard/src/features/backlog/BacklogWorkspace.tsx b/apps/dashboard/src/features/backlog/BacklogWorkspace.tsx
+index e096e1f..6e92863 100644
+--- a/apps/dashboard/src/features/backlog/BacklogWorkspace.tsx
++++ b/apps/dashboard/src/features/backlog/BacklogWorkspace.tsx
+@@ -14,9 +14,14 @@ import {
+ import { useMemo, useState, type CSSProperties } from "react";
+ import type {
+   DashboardLocale,
++  DashboardTone,
+   DashboardWorkspaceFilterState,
+   ProjectSnapshot
+ } from "../../shared/model/dashboard";
++import {
++  resolveDashboardToneChip,
++  resolveDashboardToneDot
++} from "../../shared/theme/dashboardTone";
+ import { formatDate } from "../../shared/utils/dashboard";
+ import type { BacklogSectionModel } from "../../app/dashboardShell";
+ 
+@@ -318,52 +323,19 @@ function ToolbarField(props: { children: React.ReactNode; compact?: boolean }) {
+   );
+ }
+ 
+-function MetricDot(props: { tone: "primary" | "success" | "warning" | "danger" | "neutral" }) {
++function MetricDot(props: { tone: DashboardTone }) {
+   const theme = useTheme();
+-  const color =
+-    props.tone === "success"
+-      ? theme.palette.success.main
+-      : props.tone === "warning"
+-        ? theme.palette.warning.main
+-        : props.tone === "danger"
+-          ? theme.palette.error.main
+-          : props.tone === "neutral"
+-            ? alpha(theme.palette.text.secondary, 0.78)
+-            : theme.palette.primary.main;
+ 
+-  return <Box sx={{ width: 12, height: 12, borderRadius: 0.3, bgcolor: color }} />;
++  return <Box sx={{ width: 12, height: 12, borderRadius: 0.3, bgcolor: resolveDashboardToneDot(theme, props.tone) }} />;
+ }
+ 
+ function ToneChip(props: {
+   label: string;
+-  tone: "primary" | "success" | "warning" | "danger" | "neutral";
++  tone: DashboardTone;
+   outlined?: boolean;
+ }) {
+   const theme = useTheme();
+-  const colorMap = {
+-    primary: {
+-      color: theme.palette.primary.contrastText,
+-      background: theme.palette.primary.main
+-    },
+-    success: {
+-      color: theme.palette.success.contrastText,
+-      background: theme.palette.success.main
+-    },
+-    warning: {
+-      color: theme.palette.warning.contrastText,
+-      background: theme.palette.warning.main
+-    },
+-    danger: {
+-      color: theme.palette.error.contrastText,
+-      background: theme.palette.error.main
+-    },
+-    neutral: {
+-      color: theme.palette.text.primary,
+-      background: alpha(theme.palette.text.secondary, 0.18)
+-    }
+-  } as const;
+-
+-  const token = colorMap[props.tone];
++  const token = resolveDashboardToneChip(theme, props.tone);
+ 
+   return (
+     <Chip

@@ -1,0 +1,69 @@
+diff --git a/apps/dashboard/src/app/dashboardShell.ts b/apps/dashboard/src/app/dashboardShell.ts
+index e2013cb..a9c8764 100644
+--- a/apps/dashboard/src/app/dashboardShell.ts
++++ b/apps/dashboard/src/app/dashboardShell.ts
+@@ -5,6 +5,7 @@ import type {
+   DashboardRecentActivityEntry,
+   DashboardQueryResult,
+   DashboardSnapshot,
++  DashboardTone,
+   DashboardWorkspaceFilterState,
+   ProjectSnapshot,
+   TopicSummary
+@@ -26,8 +27,6 @@ export type DashboardInteractionName =
+   | "detail-open"
+   | "project-move";
+ 
+-export type BacklogRowTone = "primary" | "success" | "warning" | "danger" | "neutral";
+-
+ export type BacklogRowModel = {
+   id: string;
+   topicKey: string;
+@@ -35,9 +34,9 @@ export type BacklogRowModel = {
+   title: string;
+   summary: string;
+   label: string;
+-  labelTone: BacklogRowTone;
++  labelTone: DashboardTone;
+   status: string;
+-  statusTone: BacklogRowTone;
++  statusTone: DashboardTone;
+   metric: string;
+   assigneeInitials: string;
+   assigneeHue: number;
+@@ -57,7 +56,7 @@ export type InsightMetricItem = {
+   label: string;
+   value: number;
+   displayValue: string;
+-  tone: BacklogRowTone;
++  tone: DashboardTone;
+ };
+ 
+ export type InsightWidgetModel = {
+@@ -320,7 +319,7 @@ function buildTicketKey(project: ProjectSnapshot, topic: TopicSummary, index: nu
+   return `${projectKey}-${topicWeight + index + 1}`;
+ }
+ 
+-function buildRowLabel(topic: TopicSummary): { label: string; tone: BacklogRowTone } {
++function buildRowLabel(topic: TopicSummary): { label: string; tone: DashboardTone } {
+   if (topic.archiveType) {
+     return {
+       label: topic.archiveType.toUpperCase(),
+@@ -341,7 +340,7 @@ function buildRowLabel(topic: TopicSummary): { label: string; tone: BacklogRowTo
+   };
+ }
+ 
+-function buildRowStatus(topic: TopicSummary): { label: string; tone: BacklogRowTone } {
++function buildRowStatus(topic: TopicSummary): { label: string; tone: DashboardTone } {
+   const normalizedStage = normalizeStage(topic);
+   if (normalizedStage === "blocked") {
+     return { label: "BLOCKED", tone: "danger" };
+@@ -449,7 +448,7 @@ function buildMetricItem(
+   id: string,
+   label: string,
+   value: number,
+-  tone: BacklogRowTone
++  tone: DashboardTone
+ ): InsightMetricItem {
+   return {
+     id,

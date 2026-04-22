@@ -185,6 +185,8 @@ export type DashboardWorkspaceFilterState = {
   stage: "all" | "proposal" | "plan" | "implementation" | "qa" | "blocked";
 };
 
+export type DashboardTone = "primary" | "success" | "warning" | "danger" | "neutral";
+
 export type FlowStatus = "done" | "current" | "upcoming";
 
 export type FlowNodeData = {

@@ -2,6 +2,7 @@ import { alpha, useTheme } from "@mui/material/styles";
 import { Avatar, Box, ButtonBase, Chip, Paper, Stack, Typography } from "@mui/material";
 import { useState } from "react";
 import type { DashboardLocale } from "../../shared/model/dashboard";
+import { resolveDashboardToneAccent } from "../../shared/theme/dashboardTone";
 import type { InsightsSummaryModel } from "../../app/dashboardShell";
 
 type InsightsRailProps = {
@@ -130,7 +131,7 @@ function BarWidget(props: { widget: InsightsSummaryModel["widgets"][number] }) {
                 width: `${Math.max((item.value / maxValue) * 100, item.value > 0 ? 10 : 0)}%`,
                 height: "100%",
                 borderRadius: 999,
-                bgcolor: toneColor(theme, item.tone)
+                bgcolor: resolveDashboardToneAccent(theme, item.tone)
               }}
             />
           </Box>
@@ -159,7 +160,7 @@ function ProgressWidget(props: { widget: InsightsSummaryModel["widgets"][number]
             key={item.id}
             sx={{
               borderRadius: 999,
-              bgcolor: toneColor(theme, item.tone)
+              bgcolor: resolveDashboardToneAccent(theme, item.tone)
             }}
           />
         ))}
@@ -171,7 +172,10 @@ function ProgressWidget(props: { widget: InsightsSummaryModel["widgets"][number]
             <Typography variant="caption" color="text.secondary">
               {item.label}
             </Typography>
-            <Typography variant="h5" sx={{ lineHeight: 1.1, color: toneColor(theme, item.tone) }}>
+            <Typography
+              variant="h5"
+              sx={{ lineHeight: 1.1, color: resolveDashboardToneAccent(theme, item.tone) }}
+            >
               {Math.round((item.value / total) * 100)}%
             </Typography>
           </Stack>
@@ -201,21 +205,4 @@ function InsightMark() {
       </Box>
     </Avatar>
   );
-}
-
-function toneColor(theme: ReturnType<typeof useTheme>, tone: "primary" | "success" | "warning" | "danger" | "neutral") {
-  if (tone === "success") {
-    return theme.palette.success.main;
-  }
-  if (tone === "warning") {
-    return theme.palette.warning.main;
-  }
-  if (tone === "danger") {
-    return theme.palette.error.main;
-  }
-  if (tone === "neutral") {
-    return alpha(theme.palette.primary.light, 0.66);
-  }
-
-  return theme.palette.primary.main;
 }

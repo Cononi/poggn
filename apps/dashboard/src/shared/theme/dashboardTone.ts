@@ -1,0 +1,62 @@
+import { alpha, type Theme } from "@mui/material/styles";
+import type { DashboardTone } from "../model/dashboard";
+
+export function resolveDashboardToneAccent(theme: Theme, tone: DashboardTone): string {
+  if (tone === "success") {
+    return theme.palette.success.main;
+  }
+  if (tone === "warning") {
+    return theme.palette.warning.main;
+  }
+  if (tone === "danger") {
+    return theme.palette.error.main;
+  }
+  if (tone === "neutral") {
+    return alpha(theme.palette.primary.light, 0.66);
+  }
+
+  return theme.palette.primary.main;
+}
+
+export function resolveDashboardToneDot(theme: Theme, tone: DashboardTone): string {
+  if (tone === "neutral") {
+    return alpha(theme.palette.text.secondary, 0.78);
+  }
+
+  return resolveDashboardToneAccent(theme, tone);
+}
+
+export function resolveDashboardToneChip(theme: Theme, tone: DashboardTone): {
+  color: string;
+  background: string;
+} {
+  if (tone === "primary") {
+    return {
+      color: theme.palette.primary.contrastText,
+      background: theme.palette.primary.main
+    };
+  }
+  if (tone === "success") {
+    return {
+      color: theme.palette.success.contrastText,
+      background: theme.palette.success.main
+    };
+  }
+  if (tone === "warning") {
+    return {
+      color: theme.palette.warning.contrastText,
+      background: theme.palette.warning.main
+    };
+  }
+  if (tone === "danger") {
+    return {
+      color: theme.palette.error.contrastText,
+      background: theme.palette.error.main
+    };
+  }
+
+  return {
+    color: theme.palette.text.primary,
+    background: alpha(theme.palette.text.secondary, 0.18)
+  };
+}
