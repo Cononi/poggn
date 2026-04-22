@@ -10,9 +10,10 @@
 - `pgg teams`가 `off`여도 handoff 형식은 같은 최소 컨텍스트 계약을 유지한다.
 - pgg가 생성·관리하는 `.codex/sh/*.sh` helper만 trusted handoff/automation script로 본다.
 - `archive_type`, `version_bump`, `target_version`, branch naming, `project_scope`, archive 후의 version 정보는 최소 컨텍스트에 유지한다.
-- proposal 단계에서는 사용자 입력 질문 기록 섹션의 위치 또는 ref를 최소 컨텍스트에 유지한다.
+- proposal 단계에서는 사용자 입력 질문 기록 섹션의 위치 또는 ref와 `version_bump`, `target_version` 선택 결과를 최소 컨텍스트에 유지한다.
 - `Audit Applicability` 섹션의 상태와 짧은 근거를 최소 컨텍스트에 유지한다.
 - `pgg git=on`이면 `Git Publish Message` 섹션 또는 그 ref를 최소 컨텍스트에 유지한다.
+- `pgg-state-pack.sh` 출력은 최소한 `archive_type`, `version_bump`, `target_version`, `short_name`, branch naming, `Git Publish Message` 정보를 key/value 형태로 드러내야 한다.
 - 변경 파일은 `Changed Files` 섹션에 CRUD와 diff 경로로 기록한다.
 - 마지막 전문가 점수와 blocking issue를 유지한다.
 - `state/current.md`에는 review 전문을 복사하지 말고 결정, 점수, blocking issue만 요약한다.

@@ -69,6 +69,11 @@ NEXT_ACTION="$(extract_section "Next Action" | tr '\n' ' ' | sed 's/[[:space:]]\
 AUTO_MODE="$(read_json_field autoMode)"
 TEAMS_MODE="$(read_json_field teamsMode)"
 ARCHIVE_TYPE="$(read_proposal_field archive_type)"
+VERSION_BUMP="$(read_proposal_field version_bump)"
+TARGET_VERSION="$(read_proposal_field target_version)"
+SHORT_NAME="$(read_proposal_field short_name)"
+WORKING_BRANCH="$(read_proposal_field working_branch)"
+RELEASE_BRANCH="$(read_proposal_field release_branch)"
 PROJECT_SCOPE="$(read_proposal_field project_scope)"
 ARCHIVE_VERSION="$(read_version_field version)"
 
@@ -79,6 +84,11 @@ printf 'auto_mode: %s\n' "${AUTO_MODE:-on}"
 printf 'teams_mode: %s\n' "${TEAMS_MODE:-off}"
 printf 'project_scope: %s\n' "${PROJECT_SCOPE:-}"
 printf 'archive_type: %s\n' "${ARCHIVE_TYPE:-}"
+printf 'version_bump: %s\n' "${VERSION_BUMP:-}"
+printf 'target_version: %s\n' "${TARGET_VERSION:-}"
+printf 'short_name: %s\n' "${SHORT_NAME:-}"
+printf 'working_branch: %s\n' "${WORKING_BRANCH:-}"
+printf 'release_branch: %s\n' "${RELEASE_BRANCH:-}"
 printf 'archive_version: %s\n' "${ARCHIVE_VERSION:-}"
 printf 'goal: %s\n' "${GOAL:-}"
 printf 'next_action: %s\n' "${NEXT_ACTION:-}"
@@ -107,5 +117,6 @@ if [[ -n "$AUDIT_APPLICABILITY" ]]; then
   printf 'audit_applicability:\n%s\n' "$AUDIT_APPLICABILITY"
 fi
 if [[ -n "$GIT_PUBLISH_MESSAGE" ]]; then
+  printf 'git_publish_message_ref: %s#Git Publish Message\n' "$(to_rel "$STATE_FILE")"
   printf 'git_publish_message:\n%s\n' "$GIT_PUBLISH_MESSAGE"
 fi

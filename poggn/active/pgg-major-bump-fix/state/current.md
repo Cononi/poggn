@@ -54,7 +54,7 @@ implementation
 
 - `T1`: completed
 - `T2`: completed
-- `T3`: pending
+- `T3`: completed
 - `T4`: pending
 - `T5`: pending
 
@@ -104,4 +104,4 @@ implementation
 
 ## Next Action
 
-`T3`
+`T4`
