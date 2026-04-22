@@ -69,6 +69,17 @@ export type TopicSummary = {
   version: string | null;
   changeType: string | null;
   archiveType: string | null;
+  versionBump: string | null;
+  targetVersion: string | null;
+  workingBranch: string | null;
+  releaseBranch: string | null;
+  publishResultType: string | null;
+  publishPushStatus: string | null;
+  publishMode: string | null;
+  upstreamStatus: string | null;
+  cleanupStatus: string | null;
+  cleanupReason: string | null;
+  cleanupTiming: string | null;
   archivedAt: string | null;
   workflow: WorkflowDocument | null;
   artifactSummary: TopicArtifactSummary;

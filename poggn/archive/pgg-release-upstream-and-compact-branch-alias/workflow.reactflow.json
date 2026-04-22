@@ -1,0 +1,172 @@
+{
+  "topic": "pgg-release-upstream-and-compact-branch-alias",
+  "nodes": [
+    {
+      "id": "proposal",
+      "type": "doc",
+      "position": { "x": 0, "y": 0 },
+      "data": {
+        "label": "proposal.md",
+        "path": "poggn/active/pgg-release-upstream-and-compact-branch-alias/proposal.md",
+        "stage": "proposal"
+      }
+    },
+    {
+      "id": "proposal-review",
+      "type": "review",
+      "position": { "x": 220, "y": 0 },
+      "data": {
+        "label": "reviews/proposal.review.md",
+        "path": "poggn/active/pgg-release-upstream-and-compact-branch-alias/reviews/proposal.review.md",
+        "stage": "proposal"
+      }
+    },
+    {
+      "id": "plan",
+      "type": "doc",
+      "position": { "x": 0, "y": 160 },
+      "data": {
+        "label": "plan.md",
+        "path": "poggn/active/pgg-release-upstream-and-compact-branch-alias/plan.md",
+        "stage": "plan"
+      }
+    },
+    {
+      "id": "task",
+      "type": "task",
+      "position": { "x": 220, "y": 160 },
+      "data": {
+        "label": "task.md",
+        "path": "poggn/active/pgg-release-upstream-and-compact-branch-alias/task.md",
+        "stage": "plan"
+      }
+    },
+    {
+      "id": "spec-git-upstream-first-publish",
+      "type": "spec",
+      "position": { "x": 0, "y": 320 },
+      "data": {
+        "label": "spec/git/release-upstream-first-publish.md",
+        "path": "poggn/active/pgg-release-upstream-and-compact-branch-alias/spec/git/release-upstream-first-publish.md",
+        "stage": "plan"
+      }
+    },
+    {
+      "id": "spec-git-concise-alias",
+      "type": "spec",
+      "position": { "x": 220, "y": 320 },
+      "data": {
+        "label": "spec/git/concise-branch-alias-contract.md",
+        "path": "poggn/active/pgg-release-upstream-and-compact-branch-alias/spec/git/concise-branch-alias-contract.md",
+        "stage": "plan"
+      }
+    },
+    {
+      "id": "spec-runtime-metadata-alignment",
+      "type": "spec",
+      "position": { "x": 440, "y": 320 },
+      "data": {
+        "label": "spec/runtime/metadata-surface-alignment.md",
+        "path": "poggn/active/pgg-release-upstream-and-compact-branch-alias/spec/runtime/metadata-surface-alignment.md",
+        "stage": "plan"
+      }
+    },
+    {
+      "id": "spec-dashboard-compact-release-review",
+      "type": "spec",
+      "position": { "x": 660, "y": 320 },
+      "data": {
+        "label": "spec/dashboard/compact-release-review-surface.md",
+        "path": "poggn/active/pgg-release-upstream-and-compact-branch-alias/spec/dashboard/compact-release-review-surface.md",
+        "stage": "plan"
+      }
+    },
+    {
+      "id": "spec-qa-upstream-publish-alias",
+      "type": "spec",
+      "position": { "x": 880, "y": 320 },
+      "data": {
+        "label": "spec/qa/regression-proof-for-upstream-publish-and-alias.md",
+        "path": "poggn/active/pgg-release-upstream-and-compact-branch-alias/spec/qa/regression-proof-for-upstream-publish-and-alias.md",
+        "stage": "plan"
+      }
+    },
+    {
+      "id": "plan-review",
+      "type": "review",
+      "position": { "x": 440, "y": 160 },
+      "data": {
+        "label": "reviews/plan.review.md",
+        "path": "poggn/active/pgg-release-upstream-and-compact-branch-alias/reviews/plan.review.md",
+        "stage": "plan"
+      }
+    },
+    {
+      "id": "task-review",
+      "type": "review",
+      "position": { "x": 660, "y": 160 },
+      "data": {
+        "label": "reviews/task.review.md",
+        "path": "poggn/active/pgg-release-upstream-and-compact-branch-alias/reviews/task.review.md",
+        "stage": "plan"
+      }
+    },
+    {
+      "id": "implementation-index",
+      "type": "doc",
+      "position": { "x": 220, "y": 480 },
+      "data": {
+        "label": "implementation/index.md",
+        "path": "poggn/active/pgg-release-upstream-and-compact-branch-alias/implementation/index.md",
+        "stage": "implementation"
+      }
+    },
+    {
+      "id": "code-review",
+      "type": "review",
+      "position": { "x": 440, "y": 480 },
+      "data": {
+        "label": "reviews/code.review.md",
+        "path": "poggn/active/pgg-release-upstream-and-compact-branch-alias/reviews/code.review.md",
+        "stage": "implementation"
+      }
+    },
+    {
+      "id": "refactor-review",
+      "type": "review",
+      "position": { "x": 660, "y": 480 },
+      "data": {
+        "label": "reviews/refactor.review.md",
+        "path": "poggn/active/pgg-release-upstream-and-compact-branch-alias/reviews/refactor.review.md",
+        "stage": "refactor"
+      }
+    },
+    {
+      "id": "qa-report",
+      "type": "review",
+      "position": { "x": 880, "y": 480 },
+      "data": {
+        "label": "qa/report.md",
+        "path": "poggn/active/pgg-release-upstream-and-compact-branch-alias/qa/report.md",
+        "stage": "qa"
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e-proposal-review", "source": "proposal", "target": "proposal-review" },
+    { "id": "e-proposal-plan", "source": "proposal", "target": "plan" },
+    { "id": "e-proposal-review-plan", "source": "proposal-review", "target": "plan" },
+    { "id": "e-plan-task", "source": "plan", "target": "task" },
+    { "id": "e-plan-spec-git-upstream", "source": "plan", "target": "spec-git-upstream-first-publish" },
+    { "id": "e-plan-spec-git-alias", "source": "plan", "target": "spec-git-concise-alias" },
+    { "id": "e-plan-spec-runtime", "source": "plan", "target": "spec-runtime-metadata-alignment" },
+    { "id": "e-plan-spec-dashboard", "source": "plan", "target": "spec-dashboard-compact-release-review" },
+    { "id": "e-plan-spec-qa", "source": "plan", "target": "spec-qa-upstream-publish-alias" },
+    { "id": "e-plan-review", "source": "plan", "target": "plan-review" },
+    { "id": "e-task-review", "source": "task", "target": "task-review" },
+    { "id": "e-task-implementation", "source": "task", "target": "implementation-index" },
+    { "id": "e-implementation-review", "source": "implementation-index", "target": "code-review" },
+    { "id": "e-code-refactor-review", "source": "code-review", "target": "refactor-review" },
+    { "id": "e-refactor-qa-report", "source": "refactor-review", "target": "qa-report" }
+  ]
+}

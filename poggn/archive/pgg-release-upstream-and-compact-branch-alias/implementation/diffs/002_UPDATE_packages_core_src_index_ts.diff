@@ -1,0 +1,177 @@
+diff --git a/packages/core/src/index.ts b/packages/core/src/index.ts
+index 83c0f3e..8057646 100644
+--- a/packages/core/src/index.ts
++++ b/packages/core/src/index.ts
+@@ -136,6 +136,17 @@ export interface TopicSummary {
+   version: string | null;
+   changeType: string | null;
+   archiveType: string | null;
++  versionBump: string | null;
++  targetVersion: string | null;
++  workingBranch: string | null;
++  releaseBranch: string | null;
++  publishResultType: string | null;
++  publishPushStatus: string | null;
++  publishMode: string | null;
++  upstreamStatus: string | null;
++  cleanupStatus: string | null;
++  cleanupReason: string | null;
++  cleanupTiming: string | null;
+   archivedAt: string | null;
+   workflow: WorkflowDocument | null;
+   artifactSummary: TopicArtifactSummary;
+@@ -1317,30 +1328,121 @@ function resolveAuditRecommendation(
+   return null;
+ }
+ 
+-async function readTopicVersion(
+-  topicDir: string
+-): Promise<{ version: string | null; changeType: string | null; archivedAt: string | null }> {
++async function readTopicVersion(topicDir: string): Promise<{
++  version: string | null;
++  changeType: string | null;
++  archivedAt: string | null;
++  versionBump: string | null;
++  targetVersion: string | null;
++  workingBranch: string | null;
++  releaseBranch: string | null;
++}> {
+   const raw = await readTextIfExists(path.join(topicDir, "version.json"));
+   if (!raw) {
+     return {
+       version: null,
+       changeType: null,
+-      archivedAt: null
++      archivedAt: null,
++      versionBump: null,
++      targetVersion: null,
++      workingBranch: null,
++      releaseBranch: null
+     };
+   }
+ 
+   try {
+-    const parsed = JSON.parse(raw) as { version?: string; changeType?: string; archivedAt?: string };
++    const parsed = JSON.parse(raw) as {
++      version?: string;
++      changeType?: string;
++      archivedAt?: string;
++      versionBump?: string;
++      targetVersion?: string;
++      workingBranch?: string;
++      releaseBranch?: string;
++    };
+     return {
+       version: parsed.version ?? null,
+       changeType: parsed.changeType ?? null,
+-      archivedAt: parsed.archivedAt ?? null
++      archivedAt: parsed.archivedAt ?? null,
++      versionBump: parsed.versionBump ?? null,
++      targetVersion: parsed.targetVersion ?? parsed.version ?? null,
++      workingBranch: parsed.workingBranch ?? null,
++      releaseBranch: parsed.releaseBranch ?? null
+     };
+   } catch {
+     return {
+       version: null,
+       changeType: null,
+-      archivedAt: null
++      archivedAt: null,
++      versionBump: null,
++      targetVersion: null,
++      workingBranch: null,
++      releaseBranch: null
++    };
++  }
++}
++
++async function readTopicPublishMetadata(topicDir: string): Promise<{
++  publishResultType: string | null;
++  publishPushStatus: string | null;
++  workingBranch: string | null;
++  releaseBranch: string | null;
++  publishMode: string | null;
++  upstreamStatus: string | null;
++  cleanupStatus: string | null;
++  cleanupReason: string | null;
++  cleanupTiming: string | null;
++}> {
++  const raw = await readTextIfExists(path.join(topicDir, "git", "publish.json"));
++  if (!raw) {
++    return {
++      publishResultType: null,
++      publishPushStatus: null,
++      workingBranch: null,
++      releaseBranch: null,
++      publishMode: null,
++      upstreamStatus: null,
++      cleanupStatus: null,
++      cleanupReason: null,
++      cleanupTiming: null
++    };
++  }
++
++  try {
++    const parsed = JSON.parse(raw) as {
++      resultType?: string;
++      pushStatus?: string;
++      workingBranch?: string;
++      releaseBranch?: string;
++      branch?: string;
++      publishMode?: string;
++      upstreamStatus?: string;
++      cleanupStatus?: string;
++      cleanupReason?: string;
++      cleanupTiming?: string;
++    };
++    return {
++      publishResultType: parsed.resultType ?? null,
++      publishPushStatus: parsed.pushStatus ?? null,
++      workingBranch: parsed.workingBranch ?? null,
++      releaseBranch: parsed.releaseBranch ?? parsed.branch ?? null,
++      publishMode: parsed.publishMode ?? null,
++      upstreamStatus: parsed.upstreamStatus ?? null,
++      cleanupStatus: parsed.cleanupStatus ?? null,
++      cleanupReason: parsed.cleanupReason ?? null,
++      cleanupTiming: parsed.cleanupTiming ?? null
++    };
++  } catch {
++    return {
++      publishResultType: null,
++      publishPushStatus: null,
++      workingBranch: null,
++      releaseBranch: null,
++      publishMode: null,
++      upstreamStatus: null,
++      cleanupStatus: null,
++      cleanupReason: null,
++      cleanupTiming: null
+     };
+   }
+ }
+@@ -1562,6 +1664,7 @@ async function listTopicSummaries(rootDir: string, bucket: "active" | "archive")
+     const proposalMarkdown = await readTextIfExists(proposalPath);
+     const workflow = await readWorkflow(path.join(topicDir, "workflow.reactflow.json"), rootDir, topicDir);
+     const release = await readTopicVersion(topicDir);
++    const publish = await readTopicPublishMetadata(topicDir);
+     const artifactSummary = await readTopicArtifactSummary(topicDir);
+     const stage = stateMarkdown ? parseMarkdownSection(stateMarkdown, "Current Stage") : parseKeyValue(proposalMarkdown ?? "", "stage");
+     const goal = stateMarkdown ? parseMarkdownSection(stateMarkdown, "Goal") : null;
+@@ -1582,6 +1685,17 @@ async function listTopicSummaries(rootDir: string, bucket: "active" | "archive")
+       version: release.version,
+       changeType: release.changeType,
+       archiveType: release.changeType,
++      versionBump: release.versionBump,
++      targetVersion: release.targetVersion,
++      workingBranch: publish.workingBranch ?? release.workingBranch,
++      releaseBranch: publish.releaseBranch ?? release.releaseBranch,
++      publishResultType: publish.publishResultType,
++      publishPushStatus: publish.publishPushStatus,
++      publishMode: publish.publishMode,
++      upstreamStatus: publish.upstreamStatus,
++      cleanupStatus: publish.cleanupStatus,
++      cleanupReason: publish.cleanupReason,
++      cleanupTiming: publish.cleanupTiming,
+       archivedAt: release.archivedAt,
+       workflow,
+       artifactSummary,

@@ -1,0 +1,29 @@
+{
+  "topic": "pgg-release-upstream-and-compact-branch-alias",
+  "version": "0.6.1",
+  "targetVersion": "0.6.1",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "commitTitle": "Release upstream alias fix",
+  "commitSha": null,
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/0.6.1-release-alias",
+  "workingBranch": "ai/fix/0.6.1-release-alias",
+  "releaseBranch": "release/0.6.1-release-alias",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-22T04:32:28Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/0.6.1-release-alias'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/pgg-release-upstream-and-compact-branch-alias",
+    "versionFile": "poggn/archive/pgg-release-upstream-and-compact-branch-alias/version.json"
+  }
+}

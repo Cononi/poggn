@@ -60,7 +60,7 @@ export function filterTopics(project: ProjectSnapshot | null, filter: string): T
 
   const query = filter.toLowerCase();
   return allTopics.filter((topic) =>
-    `${topic.name} ${topic.stage ?? ""} ${topic.goal ?? ""} ${topic.version ?? ""} ${topic.archiveType ?? ""}`
+    `${topic.name} ${topic.stage ?? ""} ${topic.goal ?? ""} ${topic.version ?? ""} ${topic.archiveType ?? ""} ${topic.versionBump ?? ""} ${topic.releaseBranch ?? ""} ${topic.workingBranch ?? ""} ${topic.publishResultType ?? ""} ${topic.publishPushStatus ?? ""} ${topic.publishMode ?? ""} ${topic.upstreamStatus ?? ""} ${topic.cleanupTiming ?? ""}`
       .toLowerCase()
       .includes(query)
   );
@@ -170,7 +170,11 @@ function resolveArtifactGroupFromPath(sourcePath: string): ArtifactGroupKey {
   if (sourcePath.endsWith("/workflow.reactflow.json")) {
     return "workflowDocs";
   }
-  if (sourcePath.endsWith("/version.json") || sourcePath.endsWith("/state/history.ndjson")) {
+  if (
+    sourcePath.endsWith("/version.json") ||
+    sourcePath.endsWith("/state/history.ndjson") ||
+    sourcePath.endsWith("/git/publish.json")
+  ) {
     return "releaseDocs";
   }
 

@@ -1,0 +1,62 @@
+diff --git a/apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx b/apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx
+index 42208ef..cdb852b 100644
+--- a/apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx
++++ b/apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx
+@@ -128,6 +128,57 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
+               />
+             </Stack>
+           </Paper>
++
++          {props.selectedTopic?.bucket === "archive" && props.selectedTopic.releaseBranch ? (
++            <Paper sx={{ p: 2.5, borderRadius: 6 }}>
++              <Typography variant="h6" sx={{ mb: 2 }}>
++                {props.dictionary.releaseReview}
++              </Typography>
++              <Stack spacing={1.25}>
++                <MetricRow label={props.dictionary.releaseBranch} value={props.selectedTopic.releaseBranch} />
++                <MetricRow
++                  label={props.dictionary.workingBranch}
++                  value={props.selectedTopic.workingBranch ?? props.dictionary.missing}
++                />
++                <MetricRow
++                  label={props.dictionary.targetVersion}
++                  value={props.selectedTopic.targetVersion ?? props.selectedTopic.version ?? props.dictionary.missing}
++                />
++                <MetricRow
++                  label={props.dictionary.versionBump}
++                  value={props.selectedTopic.versionBump ?? props.dictionary.missing}
++                />
++                <MetricRow
++                  label={props.dictionary.publishStatus}
++                  value={
++                    [props.selectedTopic.publishResultType, props.selectedTopic.publishPushStatus]
++                      .filter(Boolean)
++                      .join(" / ") || props.dictionary.missing
++                  }
++                />
++                <MetricRow
++                  label={props.dictionary.publishMode}
++                  value={props.selectedTopic.publishMode ?? props.dictionary.missing}
++                />
++                <MetricRow
++                  label={props.dictionary.upstreamStatus}
++                  value={props.selectedTopic.upstreamStatus ?? props.dictionary.missing}
++                />
++                <MetricRow
++                  label={props.dictionary.cleanupStatus}
++                  value={props.selectedTopic.cleanupStatus ?? props.dictionary.missing}
++                />
++                <MetricRow
++                  label={props.dictionary.cleanupReason}
++                  value={props.selectedTopic.cleanupReason ?? props.dictionary.releaseReviewHint}
++                />
++                <MetricRow
++                  label={props.dictionary.cleanupTiming}
++                  value={props.selectedTopic.cleanupTiming ?? props.dictionary.missing}
++                />
++              </Stack>
++            </Paper>
++          ) : null}
+         </Stack>
+ 
+         <Stack spacing={3}>

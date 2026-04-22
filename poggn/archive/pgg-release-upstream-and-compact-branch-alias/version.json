@@ -1,0 +1,14 @@
+{
+  "topic": "pgg-release-upstream-and-compact-branch-alias",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "version": "0.6.1",
+  "targetVersion": "0.6.1",
+  "previousVersion": "0.6.0",
+  "shortName": "release-alias",
+  "workingBranch": "ai/fix/0.6.1-release-alias",
+  "releaseBranch": "release/0.6.1-release-alias",
+  "projectScope": "current-project",
+  "archivedAt": "2026-04-22T04:22:56Z",
+  "history": "poggn/version-history.ndjson"
+}
