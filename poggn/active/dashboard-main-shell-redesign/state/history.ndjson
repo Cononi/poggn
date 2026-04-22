@@ -1,0 +1,6 @@
+{"ts":"2026-04-22T06:10:05Z","stage":"proposal","event":"topic-created"}
+{"ts":"2026-04-22T06:10:40Z","stage":"proposal","event":"proposal-reviewed","score":96}
+{"ts":"2026-04-22T06:25:14Z","stage":"plan","event":"plan-reviewed","score":96}
+{"ts":"2026-04-22T06:25:14Z","stage":"task","event":"task-reviewed","score":96}
+{"ts":"2026-04-22T07:13:11Z","stage":"implementation","event":"completed","score":95,"verification":["pnpm build","pnpm test"],"next":"pgg-refactor"}
+{"ts":"2026-04-22T07:17:34Z","stage":"implementation","event":"stage-commit","archiveType":"feat","commitTitle":"feat: Dashboard shell redesign","summary":"Dashboard shell redesign","why":"Top navigation, contextual sidebar, board governance, reports, settings, and configurable git prefixes now share one snapshot-driven dashboard flow","footer":"Refs: dashboard-main-shell-redesign"}

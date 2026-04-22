@@ -7,8 +7,17 @@ import {
   createProjectCategory,
   deleteProjectCategory,
   moveProjectToCategory,
+  registerExistingProject,
+  reorderProjectCategory,
   renameProjectCategory,
-  setDefaultProjectCategory
+  setProjectCategoryVisibility,
+  setDefaultProjectCategory,
+  updateProjectAutoMode,
+  updateProjectDashboardTitle,
+  updateProjectGitBranchPrefixes,
+  updateProjectGitMode,
+  updateProjectRefreshInterval,
+  updateProjectTeamsMode
 } from "../../packages/core/src/index";
 
 const dashboardRoot = path.resolve(process.env.PGG_DASHBOARD_ROOT ?? process.cwd());
@@ -30,6 +39,16 @@ function writeJson(response: ServerResponse, status: number, payload: unknown): 
   response.statusCode = status;
   response.setHeader("Content-Type", "application/json; charset=utf-8");
   response.end(`${JSON.stringify(payload, null, 2)}\n`);
+}
+
+async function resolveProjectRootDir(projectId: string): Promise<string> {
+  const snapshot = await buildDashboardSnapshot(dashboardRoot);
+  const project = snapshot.projects.find((entry) => entry.id === projectId);
+  if (!project) {
+    throw new Error(`Project '${projectId}' was not found.`);
+  }
+
+  return project.rootDir;
 }
 
 function createDashboardApiPlugin(): Plugin {
@@ -99,6 +118,113 @@ function createDashboardApiPlugin(): Plugin {
           const defaultMatch = url.pathname.match(/^\/api\/dashboard\/categories\/([^/]+)\/default$/);
           if (defaultMatch && request.method === "POST") {
             await setDefaultProjectCategory(defaultMatch[1]!);
+            writeJson(response, 200, await buildDashboardSnapshot(dashboardRoot));
+            return;
+          }
+
+          const visibilityMatch = url.pathname.match(/^\/api\/dashboard\/categories\/([^/]+)\/visibility$/);
+          if (visibilityMatch && request.method === "PATCH") {
+            const body = await readJsonBody(request);
+            if (typeof body.visible !== "boolean") {
+              writeJson(response, 400, { error: "visible must be a boolean." });
+              return;
+            }
+            await setProjectCategoryVisibility(visibilityMatch[1]!, body.visible);
+            writeJson(response, 200, await buildDashboardSnapshot(dashboardRoot));
+            return;
+          }
+
+          const reorderMatch = url.pathname.match(/^\/api\/dashboard\/categories\/([^/]+)\/reorder$/);
+          if (reorderMatch && request.method === "POST") {
+            const body = await readJsonBody(request);
+            if (typeof body.targetIndex !== "number") {
+              writeJson(response, 400, { error: "targetIndex must be a number." });
+              return;
+            }
+            await reorderProjectCategory(reorderMatch[1]!, body.targetIndex);
+            writeJson(response, 200, await buildDashboardSnapshot(dashboardRoot));
+            return;
+          }
+
+          if (request.method === "POST" && url.pathname === "/api/dashboard/projects") {
+            const body = await readJsonBody(request);
+            if (typeof body.rootDir !== "string") {
+              writeJson(response, 400, { error: "rootDir is required." });
+              return;
+            }
+            await registerExistingProject(path.resolve(body.rootDir));
+            if (typeof body.targetCategoryId === "string") {
+              const snapshot = await buildDashboardSnapshot(dashboardRoot);
+              const project = snapshot.projects.find((entry) => path.resolve(entry.rootDir) === path.resolve(body.rootDir));
+              if (project) {
+                await moveProjectToCategory(project.id, body.targetCategoryId);
+              }
+            }
+            writeJson(response, 200, await buildDashboardSnapshot(dashboardRoot));
+            return;
+          }
+
+          const projectMainMatch = url.pathname.match(/^\/api\/dashboard\/projects\/([^/]+)\/main$/);
+          if (projectMainMatch && request.method === "PATCH") {
+            const body = await readJsonBody(request);
+            if (typeof body.title !== "string") {
+              writeJson(response, 400, { error: "title is required." });
+              return;
+            }
+            await updateProjectDashboardTitle(await resolveProjectRootDir(projectMainMatch[1]!), body.title);
+            writeJson(response, 200, await buildDashboardSnapshot(dashboardRoot));
+            return;
+          }
+
+          const projectRefreshMatch = url.pathname.match(/^\/api\/dashboard\/projects\/([^/]+)\/refresh$/);
+          if (projectRefreshMatch && request.method === "PATCH") {
+            const body = await readJsonBody(request);
+            if (typeof body.refreshIntervalMs !== "number") {
+              writeJson(response, 400, { error: "refreshIntervalMs must be a number." });
+              return;
+            }
+            await updateProjectRefreshInterval(
+              await resolveProjectRootDir(projectRefreshMatch[1]!),
+              body.refreshIntervalMs
+            );
+            writeJson(response, 200, await buildDashboardSnapshot(dashboardRoot));
+            return;
+          }
+
+          const projectGitMatch = url.pathname.match(/^\/api\/dashboard\/projects\/([^/]+)\/git$/);
+          if (projectGitMatch && request.method === "PATCH") {
+            const body = await readJsonBody(request);
+            if (
+              typeof body.workingBranchPrefix !== "string" ||
+              typeof body.releaseBranchPrefix !== "string"
+            ) {
+              writeJson(response, 400, {
+                error: "workingBranchPrefix and releaseBranchPrefix are required."
+              });
+              return;
+            }
+            await updateProjectGitBranchPrefixes(
+              await resolveProjectRootDir(projectGitMatch[1]!),
+              body.workingBranchPrefix,
+              body.releaseBranchPrefix
+            );
+            writeJson(response, 200, await buildDashboardSnapshot(dashboardRoot));
+            return;
+          }
+
+          const projectSystemMatch = url.pathname.match(/^\/api\/dashboard\/projects\/([^/]+)\/system$/);
+          if (projectSystemMatch && request.method === "PATCH") {
+            const body = await readJsonBody(request);
+            const rootDir = await resolveProjectRootDir(projectSystemMatch[1]!);
+            if (typeof body.autoMode === "string") {
+              await updateProjectAutoMode(rootDir, body.autoMode === "off" ? "off" : "on");
+            }
+            if (typeof body.teamsMode === "string") {
+              await updateProjectTeamsMode(rootDir, body.teamsMode === "on" ? "on" : "off");
+            }
+            if (typeof body.gitMode === "string") {
+              await updateProjectGitMode(rootDir, body.gitMode === "on" ? "on" : "off");
+            }
             writeJson(response, 200, await buildDashboardSnapshot(dashboardRoot));
             return;
           }

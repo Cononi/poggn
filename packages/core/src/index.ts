@@ -39,6 +39,8 @@ export type PggGitMode = "on" | "off";
 export interface ProjectGitConfig {
   mode: PggGitMode;
   defaultRemote: string;
+  workingBranchPrefix: string;
+  releaseBranchPrefix: string;
 }
 
 export interface ManagedFileRecord {
@@ -59,7 +61,9 @@ export interface ProjectManifest {
   installedVersion: string;
   updatedAt: string;
   dashboard: {
+    title: string;
     defaultPort: number;
+    refreshIntervalMs: number;
   };
   verification: import("./verification.js").ProjectVerificationConfig;
   managedFiles: ManagedFileRecord[];
@@ -82,6 +86,7 @@ export interface ProjectCategory {
   name: string;
   isDefault: boolean;
   order: number;
+  visible: boolean;
   projectIds: string[];
   createdAt: string;
   updatedAt: string;
@@ -148,10 +153,25 @@ export interface TopicSummary {
   cleanupReason: string | null;
   cleanupTiming: string | null;
   archivedAt: string | null;
+  updatedAt: string | null;
   workflow: WorkflowDocument | null;
   artifactSummary: TopicArtifactSummary;
   artifactCompleteness: "complete" | "partial";
   health: "ok" | "partial";
+}
+
+export interface DashboardRecentActivityEntry {
+  id: string;
+  projectId: string;
+  projectName: string;
+  topicName: string;
+  bucket: "active" | "archive";
+  stage: string | null;
+  status: string | null;
+  archiveType: string | null;
+  score: number | null;
+  nextAction: string | null;
+  updatedAt: string;
 }
 
 export interface TopicArtifactGroupSummary {
@@ -245,7 +265,11 @@ export interface ProjectSnapshot {
   autoMode: PggAutoMode;
   teamsMode: PggTeamsMode;
   gitMode: PggGitMode;
+  workingBranchPrefix: string;
+  releaseBranchPrefix: string;
   installedVersion: string | null;
+  dashboardTitle: string;
+  refreshIntervalMs: number;
   dashboardDefaultPort: number;
   verificationMode: import("./verification.js").ProjectVerificationMode;
   verificationStatus: import("./verification.js").ProjectVerificationStatus;
@@ -256,6 +280,9 @@ export interface ProjectSnapshot {
   hasCodex: boolean;
   hasPoggn: boolean;
   categoryIds: string[];
+  latestTopicName: string | null;
+  latestTopicStage: string | null;
+  latestActivityAt: string | null;
   activeTopics: TopicSummary[];
   archivedTopics: TopicSummary[];
 }
@@ -263,7 +290,9 @@ export interface ProjectSnapshot {
 export interface DashboardSnapshot {
   generatedAt: string;
   currentProjectId: string | null;
+  latestActiveProjectId: string | null;
   categories: ProjectCategory[];
+  recentActivity: DashboardRecentActivityEntry[];
   projects: ProjectSnapshot[];
 }
 
@@ -358,10 +387,11 @@ function dedupeList(values: string[]): string[] {
 
 function createDefaultCategory(projectIds: string[], timestamp: string): ProjectCategory {
   return {
-    id: "default",
-    name: "All Projects",
+    id: "home",
+    name: "home",
     isDefault: true,
     order: 0,
+    visible: true,
     projectIds: dedupeList(projectIds),
     createdAt: timestamp,
     updatedAt: timestamp
@@ -378,8 +408,14 @@ function normalizeCategories(
   let changed = !categories?.length;
   const usedIds = new Set<string>();
   const normalized = source.map((category, index) => {
+    const shouldMigrateLegacyDefault =
+      category.isDefault && (category.id === "default" || category.name === "All Projects");
     const nextId =
-      category.id && !usedIds.has(category.id) ? category.id : `${slugify(category.name)}-${index + 1}`;
+      shouldMigrateLegacyDefault
+        ? "home"
+        : category.id && !usedIds.has(category.id)
+          ? category.id
+          : `${slugify(category.name)}-${index + 1}`;
     if (nextId !== category.id) {
       changed = true;
     }
@@ -392,15 +428,20 @@ function normalizeCategories(
 
     const nextCategory: ProjectCategory = {
       id: nextId,
-      name: category.name || `Category ${index + 1}`,
+      name:
+        shouldMigrateLegacyDefault ? "home" : category.name || `Category ${index + 1}`,
       isDefault: category.isDefault,
       order: index,
+      visible: category.visible ?? true,
       projectIds: nextProjectIds,
       createdAt: category.createdAt || timestamp,
       updatedAt: category.updatedAt || timestamp
     };
 
     if (category.order !== index) {
+      changed = true;
+    }
+    if (category.visible === undefined) {
       changed = true;
     }
 
@@ -460,7 +501,7 @@ function normalizeRegistryData(registry: GlobalRegistry): { registry: GlobalRegi
   const projectIds = projects.map((entry) => entry.id);
   const normalizedCategories = normalizeCategories(registry.dashboard?.categories, projectIds, timestamp);
   const nextRegistry: GlobalRegistry = {
-    version: Math.max(registry.version ?? 1, 2),
+    version: Math.max(registry.version ?? 1, 3),
     projects,
     dashboard: {
       categories: normalizedCategories.categories
@@ -512,19 +553,36 @@ function buildTemplateInput(manifest: ProjectManifest): TemplateInput {
   };
 }
 
+function normalizeDashboardConfig(
+  dashboard: ProjectManifest["dashboard"] | undefined,
+  projectName: string
+): ProjectManifest["dashboard"] {
+  return {
+    title: dashboard?.title?.trim() || `${projectName} dashboard`,
+    defaultPort: dashboard?.defaultPort ?? 4173,
+    refreshIntervalMs:
+      typeof dashboard?.refreshIntervalMs === "number" && Number.isFinite(dashboard.refreshIntervalMs)
+        ? Math.max(5_000, Math.min(120_000, Math.round(dashboard.refreshIntervalMs)))
+        : 10_000
+  };
+}
+
 function normalizeProjectGitConfig(git: ProjectManifest["git"] | undefined): ProjectGitConfig {
   return {
     mode: git?.mode ?? "off",
-    defaultRemote: git?.defaultRemote?.trim() || "origin"
+    defaultRemote: git?.defaultRemote?.trim() || "origin",
+    workingBranchPrefix: git?.workingBranchPrefix?.trim() || "ai",
+    releaseBranchPrefix: git?.releaseBranchPrefix?.trim() || "release"
   };
 }
 
 function normalizeProjectManifest(manifest: ProjectManifest): ProjectManifest {
   return {
     ...manifest,
-    schemaVersion: Math.max(manifest.schemaVersion ?? 1, 4),
+    schemaVersion: Math.max(manifest.schemaVersion ?? 1, 5),
     teamsMode: manifest.teamsMode ?? "off",
     git: normalizeProjectGitConfig(manifest.git),
+    dashboard: normalizeDashboardConfig(manifest.dashboard, manifest.projectName),
     verification: normalizeProjectVerification(manifest.verification)
   };
 }
@@ -581,9 +639,10 @@ async function retireManagedFile(
 }
 
 export function createProjectManifest(rootDir: string, options: InitOptions = {}): ProjectManifest {
+  const projectName = path.basename(rootDir);
   return {
-    schemaVersion: 4,
-    projectName: path.basename(rootDir),
+    schemaVersion: 5,
+    projectName,
     rootDir,
     provider: options.provider ?? "codex",
     language: options.language ?? "ko",
@@ -593,15 +652,15 @@ export function createProjectManifest(rootDir: string, options: InitOptions = {}
       options.gitMode
         ? {
             mode: options.gitMode,
-            defaultRemote: "origin"
+            defaultRemote: "origin",
+            workingBranchPrefix: "ai",
+            releaseBranchPrefix: "release"
           }
         : undefined
     ),
     installedVersion: PGG_VERSION,
     updatedAt: nowIso(),
-    dashboard: {
-      defaultPort: 4173
-    },
+    dashboard: normalizeDashboardConfig(undefined, projectName),
     verification: normalizeProjectVerification(undefined),
     managedFiles: []
   };
@@ -878,6 +937,45 @@ export async function updateProjectDashboardPort(rootDir: string, defaultPort: n
   }));
 }
 
+export async function updateProjectDashboardTitle(rootDir: string, title: string): Promise<SyncResult> {
+  return updateRegisteredProject(rootDir, (manifest) => ({
+    ...manifest,
+    dashboard: {
+      ...manifest.dashboard,
+      title: title.trim() || manifest.dashboard.title
+    }
+  }));
+}
+
+export async function updateProjectRefreshInterval(rootDir: string, refreshIntervalMs: number): Promise<SyncResult> {
+  const normalized = Math.max(5_000, Math.min(120_000, Math.round(refreshIntervalMs)));
+  return updateRegisteredProject(rootDir, (manifest) => ({
+    ...manifest,
+    dashboard: {
+      ...manifest.dashboard,
+      refreshIntervalMs: normalized
+    }
+  }));
+}
+
+export async function updateProjectGitBranchPrefixes(
+  rootDir: string,
+  workingBranchPrefix: string,
+  releaseBranchPrefix: string
+): Promise<SyncResult> {
+  const normalizePrefix = (value: string, fallback: string) =>
+    value.trim().replace(/^\/+|\/+$/g, "").replace(/[^a-z0-9/_-]+/gi, "-") || fallback;
+
+  return updateRegisteredProject(rootDir, (manifest) => ({
+    ...manifest,
+    git: {
+      ...normalizeProjectGitConfig(manifest.git),
+      workingBranchPrefix: normalizePrefix(workingBranchPrefix, "ai"),
+      releaseBranchPrefix: normalizePrefix(releaseBranchPrefix, "release")
+    }
+  }));
+}
+
 function requireCategory(registry: GlobalRegistry, categoryId: string): ProjectCategory {
   const category = registry.dashboard?.categories.find((entry) => entry.id === categoryId);
   if (!category) {
@@ -896,6 +994,7 @@ export async function createProjectCategory(name: string): Promise<GlobalRegistr
     name: name.trim() || "New Category",
     isDefault: categories.length === 0,
     order: categories.length,
+    visible: true,
     projectIds: [],
     createdAt: timestamp,
     updatedAt: timestamp
@@ -985,6 +1084,64 @@ export async function deleteProjectCategory(categoryId: string): Promise<GlobalR
   return nextRegistry;
 }
 
+export async function setProjectCategoryVisibility(
+  categoryId: string,
+  visible: boolean
+): Promise<GlobalRegistry> {
+  const registry = await loadPersistedGlobalRegistry();
+  const timestamp = nowIso();
+  const categories = (registry.dashboard?.categories ?? []).map((category) =>
+    category.id === categoryId
+      ? {
+          ...category,
+          visible,
+          updatedAt: timestamp
+        }
+      : category
+  );
+  const nextRegistry = normalizeRegistryData({
+    ...registry,
+    dashboard: {
+      categories
+    }
+  }).registry;
+  await saveGlobalRegistry(nextRegistry);
+  return nextRegistry;
+}
+
+export async function reorderProjectCategory(
+  categoryId: string,
+  targetIndex: number
+): Promise<GlobalRegistry> {
+  const registry = await loadPersistedGlobalRegistry();
+  const categories = [...(registry.dashboard?.categories ?? [])];
+  const currentIndex = categories.findIndex((category) => category.id === categoryId);
+  if (currentIndex < 0) {
+    throw new Error(`Category '${categoryId}' was not found.`);
+  }
+
+  const [moved] = categories.splice(currentIndex, 1);
+  if (!moved) {
+    throw new Error(`Category '${categoryId}' was not found.`);
+  }
+  const nextIndex = Math.max(0, Math.min(targetIndex, categories.length));
+  categories.splice(nextIndex, 0, moved);
+  const timestamp = nowIso();
+  const normalized = categories.map((category, index) => ({
+    ...category,
+    order: index,
+    updatedAt: category.id === categoryId ? timestamp : category.updatedAt
+  }));
+  const nextRegistry = normalizeRegistryData({
+    ...registry,
+    dashboard: {
+      categories: normalized
+    }
+  }).registry;
+  await saveGlobalRegistry(nextRegistry);
+  return nextRegistry;
+}
+
 export async function moveProjectToCategory(
   projectId: string,
   targetCategoryId: string,
@@ -1011,6 +1168,15 @@ export async function moveProjectToCategory(
   }).registry;
   await saveGlobalRegistry(nextRegistry);
   return nextRegistry;
+}
+
+export async function registerExistingProject(rootDir: string): Promise<GlobalRegistry> {
+  const manifest = await loadProjectManifest(rootDir);
+  if (!manifest) {
+    throw new Error("Target project is not initialized. Run `pgg init` there first.");
+  }
+
+  return registerProject(manifest);
 }
 
 function parseMarkdownSection(markdown: string, title: string): string | null {
@@ -1650,6 +1816,23 @@ async function readTopicArtifactSummary(topicDir: string): Promise<TopicArtifact
   };
 }
 
+function deriveTopicUpdatedAt(artifactSummary: TopicArtifactSummary, archivedAt: string | null): string | null {
+  return (
+    [
+      artifactSummary.lifecycleDocs.latestUpdatedAt,
+      artifactSummary.reviewDocs.latestUpdatedAt,
+      artifactSummary.specDocs.latestUpdatedAt,
+      artifactSummary.implementationDocs.latestUpdatedAt,
+      artifactSummary.qaDocs.latestUpdatedAt,
+      artifactSummary.releaseDocs.latestUpdatedAt,
+      artifactSummary.workflowDocs.latestUpdatedAt,
+      archivedAt
+    ]
+      .filter((value): value is string => Boolean(value))
+      .sort((left, right) => right.localeCompare(left))[0] ?? null
+  );
+}
+
 async function listTopicSummaries(rootDir: string, bucket: "active" | "archive"): Promise<TopicSummary[]> {
   const bucketDir = path.join(rootDir, "poggn", bucket);
   const entries = await readdir(bucketDir, { withFileTypes: true }).catch(() => []);
@@ -1666,6 +1849,7 @@ async function listTopicSummaries(rootDir: string, bucket: "active" | "archive")
     const release = await readTopicVersion(topicDir);
     const publish = await readTopicPublishMetadata(topicDir);
     const artifactSummary = await readTopicArtifactSummary(topicDir);
+    const updatedAt = deriveTopicUpdatedAt(artifactSummary, release.archivedAt);
     const stage = stateMarkdown ? parseMarkdownSection(stateMarkdown, "Current Stage") : parseKeyValue(proposalMarkdown ?? "", "stage");
     const goal = stateMarkdown ? parseMarkdownSection(stateMarkdown, "Goal") : null;
     const nextAction = stateMarkdown ? parseMarkdownSection(stateMarkdown, "Next Action") : null;
@@ -1697,6 +1881,7 @@ async function listTopicSummaries(rootDir: string, bucket: "active" | "archive")
       cleanupReason: publish.cleanupReason,
       cleanupTiming: publish.cleanupTiming,
       archivedAt: release.archivedAt,
+      updatedAt,
       workflow,
       artifactSummary,
       artifactCompleteness:
@@ -1860,7 +2045,11 @@ export async function analyzeProject(rootDir: string, registered = false): Promi
       autoMode: "on",
       teamsMode: "off",
       gitMode: "off",
+      workingBranchPrefix: "ai",
+      releaseBranchPrefix: "release",
       installedVersion: null,
+      dashboardTitle: `${path.basename(rootDir)} dashboard`,
+      refreshIntervalMs: 10_000,
       dashboardDefaultPort: 4173,
       verificationMode: verification.mode,
       verificationStatus: verification.status,
@@ -1871,6 +2060,9 @@ export async function analyzeProject(rootDir: string, registered = false): Promi
       hasCodex: false,
       hasPoggn: false,
       categoryIds: [],
+      latestTopicName: null,
+      latestTopicStage: null,
+      latestActivityAt: null,
       activeTopics: [],
       archivedTopics: []
     };
@@ -1880,6 +2072,9 @@ export async function analyzeProject(rootDir: string, registered = false): Promi
   const activeTopics = await listTopicSummaries(rootDir, "active");
   const archivedTopics = await listTopicSummaries(rootDir, "archive");
   const verification = resolveProjectVerification(rootDir, manifest?.verification);
+  const latestTopic = [...activeTopics, ...archivedTopics]
+    .filter((topic) => topic.updatedAt)
+    .sort((left, right) => (right.updatedAt ?? "").localeCompare(left.updatedAt ?? ""))[0] ?? null;
 
   return {
     id: stableProjectId(rootDir),
@@ -1892,7 +2087,11 @@ export async function analyzeProject(rootDir: string, registered = false): Promi
     autoMode: manifest?.autoMode ?? "on",
     teamsMode: manifest?.teamsMode ?? "off",
     gitMode: manifest?.git.mode ?? "off",
+    workingBranchPrefix: manifest?.git.workingBranchPrefix ?? "ai",
+    releaseBranchPrefix: manifest?.git.releaseBranchPrefix ?? "release",
     installedVersion: manifest?.installedVersion ?? null,
+    dashboardTitle: manifest?.dashboard.title ?? `${path.basename(rootDir)} dashboard`,
+    refreshIntervalMs: manifest?.dashboard.refreshIntervalMs ?? 10_000,
     dashboardDefaultPort: manifest?.dashboard.defaultPort ?? 4173,
     verificationMode: verification.mode,
     verificationStatus: verification.status,
@@ -1903,6 +2102,9 @@ export async function analyzeProject(rootDir: string, registered = false): Promi
     hasCodex: existsSync(path.join(rootDir, ".codex")),
     hasPoggn: existsSync(path.join(rootDir, "poggn")),
     categoryIds: [],
+    latestTopicName: latestTopic?.name ?? null,
+    latestTopicStage: latestTopic?.stage ?? null,
+    latestActivityAt: latestTopic?.updatedAt ?? null,
     activeTopics,
     archivedTopics
   };
@@ -1927,6 +2129,28 @@ export async function analyzeProjectStatus(rootDir: string): Promise<ProjectStat
     },
     topics: evaluatedTopics.sort((left, right) => left.name.localeCompare(right.name))
   };
+}
+
+function buildRecentActivity(projects: ProjectSnapshot[]): DashboardRecentActivityEntry[] {
+  return projects
+    .flatMap((project) =>
+      [...project.activeTopics, ...project.archivedTopics]
+        .filter((topic) => topic.updatedAt)
+        .map((topic) => ({
+          id: `${project.id}:${topic.bucket}:${topic.name}:${topic.updatedAt}`,
+          projectId: project.id,
+          projectName: project.name,
+          topicName: topic.name,
+          bucket: topic.bucket,
+          stage: topic.stage,
+          status: topic.status,
+          archiveType: topic.archiveType,
+          score: topic.score,
+          nextAction: topic.nextAction,
+          updatedAt: topic.updatedAt!
+        }))
+    )
+    .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
 }
 
 export async function buildDashboardSnapshot(currentRootDir: string): Promise<DashboardSnapshot> {
@@ -1954,11 +2178,18 @@ export async function buildDashboardSnapshot(currentRootDir: string): Promise<Da
   }));
   const currentProject =
     projectsWithCategories.find((project) => path.resolve(project.rootDir) === path.resolve(currentRootDir)) ?? null;
+  const recentActivity = buildRecentActivity(projectsWithCategories);
+  const latestActiveProjectId =
+    recentActivity.find((entry) => entry.bucket === "active")?.projectId ??
+    currentProject?.id ??
+    null;
 
   return {
     generatedAt: nowIso(),
     currentProjectId: currentProject?.id ?? null,
+    latestActiveProjectId,
     categories,
+    recentActivity,
     projects: projectsWithCategories
   };
 }

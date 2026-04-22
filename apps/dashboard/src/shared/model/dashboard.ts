@@ -81,6 +81,7 @@ export type TopicSummary = {
   cleanupReason: string | null;
   cleanupTiming: string | null;
   archivedAt: string | null;
+  updatedAt: string | null;
   workflow: WorkflowDocument | null;
   artifactSummary: TopicArtifactSummary;
   artifactCompleteness: "complete" | "partial";
@@ -92,8 +93,23 @@ export type ProjectCategory = {
   name: string;
   isDefault: boolean;
   order: number;
+  visible: boolean;
   projectIds: string[];
   createdAt: string;
+  updatedAt: string;
+};
+
+export type DashboardRecentActivityEntry = {
+  id: string;
+  projectId: string;
+  projectName: string;
+  topicName: string;
+  bucket: "active" | "archive";
+  stage: string | null;
+  status: string | null;
+  archiveType: string | null;
+  score: number | null;
+  nextAction: string | null;
   updatedAt: string;
 };
 
@@ -108,7 +124,11 @@ export type ProjectSnapshot = {
   autoMode: "on" | "off";
   teamsMode: "on" | "off";
   gitMode: "on" | "off";
+  workingBranchPrefix: string;
+  releaseBranchPrefix: string;
   installedVersion: string | null;
+  dashboardTitle: string;
+  refreshIntervalMs: number;
   dashboardDefaultPort: number;
   verificationMode: string;
   verificationStatus: string;
@@ -119,6 +139,9 @@ export type ProjectSnapshot = {
   hasCodex: boolean;
   hasPoggn: boolean;
   categoryIds: string[];
+  latestTopicName: string | null;
+  latestTopicStage: string | null;
+  latestActivityAt: string | null;
   activeTopics: TopicSummary[];
   archivedTopics: TopicSummary[];
 };
@@ -126,7 +149,9 @@ export type ProjectSnapshot = {
 export type DashboardSnapshot = {
   generatedAt: string;
   currentProjectId: string | null;
+  latestActiveProjectId: string | null;
   categories: ProjectCategory[];
+  recentActivity: DashboardRecentActivityEntry[];
   projects: ProjectSnapshot[];
 };
 
@@ -171,9 +196,17 @@ export type ArtifactSelection = {
 };
 
 export type DashboardStore = {
+  activeTopMenu: "projects" | "settings";
+  activeProjectsView: "board" | "categories" | "reports" | "board-settings";
+  activeSettingsView: "main" | "refresh" | "git" | "system";
+  projectSurface: "board" | "detail";
   selectedProjectId: string | null;
   selectedTopicKey: string | null;
   topicFilter: string;
+  setActiveTopMenu: (value: "projects" | "settings") => void;
+  setActiveProjectsView: (value: "board" | "categories" | "reports" | "board-settings") => void;
+  setActiveSettingsView: (value: "main" | "refresh" | "git" | "system") => void;
+  setProjectSurface: (value: "board" | "detail") => void;
   setSelectedProjectId: (value: string | null) => void;
   setSelectedTopicKey: (value: string | null) => void;
   setTopicFilter: (value: string) => void;

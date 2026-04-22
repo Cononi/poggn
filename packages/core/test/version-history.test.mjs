@@ -6,7 +6,11 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 
-import { initializeProject, updateProject } from "../dist/index.js";
+import {
+  initializeProject,
+  updateProject,
+  updateProjectGitBranchPrefixes
+} from "../dist/index.js";
 
 function git(rootDir, args, options = {}) {
   return execFileSync("git", ["-C", rootDir, ...args], {
@@ -191,6 +195,61 @@ test("version helper requires an explicit concise short_name instead of falling 
       })
     );
     assert.equal(existsSync(path.join(archivedTopicDir, "version.json")), false);
+  } finally {
+    if (previousPggHome === undefined) {
+      delete process.env.PGG_HOME;
+    } else {
+      process.env.PGG_HOME = previousPggHome;
+    }
+    await rm(rootDir, { recursive: true, force: true });
+  }
+});
+
+test("git branch prefixes from the manifest drive new-topic and version helpers", async () => {
+  const rootDir = await mkdtemp(path.join(os.tmpdir(), "pgg-branch-prefixes-"));
+  const previousPggHome = process.env.PGG_HOME;
+
+  try {
+    process.env.PGG_HOME = rootDir;
+    await initializeProject(rootDir, {
+      provider: "codex",
+      language: "en",
+      autoMode: "on",
+      teamsMode: "off",
+      gitMode: "on"
+    });
+    await updateProjectGitBranchPrefixes(rootDir, "agent", "ship");
+    initGitRepository(rootDir);
+
+    execFileSync(
+      path.join(rootDir, ".codex/sh/pgg-new-topic.sh"),
+      ["dashboard-prefix-governance", "on", "feat", "minor"],
+      { encoding: "utf8" }
+    );
+
+    const activeTopicDir = path.join(rootDir, "poggn/active/dashboard-prefix-governance");
+    const proposal = await readFile(path.join(activeTopicDir, "proposal.md"), "utf8");
+
+    assert.match(proposal, /working_branch: "agent\/feat\/0\.1\.0-dashboard-prefix-governance"/);
+    assert.match(proposal, /release_branch: "ship\/0\.1\.0-dashboard-prefix-governance"/);
+    assert.equal(git(rootDir, ["branch", "--show-current"]), "agent/feat/0.1.0-dashboard-prefix-governance");
+
+    const archivedTopicDir = path.join(rootDir, "poggn/archive/dashboard-prefix-governance");
+    await mkdir(path.join(archivedTopicDir, "state"), { recursive: true });
+    await writeFile(path.join(archivedTopicDir, "proposal.md"), proposal, "utf8");
+    await writeFile(
+      path.join(archivedTopicDir, "state/history.ndjson"),
+      '{"ts":"2026-04-21T00:00:00Z","stage":"qa","event":"passed"}\n',
+      "utf8"
+    );
+
+    execFileSync(path.join(rootDir, ".codex/sh/pgg-version.sh"), [archivedTopicDir], {
+      encoding: "utf8"
+    });
+
+    const versionFile = JSON.parse(await readFile(path.join(archivedTopicDir, "version.json"), "utf8"));
+    assert.equal(versionFile.workingBranch, "agent/feat/0.1.0-dashboard-prefix-governance");
+    assert.equal(versionFile.releaseBranch, "ship/0.1.0-dashboard-prefix-governance");
   } finally {
     if (previousPggHome === undefined) {
       delete process.env.PGG_HOME;

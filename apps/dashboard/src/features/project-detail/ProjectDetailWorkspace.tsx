@@ -22,6 +22,7 @@ type ProjectDetailWorkspaceProps = {
   detailSelection: ArtifactSelection | null;
   artifactEntries: ArtifactDocumentEntry[];
   dictionary: DashboardLocale;
+  onBack: () => void;
   onTopicFilterChange: (value: string) => void;
   onSelectTopic: (topicKey: string) => void;
   onPreviewArtifact: (topic: TopicSummary) => void;
@@ -68,6 +69,7 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
               </Typography>
             </Box>
             <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap", alignSelf: "flex-start" }}>
+              <Chip color="primary" variant="outlined" label={props.dictionary.backToBoard} onClick={props.onBack} />
               <Chip label={`${props.dictionary.provider}: ${props.project.provider}`} />
               <Chip label={`${props.dictionary.language}: ${props.project.language}`} />
               <Chip label={`${props.dictionary.autoMode}: ${props.project.autoMode}`} />
@@ -116,7 +118,7 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
               <MetricRow label={props.dictionary.verification} value={props.project.verificationStatus} />
               <MetricRow
                 label={props.dictionary.verificationReason}
-                value={props.project.verificationReason ?? props.project.verificationMode}
+                value={props.project.verificationReason ?? props.dictionary.verificationRequired}
               />
               <MetricRow
                 label={props.dictionary.verificationCommands}

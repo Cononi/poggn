@@ -1,0 +1,176 @@
+import { Alert, Button, Paper, Stack, Switch, TextField, Typography } from "@mui/material";
+import { useEffect, useState } from "react";
+import type { DashboardLocale, ProjectSnapshot } from "../../shared/model/dashboard";
+
+type SettingsWorkspaceProps = {
+  project: ProjectSnapshot | null;
+  panel: "main" | "refresh" | "git" | "system";
+  dictionary: DashboardLocale;
+  isLiveMode: boolean;
+  onSaveTitle: (title: string) => void;
+  onSaveRefreshInterval: (value: number) => void;
+  onSaveGitPrefixes: (workingBranchPrefix: string, releaseBranchPrefix: string) => void;
+  onSaveSystem: (payload: { autoMode: "on" | "off"; teamsMode: "on" | "off"; gitMode: "on" | "off" }) => void;
+};
+
+export function SettingsWorkspace(props: SettingsWorkspaceProps) {
+  const [titleDraft, setTitleDraft] = useState(props.project?.dashboardTitle ?? "");
+  const [refreshDraft, setRefreshDraft] = useState(String(props.project?.refreshIntervalMs ?? 10_000));
+  const [workingDraft, setWorkingDraft] = useState(props.project?.workingBranchPrefix ?? "ai");
+  const [releaseDraft, setReleaseDraft] = useState(props.project?.releaseBranchPrefix ?? "release");
+  const [autoMode, setAutoMode] = useState<"on" | "off">(props.project?.autoMode ?? "on");
+  const [teamsMode, setTeamsMode] = useState<"on" | "off">(props.project?.teamsMode ?? "off");
+  const [gitMode, setGitMode] = useState<"on" | "off">(props.project?.gitMode ?? "off");
+
+  useEffect(() => {
+    setTitleDraft(props.project?.dashboardTitle ?? "");
+    setRefreshDraft(String(props.project?.refreshIntervalMs ?? 10_000));
+    setWorkingDraft(props.project?.workingBranchPrefix ?? "ai");
+    setReleaseDraft(props.project?.releaseBranchPrefix ?? "release");
+    setAutoMode(props.project?.autoMode ?? "on");
+    setTeamsMode(props.project?.teamsMode ?? "off");
+    setGitMode(props.project?.gitMode ?? "off");
+  }, [props.project, props.panel]);
+
+  if (!props.project) {
+    return <Alert severity="info">{props.dictionary.empty}</Alert>;
+  }
+
+  const editingDisabled = !props.isLiveMode;
+
+  return (
+    <Paper sx={{ p: 2.5, borderRadius: 6 }}>
+      <Stack spacing={2}>
+        <Stack spacing={1}>
+          <Typography variant="h6">{props.dictionary.settingsTitle}</Typography>
+          <Typography variant="body2" color="text.secondary">
+            {props.dictionary.settingsHint}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            {props.dictionary.settingsTarget}: {props.project.name}
+          </Typography>
+        </Stack>
+
+        {editingDisabled ? <Alert severity="info">{props.dictionary.liveEditingDisabled}</Alert> : null}
+
+        {props.panel === "main" ? (
+          <Stack spacing={2}>
+            <TextField
+              label={props.dictionary.dashboardTitle}
+              helperText={props.dictionary.dashboardTitleHint}
+              value={titleDraft}
+              disabled={editingDisabled}
+              onChange={(event) => setTitleDraft(event.target.value)}
+            />
+            <Button variant="contained" disabled={editingDisabled} onClick={() => props.onSaveTitle(titleDraft)}>
+              {props.dictionary.saveChanges}
+            </Button>
+          </Stack>
+        ) : null}
+
+        {props.panel === "refresh" ? (
+          <Stack spacing={2}>
+            <TextField
+              label={props.dictionary.refreshInterval}
+              helperText={props.dictionary.refreshIntervalHint}
+              value={refreshDraft}
+              type="number"
+              disabled={editingDisabled}
+              onChange={(event) => setRefreshDraft(event.target.value)}
+            />
+            <Button
+              variant="contained"
+              disabled={editingDisabled}
+              onClick={() => props.onSaveRefreshInterval(Number(refreshDraft))}
+            >
+              {props.dictionary.saveChanges}
+            </Button>
+          </Stack>
+        ) : null}
+
+        {props.panel === "git" ? (
+          <Stack spacing={2}>
+            <Typography variant="body2" color="text.secondary">
+              {props.dictionary.gitHint}
+            </Typography>
+            {props.project.autoMode === "off" ? (
+              <Alert severity="warning">{props.dictionary.autoModeRequired}</Alert>
+            ) : null}
+            <TextField
+              label={props.dictionary.workingBranchPrefix}
+              value={workingDraft}
+              disabled={editingDisabled || props.project.autoMode === "off"}
+              onChange={(event) => setWorkingDraft(event.target.value)}
+            />
+            <TextField
+              label={props.dictionary.releaseBranchPrefix}
+              value={releaseDraft}
+              disabled={editingDisabled || props.project.autoMode === "off"}
+              onChange={(event) => setReleaseDraft(event.target.value)}
+            />
+            <Button
+              variant="contained"
+              disabled={editingDisabled || props.project.autoMode === "off"}
+              onClick={() => props.onSaveGitPrefixes(workingDraft, releaseDraft)}
+            >
+              {props.dictionary.saveChanges}
+            </Button>
+          </Stack>
+        ) : null}
+
+        {props.panel === "system" ? (
+          <Stack spacing={2}>
+            <Typography variant="body2" color="text.secondary">
+              {props.dictionary.systemHint}
+            </Typography>
+            <SystemToggle
+              label={props.dictionary.autoMode}
+              checked={autoMode === "on"}
+              disabled={editingDisabled}
+              onChange={(checked) => setAutoMode(checked ? "on" : "off")}
+            />
+            <SystemToggle
+              label={props.dictionary.teamsMode}
+              checked={teamsMode === "on"}
+              disabled={editingDisabled}
+              onChange={(checked) => setTeamsMode(checked ? "on" : "off")}
+            />
+            <SystemToggle
+              label={props.dictionary.gitMode}
+              checked={gitMode === "on"}
+              disabled={editingDisabled}
+              onChange={(checked) => setGitMode(checked ? "on" : "off")}
+            />
+            <Button
+              variant="contained"
+              disabled={editingDisabled}
+              onClick={() => props.onSaveSystem({ autoMode, teamsMode, gitMode })}
+            >
+              {props.dictionary.saveChanges}
+            </Button>
+          </Stack>
+        ) : null}
+      </Stack>
+    </Paper>
+  );
+}
+
+function SystemToggle(props: {
+  label: string;
+  checked: boolean;
+  disabled: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <Paper variant="outlined" sx={{ p: 1.5, borderRadius: 4 }}>
+      <Stack direction="row" spacing={2} sx={{ alignItems: "center", justifyContent: "space-between" }}>
+        <Typography variant="body1">{props.label}</Typography>
+        <Switch
+          checked={props.checked}
+          disabled={props.disabled}
+          onChange={(event) => props.onChange(event.target.checked)}
+        />
+      </Stack>
+    </Paper>
+  );
+}
