@@ -6,7 +6,7 @@
   "language": "ko",
   "autoMode": "on",
   "installedVersion": "0.1.0",
-  "updatedAt": "2026-04-22T07:50:36.492Z",
+  "updatedAt": "2026-04-22T12:53:26.598Z",
   "dashboard": {
     "title": "poggn dashboard",
     "defaultPort": 4173,
@@ -15,17 +15,17 @@
   "managedFiles": [
     {
       "path": "AGENTS.md",
-      "checksum": "77835158a4676013b46618a22d7942c7a9aa086e3e1720f0e76d0eb20afc8444",
+      "checksum": "6e83f004b950b2527e38550796bd40573f4d5a00e7573ab1cf6e543babc91712",
       "executable": false
     },
     {
       "path": ".codex/add/WOKR-FLOW.md",
-      "checksum": "75dbf0700fa8e25dbbeb0ab40422c672af8b43d37e8c742a95812818567fddee",
+      "checksum": "17f3ddb15811c30f0f1a3a3ee55aa8571d4512fe61d62bdd9584c15ec0dff76a",
       "executable": false
     },
     {
       "path": ".codex/add/STATE-CONTRACT.md",
-      "checksum": "080d85272cf2378d435ff3a09bb75b29ae03977a533ac02293a778efd53830b8",
+      "checksum": "ebe301acd1f6c6b7c789746f8efd39477337903be4871244d53e619cb7e3a386",
       "executable": false
     },
     {
@@ -50,7 +50,7 @@
     },
     {
       "path": ".codex/skills/pgg-add/SKILL.md",
-      "checksum": "9649fc349a75a87251af057a50877bf528fd47b85e7b021c9ea391131d09a2ee",
+      "checksum": "9c2ea34fb5ade76b076f3c68f6147717447852be3789fb0839553c60e4af11af",
       "executable": false
     },
     {
@@ -95,7 +95,7 @@
     },
     {
       "path": ".codex/sh/pgg-new-topic.sh",
-      "checksum": "59d252521c40fada3357651edf6dff5735a5eb60f7794c3ceff548a56896eecd",
+      "checksum": "b6833dfc5dac70866072fa6a1e89777c01004c5c1e7f35d10fb2bd89f5591437",
       "executable": true
     },
     {
@@ -120,7 +120,7 @@
     },
     {
       "path": ".codex/sh/pgg-state-pack.sh",
-      "checksum": "ed2fc5be7423e29fcc602d6950c45170d32d678a7bf7314d890d7e6be1f8913b",
+      "checksum": "e4d5261aa67ed2e97a327c169eda0178488522c10b3526a75eb4656d085f975d",
       "executable": true
     },
     {

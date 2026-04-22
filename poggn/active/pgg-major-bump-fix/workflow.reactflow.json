@@ -110,6 +110,26 @@
         "path": "poggn/active/pgg-major-bump-fix/spec/qa/regression-proof-for-major-bump-flow.md",
         "stage": "plan"
       }
+    },
+    {
+      "id": "implementation-index",
+      "type": "doc",
+      "position": { "x": 220, "y": 480 },
+      "data": {
+        "label": "implementation/index.md",
+        "path": "poggn/active/pgg-major-bump-fix/implementation/index.md",
+        "stage": "implementation"
+      }
+    },
+    {
+      "id": "code-review",
+      "type": "review",
+      "position": { "x": 440, "y": 480 },
+      "data": {
+        "label": "reviews/code.review.md",
+        "path": "poggn/active/pgg-major-bump-fix/reviews/code.review.md",
+        "stage": "implementation"
+      }
     }
   ],
   "edges": [
@@ -123,6 +143,8 @@
     { "id": "e-plan-spec-runtime", "source": "plan", "target": "spec-runtime-frontmatter-integrity" },
     { "id": "e-plan-spec-state", "source": "plan", "target": "spec-state-minimal-semver-handoff" },
     { "id": "e-plan-spec-docs", "source": "plan", "target": "spec-docs-semver-guidance" },
-    { "id": "e-plan-spec-qa", "source": "plan", "target": "spec-qa-major-bump-proof" }
+    { "id": "e-plan-spec-qa", "source": "plan", "target": "spec-qa-major-bump-proof" },
+    { "id": "e-task-implementation", "source": "task", "target": "implementation-index" },
+    { "id": "e-implementation-review", "source": "implementation-index", "target": "code-review" }
   ]
 }

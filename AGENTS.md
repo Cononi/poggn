@@ -9,7 +9,7 @@
 - 다음 단계로 넘길 때는 전체 문맥이 아니라 `state/current.md`만 우선 전달한다.
 - `pgg teams`가 `on`이면 stage 시작 전에 `pgg-state-pack.sh`로 최소 컨텍스트를 만들고 전문가 roster 기반 자동 orchestration을 사용한다.
 - core workflow(`pgg-add`, `pgg-plan`, `pgg-code`, `pgg-refactor`, `pgg-qa`)와 필요 시 여는 optional audit(`pgg-token`, `pgg-performance`)의 현재 프로젝트 내부 확인/기록/생성 절차는 추가 허락 없이 자동 처리한다.
-- proposal 단계에서 `archive_type`을 `feat`, `fix`, `docs`, `refactor`, `chore`, `remove` 중 하나로 확정한다.
+- proposal 단계에서 `archive_type`, `version_bump`, `target_version`, branch naming, `project_scope`를 확정하고, `archive_type`는 change category, `version_bump`는 semver impact로 구분한다.
 - pgg가 생성·관리하는 `.codex/sh/*.sh` helper만 workflow 내부 trusted script로 보고 추가 허락 없이 실행한다.
 - `pgg git`이 `on`이면 `.codex/sh/pgg-stage-commit.sh`로 task 완료와 QA final completion commit을 남기고, publish commit은 `state/current.md` 또는 `qa/report.md`의 `Git Publish Message` 섹션으로 제목/Why/footer를 관리하며 `<archive_type>: <summary>` 형식, 제목 50자 이하, 명령형 금지, 마침표 금지, 로그가 곧 문서 원칙을 지킨다.
 - 대상 프로젝트 검증 명령은 선언된 current-project verification contract가 있을 때만 자동 실행 후보가 되며, 없으면 `manual verification required`로 남긴다.

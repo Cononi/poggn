@@ -81,8 +81,8 @@ const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 let content = fs.readFileSync(filePath, "utf8");
 for (const [key, value] of Object.entries(yamlFields)) {
-  const pattern = new RegExp(`^(\\s*)${escapeRegex(key)}:\\s*".*"$`, "m");
-  content = content.replace(pattern, (_match, indent) => `${indent}${key}: "${value}"`);
+  const pattern = new RegExp(`^(\\s*)${escapeRegex(key)}:\\s*\".*\"$`, "m");
+  content = content.replace(pattern, (_match, indent) => `${indent}${key}: \"${value}\"`);
 }
 for (const [label, value] of Object.entries(bulletFields)) {
   const pattern = new RegExp(`^(- ${escapeRegex(label)}:\\s*)\`.*\`$`, "m");

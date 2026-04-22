@@ -56,7 +56,7 @@ implementation
 - `T2`: completed
 - `T3`: completed
 - `T4`: completed
-- `T5`: pending
+- `T5`: completed
 
 ## Git Publish Message
 
@@ -81,6 +81,8 @@ implementation
 | UPDATE | `README.md` | `implementation/diffs/009_UPDATE_README_md.diff` |
 | UPDATE | `AGENTS.md` | `implementation/diffs/010_UPDATE_AGENTS_md.diff` |
 | UPDATE | `.pgg/project.json` | 없음 |
+| CREATE | `poggn/active/pgg-major-bump-fix/implementation/index.md` | 없음 |
+| CREATE | `poggn/active/pgg-major-bump-fix/reviews/code.review.md` | 없음 |
 | UPDATE | `poggn/active/pgg-major-bump-fix/proposal.md` | 없음 |
 | CREATE | `poggn/active/pgg-major-bump-fix/plan.md` | 없음 |
 | CREATE | `poggn/active/pgg-major-bump-fix/task.md` | 없음 |
@@ -98,10 +100,10 @@ implementation
 
 ## Last Expert Score
 
-- phase: plan
-- score: 97
+- phase: code
+- score: 98
 - blocking issues: 없음
 
 ## Next Action
 
-`T5`
+`pgg-refactor`

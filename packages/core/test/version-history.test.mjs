@@ -107,7 +107,7 @@ test("pgg update preserves the version history ledger and archive append stays i
   }
 });
 
-test("pgg new-topic derives a concise alias and governed branch names when git mode is on", async () => {
+test("pgg new-topic preserves frontmatter metadata and governed branch names when git mode is on", async () => {
   const rootDir = await mkdtemp(path.join(os.tmpdir(), "pgg-short-name-"));
   const previousPggHome = process.env.PGG_HOME;
 
@@ -135,11 +135,129 @@ test("pgg new-topic derives a concise alias and governed branch names when git m
       "utf8"
     );
 
-    assert.match(proposal, /short_name: "release-alias"/);
-    assert.match(proposal, /working_branch: "ai\/fix\/0\.0\.1-release-alias"/);
-    assert.match(proposal, /release_branch: "release\/0\.0\.1-release-alias"/);
+    assert.match(proposal, /\n  version_bump: "patch"\n/);
+    assert.match(proposal, /\n  target_version: "0\.0\.1"\n/);
+    assert.match(proposal, /\n  short_name: "release-alias"\n/);
+    assert.match(proposal, /\n  working_branch: "ai\/fix\/0\.0\.1-release-alias"\n/);
+    assert.match(proposal, /\n  release_branch: "release\/0\.0\.1-release-alias"\n/);
     assert.match(state, /- short name: `release-alias`/);
     assert.equal(git(rootDir, ["branch", "--show-current"]), "ai/fix/0.0.1-release-alias");
+  } finally {
+    if (previousPggHome === undefined) {
+      delete process.env.PGG_HOME;
+    } else {
+      process.env.PGG_HOME = previousPggHome;
+    }
+    await rm(rootDir, { recursive: true, force: true });
+  }
+});
+
+test("pgg new-topic computes a major target and state-pack preserves semver metadata", async () => {
+  const rootDir = await mkdtemp(path.join(os.tmpdir(), "pgg-major-target-"));
+  const previousPggHome = process.env.PGG_HOME;
+
+  try {
+    process.env.PGG_HOME = rootDir;
+    await initializeProject(rootDir, {
+      provider: "codex",
+      language: "en",
+      autoMode: "on",
+      teamsMode: "off",
+      gitMode: "on"
+    });
+    initGitRepository(rootDir);
+
+    await writeFile(
+      path.join(rootDir, "poggn/version-history.ndjson"),
+      `${JSON.stringify({ topic: "existing", changeType: "feat", version: "0.8.0" })}\n`,
+      "utf8"
+    );
+
+    execFileSync(
+      path.join(rootDir, ".codex/sh/pgg-new-topic.sh"),
+      ["major-proof", "on", "fix", "major"],
+      { encoding: "utf8" }
+    );
+
+    const activeTopicDir = path.join(rootDir, "poggn/active/major-proof");
+    const proposalPath = path.join(activeTopicDir, "proposal.md");
+    const statePath = path.join(activeTopicDir, "state/current.md");
+    const proposal = await readFile(proposalPath, "utf8");
+
+    assert.match(proposal, /\n  version_bump: "major"\n/);
+    assert.match(proposal, /\n  target_version: "1\.0\.0"\n/);
+    assert.match(proposal, /\n  working_branch: "ai\/fix\/1\.0\.0-major-proof"\n/);
+    assert.match(proposal, /\n  release_branch: "release\/1\.0\.0-major-proof"\n/);
+    assert.equal(git(rootDir, ["branch", "--show-current"]), "ai/fix/1.0.0-major-proof");
+
+    const state = await readFile(statePath, "utf8");
+    await writeFile(
+      statePath,
+      `${state}\n\n## Git Publish Message\n\n- title: \`fix: Major bump contract\`\n- why: \`Breaking change needs a major target.\`\n- footer: \`Refs: major-proof\`\n`,
+      "utf8"
+    );
+
+    const handoff = execFileSync(path.join(rootDir, ".codex/sh/pgg-state-pack.sh"), [activeTopicDir], {
+      encoding: "utf8"
+    });
+
+    assert.match(handoff, /version_bump: major/);
+    assert.match(handoff, /target_version: 1\.0\.0/);
+    assert.match(handoff, /short_name: major-proof/);
+    assert.match(handoff, /working_branch: ai\/fix\/1\.0\.0-major-proof/);
+    assert.match(handoff, /release_branch: release\/1\.0\.0-major-proof/);
+    assert.match(handoff, /git_publish_message_ref: poggn\/active\/major-proof\/state\/current\.md#Git Publish Message/);
+    assert.match(handoff, /- title: `fix: Major bump contract`/);
+  } finally {
+    if (previousPggHome === undefined) {
+      delete process.env.PGG_HOME;
+    } else {
+      process.env.PGG_HOME = previousPggHome;
+    }
+    await rm(rootDir, { recursive: true, force: true });
+  }
+});
+
+test("pgg new-topic computes target_version even when git mode is off", async () => {
+  const rootDir = await mkdtemp(path.join(os.tmpdir(), "pgg-major-no-git-"));
+  const previousPggHome = process.env.PGG_HOME;
+
+  try {
+    process.env.PGG_HOME = rootDir;
+    await initializeProject(rootDir, {
+      provider: "codex",
+      language: "en",
+      autoMode: "on",
+      teamsMode: "off",
+      gitMode: "off"
+    });
+
+    await writeFile(
+      path.join(rootDir, "poggn/version-history.ndjson"),
+      `${JSON.stringify({ topic: "existing", changeType: "feat", version: "0.8.0" })}\n`,
+      "utf8"
+    );
+
+    execFileSync(
+      path.join(rootDir, ".codex/sh/pgg-new-topic.sh"),
+      ["major-without-git", "on", "fix", "major"],
+      { encoding: "utf8" }
+    );
+
+    const proposal = await readFile(
+      path.join(rootDir, "poggn/active/major-without-git/proposal.md"),
+      "utf8"
+    );
+    const state = await readFile(
+      path.join(rootDir, "poggn/active/major-without-git/state/current.md"),
+      "utf8"
+    );
+
+    assert.match(proposal, /\n  version_bump: "major"\n/);
+    assert.match(proposal, /\n  target_version: "1\.0\.0"\n/);
+    assert.match(proposal, /\n  working_branch: "ai\/fix\/1\.0\.0-major-without-git"\n/);
+    assert.match(proposal, /\n  release_branch: "release\/1\.0\.0-major-without-git"\n/);
+    assert.match(state, /- target version: `1\.0\.0`/);
   } finally {
     if (previousPggHome === undefined) {
       delete process.env.PGG_HOME;
