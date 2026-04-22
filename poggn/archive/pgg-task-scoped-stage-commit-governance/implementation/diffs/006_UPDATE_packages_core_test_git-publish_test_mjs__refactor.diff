@@ -1,0 +1,77 @@
+diff --git a/packages/core/test/git-publish.test.mjs b/packages/core/test/git-publish.test.mjs
+index 595b78b..cab913c 100644
+--- a/packages/core/test/git-publish.test.mjs
++++ b/packages/core/test/git-publish.test.mjs
+@@ -50,6 +50,12 @@ async function writeTopicFile(topicDir, relativePath, content) {
+   await writeFile(target, content, "utf8");
+ }
+ 
++async function ignorePoggnLocally(rootDir) {
++  const excludePath = path.join(rootDir, ".git", "info", "exclude");
++  const current = await readFile(excludePath, "utf8");
++  await writeFile(excludePath, `${current}\npoggn\n`, "utf8");
++}
++
+ function buildBranchNames(topic, options = {}) {
+   const archiveType = options.archiveType ?? "feat";
+   const versionBump = options.versionBump ?? "minor";
+@@ -672,6 +678,33 @@ test("stage commit helper records archive-type-aware implementation commits", as
+   });
+ });
+ 
++test("stage commit helper force-adds ignored topic artifacts", async () => {
++  await withGitPublishFixture("pgg-stage-commit-ignored", { remote: false }, async ({ rootDir }) => {
++    await ignorePoggnLocally(rootDir);
++    await writeFile(path.join(rootDir, "feature.txt"), "ignored topic path change\n", "utf8");
++    await createActiveStageTopic(rootDir, "stage-commit-ignored", "implementation", ["feature.txt"], "Ignored topic path", {
++      archiveType: "fix",
++      versionBump: "patch",
++      targetVersion: "0.1.1",
++      shortName: "stage-ignored"
++    });
++
++    const result = runStageCommitHelper(
++      rootDir,
++      "stage-commit-ignored",
++      "implementation",
++      "ignored topic proof",
++      "Ignored topic paths must still be captured so stage-local history and state evidence commit together.",
++      "Refs: TASK-IGNORED"
++    );
++    const history = await readFile(path.join(rootDir, "poggn/active/stage-commit-ignored/state/history.ndjson"), "utf8");
++
++    assert.equal(result.resultType, "committed");
++    assert.match(history, /"event":"stage-commit"/);
++    assert.match(git(rootDir, ["log", "-1", "--format=%B"]), /^fix: ignored topic proof$/m);
++  });
++});
++
+ test("stage commit helper defers when unrelated dirty files exist under a changed-files contract", async () => {
+   await withGitPublishFixture("pgg-stage-commit-dirty", { remote: false }, async ({ rootDir }) => {
+     await writeFile(path.join(rootDir, "feature.txt"), "candidate stage change\n", "utf8");
+@@ -698,3 +731,25 @@ test("stage commit helper defers when unrelated dirty files exist under a change
+     assert.equal(git(rootDir, ["rev-parse", "HEAD"]), beforeSha);
+   });
+ });
++
++test("archive helper publishes even when poggn is locally ignored", async () => {
++  await withGitPublishFixture("pgg-archive-ignored-topic", { remote: true }, async ({ rootDir, remoteDir }) => {
++    await ignorePoggnLocally(rootDir);
++    await writeFile(path.join(rootDir, "feature.txt"), "ignored archive publish case\n", "utf8");
++    const branch = await createQaTopic(rootDir, "archive-ignored-topic", ["feature.txt"], "Ignored topic archive publish", {
++      qaPublishMessage: {
++        title: "feat: ignored topic archive",
++        why: "Ignored topic paths still need QA completion, archive metadata, and publish commits to stay reproducible.",
++        footer: "Refs: PGG-IGNORED"
++      }
++    });
++
++    const result = runArchiveHelper(rootDir, "archive-ignored-topic");
++    const remoteReleaseHead = readRemoteRef(remoteDir, `refs/heads/${branch.releaseBranch}`);
++
++    assert.equal(result.qaCompletion.resultType, "committed");
++    assert.equal(result.git.resultType, "published");
++    assert.equal(result.git.commitSha, remoteReleaseHead);
++    assert.equal(result.git.commitTitle, "feat: ignored topic archive");
++  });
++});

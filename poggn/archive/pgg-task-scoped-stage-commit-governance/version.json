@@ -1,0 +1,14 @@
+{
+  "topic": "pgg-task-scoped-stage-commit-governance",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "version": "0.6.2",
+  "targetVersion": "0.6.2",
+  "previousVersion": "0.6.1",
+  "shortName": "task-governance",
+  "workingBranch": "ai/fix/0.6.2-task-governance",
+  "releaseBranch": "release/0.6.2-task-governance",
+  "projectScope": "current-project",
+  "archivedAt": "2026-04-22T06:00:50Z",
+  "history": "poggn/version-history.ndjson"
+}

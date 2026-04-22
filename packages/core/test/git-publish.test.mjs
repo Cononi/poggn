@@ -50,6 +50,12 @@ async function writeTopicFile(topicDir, relativePath, content) {
   await writeFile(target, content, "utf8");
 }
 
+async function ignorePoggnLocally(rootDir) {
+  const excludePath = path.join(rootDir, ".git", "info", "exclude");
+  const current = await readFile(excludePath, "utf8");
+  await writeFile(excludePath, `${current}\npoggn\n`, "utf8");
+}
+
 function buildBranchNames(topic, options = {}) {
   const archiveType = options.archiveType ?? "feat";
   const versionBump = options.versionBump ?? "minor";
@@ -74,6 +80,87 @@ function buildGitPublishMessageSection({ title, why, footer }) {
   }
 
   return [...lines, ""].join("\n");
+}
+
+async function createActiveStageTopic(rootDir, topic, stage, changedPaths, goal, options = {}) {
+  const topicDir = path.join(rootDir, "poggn", "active", topic);
+  await mkdir(topicDir, { recursive: true });
+  const branch = buildBranchNames(topic, options);
+  const changedFileRows = changedPaths
+    .map((changedPath) => `| UPDATE | \`${changedPath}\` | 없음 |`)
+    .join("\n");
+
+  await writeTopicFile(
+    topicDir,
+    "proposal.md",
+    [
+      "---",
+      "pgg:",
+      `  topic: "${topic}"`,
+      '  stage: "proposal"',
+      '  status: "reviewed"',
+      `  archive_type: "${branch.archiveType}"`,
+      `  version_bump: "${branch.versionBump}"`,
+      `  target_version: "${branch.targetVersion}"`,
+      `  short_name: "${branch.shortName}"`,
+      `  working_branch: "${branch.workingBranch}"`,
+      `  release_branch: "${branch.releaseBranch}"`,
+      '  project_scope: "current-project"',
+      "---",
+      "",
+      "# Proposal",
+      "",
+      "## 1. 제목",
+      "",
+      topic,
+      ""
+    ].join("\n")
+  );
+
+  await writeTopicFile(
+    topicDir,
+    "state/current.md",
+    [
+      "# Current State",
+      "",
+      "## Topic",
+      "",
+      topic,
+      "",
+      "## Current Stage",
+      "",
+      stage,
+      "",
+      "## Goal",
+      "",
+      goal,
+      "",
+      "## Changed Files",
+      "",
+      "| CRUD | path | diff |",
+      "|---|---|---|",
+      changedFileRows,
+      "",
+      "## Last Expert Score",
+      "",
+      `- phase: ${stage}`,
+      "- score: 95",
+      "- blocking issues: 없음",
+      "",
+      "## Next Action",
+      "",
+      "`pgg-next`",
+      ""
+    ].join("\n")
+  );
+  await writeTopicFile(
+    topicDir,
+    "state/history.ndjson",
+    `{"ts":"2026-04-21T00:00:00Z","stage":"${stage}","event":"${stage}-started"}\n`
+  );
+
+  git(rootDir, ["checkout", "-B", branch.workingBranch]);
+  return branch;
 }
 
 async function createQaTopic(rootDir, topic, changedPaths, goal, options = {}) {
@@ -242,6 +329,19 @@ function runArchiveHelper(rootDir, topic) {
   );
 }
 
+function runStageCommitHelper(rootDir, topic, stage, summary, why, footer) {
+  const args = [topic, stage, summary, why];
+  if (footer !== undefined) {
+    args.push(footer);
+  }
+
+  return JSON.parse(
+    execFileSync(path.join(rootDir, ".codex/sh/pgg-stage-commit.sh"), args, {
+      encoding: "utf8"
+    })
+  );
+}
+
 async function loadPublishMetadata(rootDir, topic) {
   return JSON.parse(await readFile(path.join(rootDir, `poggn/archive/${topic}/git/publish.json`), "utf8"));
 }
@@ -290,7 +390,7 @@ test("archive helper reports remote setup required when git mode is on without a
     await writeFile(path.join(rootDir, "feature.txt"), "remote missing case\n", "utf8");
     const branch = await createQaTopic(rootDir, "git-remote-missing", ["feature.txt"], "Remote setup required", {
       qaPublishMessage: {
-        title: "Remote setup status",
+        title: "feat: remote setup status",
         why: "Remote wiring is incomplete, so the archive result must stay publish-ready without creating a misleading commit yet.",
         footer: "Refs: OPS-100"
       }
@@ -302,6 +402,7 @@ test("archive helper reports remote setup required when git mode is on without a
     const history = await readArchivedHistory(rootDir, "git-remote-missing");
 
     assert.equal(result.status, "archived");
+    assert.equal(result.qaCompletion.resultType, "committed");
     assert.equal(result.git.resultType, "remote_setup_required");
     assert.equal(result.git.pushStatus, "not_attempted");
     assert.equal(result.git.workingBranch, branch.workingBranch);
@@ -314,7 +415,7 @@ test("archive helper reports remote setup required when git mode is on without a
     assert.equal(metadata.cleanupTiming, "after_release_promotion");
     assert.match(metadata.reason, /Remote 'origin' is not configured/);
     assert.match(history, /git-publish-blocked/);
-    assert.equal(git(rootDir, ["rev-parse", "HEAD"]), beforeSha);
+    assert.notEqual(git(rootDir, ["rev-parse", "HEAD"]), beforeSha);
     assert.equal(git(rootDir, ["branch", "--show-current"]), branch.workingBranch);
     assert.notEqual(git(rootDir, ["branch", "--list", branch.workingBranch]), "");
   });
@@ -327,7 +428,7 @@ test("archive helper blocks automatic publish when unrelated dirty files exist",
     await writeFile(agentsPath, `${await readFile(agentsPath, "utf8")}\n# unrelated dirty change\n`, "utf8");
     const branch = await createQaTopic(rootDir, "git-dirty-blocked", ["feature.txt"], "Dirty worktree guardrail", {
       qaPublishMessage: {
-        title: "Dirty worktree guardrail",
+        title: "feat: dirty worktree guardrail",
         why: "Unrelated changes must block automation so one commit stays scoped to one archive intent.",
         footer: "Refs: QA-201"
       }
@@ -337,6 +438,7 @@ test("archive helper blocks automatic publish when unrelated dirty files exist",
     const result = runArchiveHelper(rootDir, "git-dirty-blocked");
     const metadata = await loadPublishMetadata(rootDir, "git-dirty-blocked");
 
+    assert.equal(result.qaCompletion.resultType, "publish_blocked");
     assert.equal(result.git.resultType, "publish_blocked");
     assert.equal(result.git.pushStatus, "not_attempted");
     assert.equal(metadata.resultType, "publish_blocked");
@@ -353,7 +455,7 @@ test("archive helper commits and pushes when git mode is on and the remote is av
     await writeFile(path.join(rootDir, "feature.txt"), "publish success case\n", "utf8");
     const branch = await createQaTopic(rootDir, "git-publish-success", ["feature.txt"], "Automatic git publish", {
       qaPublishMessage: {
-        title: "Git publish governance",
+        title: "feat: git publish governance",
         why: "Archived topics need a readable commit history so automated publish stays aligned with one intent and documented reasoning.",
         footer: "Refs: PGG-321"
       }
@@ -362,13 +464,15 @@ test("archive helper commits and pushes when git mode is on and the remote is av
     const result = runArchiveHelper(rootDir, "git-publish-success");
     const metadata = await loadPublishMetadata(rootDir, "git-publish-success");
     const commitMessage = git(rootDir, ["log", "-1", "--format=%B"]);
+    const recentSubjects = git(rootDir, ["log", "-2", "--format=%s"]);
     const remoteReleaseHead = readRemoteRef(remoteDir, `refs/heads/${branch.releaseBranch}`);
     const remoteMainHead = readRemoteRef(remoteDir, "refs/heads/main");
     const note = git(rootDir, ["notes", "--ref", "pgg-publish", "show", result.git.commitSha]);
 
+    assert.equal(result.qaCompletion.resultType, "committed");
     assert.equal(result.git.resultType, "published");
     assert.equal(result.git.pushStatus, "success");
-    assert.equal(result.git.commitTitle, "Git publish governance");
+    assert.equal(result.git.commitTitle, "feat: git publish governance");
     assert.equal(result.git.workingBranch, branch.workingBranch);
     assert.equal(result.git.releaseBranch, branch.releaseBranch);
     assert.equal(result.git.publishMode, "first_publish");
@@ -377,9 +481,11 @@ test("archive helper commits and pushes when git mode is on and the remote is av
     assert.equal(result.git.commitSha, git(rootDir, ["rev-parse", "HEAD"]));
     assert.equal(result.git.commitSha, remoteReleaseHead);
     assert.notEqual(result.git.commitSha, remoteMainHead);
-    assert.match(commitMessage, /^Git publish governance$/m);
+    assert.match(commitMessage, /^feat: git publish governance$/m);
     assert.match(commitMessage, /Why: Archived topics need a readable commit history/);
     assert.match(commitMessage, /^Refs: PGG-321$/m);
+    assert.match(recentSubjects, /^feat: git publish governance$/m);
+    assert.match(recentSubjects, /^feat: qa completion$/m);
     assert.equal(metadata.resultType, "published");
     assert.equal(metadata.releaseBranch, branch.releaseBranch);
     assert.equal(metadata.workingBranch, branch.workingBranch);
@@ -399,7 +505,7 @@ test("archive helper marks update publish when the remote release branch already
     await writeFile(path.join(rootDir, "feature.txt"), "publish update case\n", "utf8");
     const branch = await createQaTopic(rootDir, "git-publish-update", ["feature.txt"], "Release publish update", {
       qaPublishMessage: {
-        title: "Release update publish",
+        title: "feat: release update publish",
         why: "An existing release branch should stay on the normal update path while metadata still records the different publish mode.",
         footer: "Refs: PGG-654"
       }
@@ -413,6 +519,7 @@ test("archive helper marks update publish when the remote release branch already
     const metadata = await loadPublishMetadata(rootDir, "git-publish-update");
     const remoteReleaseHead = readRemoteRef(remoteDir, `refs/heads/${branch.releaseBranch}`);
 
+    assert.equal(result.qaCompletion.resultType, "committed");
     assert.equal(result.git.resultType, "published");
     assert.equal(result.git.pushStatus, "success");
     assert.equal(result.git.publishMode, "update_publish");
@@ -431,7 +538,7 @@ test("archive helper blocks main direct push and requires the ai branch", async 
     await writeFile(path.join(rootDir, "feature.txt"), "main guard case\n", "utf8");
     const branch = await createQaTopic(rootDir, "git-main-guard", ["feature.txt"], "Main branch guardrail", {
       qaPublishMessage: {
-        title: "Main branch guardrail",
+        title: "feat: main branch guardrail",
         why: "Release automation must refuse direct main pushes so publish only happens from the governed ai branch.",
         footer: "Refs: QA-301"
       }
@@ -441,6 +548,7 @@ test("archive helper blocks main direct push and requires the ai branch", async 
     const result = runArchiveHelper(rootDir, "git-main-guard");
     const metadata = await loadPublishMetadata(rootDir, "git-main-guard");
 
+    assert.equal(result.qaCompletion.resultType, "publish_blocked");
     assert.equal(result.git.resultType, "publish_blocked");
     assert.equal(result.git.pushStatus, "not_attempted");
     assert.match(result.git.reason, /main direct push is forbidden/);
@@ -467,13 +575,14 @@ test("archive helper rejects governed publish messages that violate commit rules
     const metadata = await loadPublishMetadata(rootDir, "git-invalid-message");
     const history = await readArchivedHistory(rootDir, "git-invalid-message");
 
+    assert.equal(result.qaCompletion.resultType, "committed");
     assert.equal(result.git.resultType, "commit_message_invalid");
     assert.equal(result.git.pushStatus, "not_attempted");
     assert.match(result.git.reason, /imperative command form/);
     assert.match(result.git.reason, /Why summary must explain the reason/);
     assert.equal(metadata.resultType, "commit_message_invalid");
     assert.match(history, /git-publish-blocked/);
-    assert.equal(git(rootDir, ["rev-parse", "HEAD"]), beforeSha);
+    assert.notEqual(git(rootDir, ["rev-parse", "HEAD"]), beforeSha);
   });
 });
 
@@ -482,7 +591,7 @@ test("archive helper falls back to state publish metadata and default footer", a
     await writeFile(path.join(rootDir, "feature.txt"), "state fallback case\n", "utf8");
     const branch = await createQaTopic(rootDir, "git-state-fallback", ["feature.txt"], "State fallback contract", {
       statePublishMessage: {
-        title: "State fallback contract",
+        title: "feat: state fallback contract",
         why: "State handoff still needs enough publish metadata when the QA report omits the governed message block."
       }
     });
@@ -491,9 +600,10 @@ test("archive helper falls back to state publish metadata and default footer", a
     const commitMessage = git(rootDir, ["log", "-1", "--format=%B"]);
     const remoteHead = readRemoteRef(remoteDir, `refs/heads/${branch.releaseBranch}`);
 
+    assert.equal(result.qaCompletion.resultType, "committed");
     assert.equal(result.git.resultType, "published");
     assert.equal(result.git.commitSha, remoteHead);
-    assert.equal(result.git.commitTitle, "State fallback contract");
+    assert.equal(result.git.commitTitle, "feat: state fallback contract");
     assert.match(commitMessage, /^Refs: git-state-fallback$/m);
   });
 });
@@ -503,12 +613,12 @@ test("archive helper prefers QA publish fields and falls back to state footer", 
     await writeFile(path.join(rootDir, "feature.txt"), "qa priority case\n", "utf8");
     const branch = await createQaTopic(rootDir, "git-qa-priority", ["feature.txt"], "QA publish message priority", {
       statePublishMessage: {
-        title: "State fallback title",
+        title: "feat: state fallback title",
         why: "State handoff carries a complete publish message when QA metadata is still being prepared.",
         footer: "Refs: STATE-123"
       },
       qaPublishMessage: {
-        title: "QA publish priority",
+        title: "feat: qa publish priority",
         why: "QA review has the final governed publish wording, so helper precedence should follow the QA decision."
       }
     });
@@ -517,10 +627,129 @@ test("archive helper prefers QA publish fields and falls back to state footer", 
     const commitMessage = git(rootDir, ["log", "-1", "--format=%B"]);
     const remoteHead = readRemoteRef(remoteDir, `refs/heads/${branch.releaseBranch}`);
 
+    assert.equal(result.qaCompletion.resultType, "committed");
     assert.equal(result.git.resultType, "published");
     assert.equal(result.git.commitSha, remoteHead);
-    assert.equal(result.git.commitTitle, "QA publish priority");
+    assert.equal(result.git.commitTitle, "feat: qa publish priority");
     assert.match(commitMessage, /Why: QA review has the final governed publish wording/);
     assert.match(commitMessage, /^Refs: STATE-123$/m);
+  });
+});
+
+test("stage commit helper records archive-type-aware implementation commits", async () => {
+  await withGitPublishFixture("pgg-stage-commit-implementation", { remote: false }, async ({ rootDir }) => {
+    await writeFile(path.join(rootDir, "feature.txt"), "implementation task change\n", "utf8");
+    const branch = await createActiveStageTopic(
+      rootDir,
+      "stage-commit-implementation",
+      "implementation",
+      ["feature.txt"],
+      "Implementation stage commit",
+      {
+        archiveType: "fix",
+        versionBump: "patch",
+        targetVersion: "0.1.1",
+        shortName: "stage-impl"
+      }
+    );
+
+    const result = runStageCommitHelper(
+      rootDir,
+      "stage-commit-implementation",
+      "implementation",
+      "task progress",
+      "This task needs a scoped implementation commit so the workflow history matches the completed task intent.",
+      "Refs: TASK-101"
+    );
+    const commitMessage = git(rootDir, ["log", "-1", "--format=%B"]);
+    const history = await readFile(
+      path.join(rootDir, "poggn/active/stage-commit-implementation/state/history.ndjson"),
+      "utf8"
+    );
+
+    assert.equal(result.resultType, "committed");
+    assert.equal(result.commitTitle, "fix: task progress");
+    assert.equal(result.workingBranch, branch.workingBranch);
+    assert.match(commitMessage, /^fix: task progress$/m);
+    assert.match(commitMessage, /Why: This task needs a scoped implementation commit/);
+    assert.match(commitMessage, /^Refs: TASK-101$/m);
+    assert.match(history, /"stage":"implementation"/);
+    assert.match(history, /"event":"stage-commit"/);
+  });
+});
+
+test("stage commit helper force-adds ignored topic artifacts", async () => {
+  await withGitPublishFixture("pgg-stage-commit-ignored", { remote: false }, async ({ rootDir }) => {
+    await ignorePoggnLocally(rootDir);
+    await writeFile(path.join(rootDir, "feature.txt"), "ignored topic path change\n", "utf8");
+    await createActiveStageTopic(rootDir, "stage-commit-ignored", "implementation", ["feature.txt"], "Ignored topic path", {
+      archiveType: "fix",
+      versionBump: "patch",
+      targetVersion: "0.1.1",
+      shortName: "stage-ignored"
+    });
+
+    const result = runStageCommitHelper(
+      rootDir,
+      "stage-commit-ignored",
+      "implementation",
+      "ignored topic proof",
+      "Ignored topic paths must still be captured so stage-local history and state evidence commit together.",
+      "Refs: TASK-IGNORED"
+    );
+    const history = await readFile(path.join(rootDir, "poggn/active/stage-commit-ignored/state/history.ndjson"), "utf8");
+
+    assert.equal(result.resultType, "committed");
+    assert.match(history, /"event":"stage-commit"/);
+    assert.match(git(rootDir, ["log", "-1", "--format=%B"]), /^fix: ignored topic proof$/m);
+  });
+});
+
+test("stage commit helper defers when unrelated dirty files exist under a changed-files contract", async () => {
+  await withGitPublishFixture("pgg-stage-commit-dirty", { remote: false }, async ({ rootDir }) => {
+    await writeFile(path.join(rootDir, "feature.txt"), "candidate stage change\n", "utf8");
+    await createActiveStageTopic(rootDir, "stage-commit-dirty", "refactor", ["feature.txt"], "Refactor stage commit", {
+      archiveType: "fix",
+      versionBump: "patch",
+      targetVersion: "0.1.1",
+      shortName: "stage-dirty"
+    });
+    const agentsPath = path.join(rootDir, "AGENTS.md");
+    await writeFile(agentsPath, `${await readFile(agentsPath, "utf8")}\n# unrelated dirty change\n`, "utf8");
+
+    const beforeSha = git(rootDir, ["rev-parse", "HEAD"]);
+    const result = runStageCommitHelper(
+      rootDir,
+      "stage-commit-dirty",
+      "refactor",
+      "cleanup proof",
+      "Refactor proof should stay scoped to the changed-files contract and must not absorb unrelated dirty work."
+    );
+
+    assert.equal(result.resultType, "publish_blocked");
+    assert.match(result.reason, /Unrelated worktree changes are present/);
+    assert.equal(git(rootDir, ["rev-parse", "HEAD"]), beforeSha);
+  });
+});
+
+test("archive helper publishes even when poggn is locally ignored", async () => {
+  await withGitPublishFixture("pgg-archive-ignored-topic", { remote: true }, async ({ rootDir, remoteDir }) => {
+    await ignorePoggnLocally(rootDir);
+    await writeFile(path.join(rootDir, "feature.txt"), "ignored archive publish case\n", "utf8");
+    const branch = await createQaTopic(rootDir, "archive-ignored-topic", ["feature.txt"], "Ignored topic archive publish", {
+      qaPublishMessage: {
+        title: "feat: ignored topic archive",
+        why: "Ignored topic paths still need QA completion, archive metadata, and publish commits to stay reproducible.",
+        footer: "Refs: PGG-IGNORED"
+      }
+    });
+
+    const result = runArchiveHelper(rootDir, "archive-ignored-topic");
+    const remoteReleaseHead = readRemoteRef(remoteDir, `refs/heads/${branch.releaseBranch}`);
+
+    assert.equal(result.qaCompletion.resultType, "committed");
+    assert.equal(result.git.resultType, "published");
+    assert.equal(result.git.commitSha, remoteReleaseHead);
+    assert.equal(result.git.commitTitle, "feat: ignored topic archive");
   });
 });
