@@ -1,0 +1,14 @@
+{
+  "topic": "dashboard-main-shell-redesign",
+  "changeType": "feat",
+  "versionBump": "minor",
+  "version": "0.7.0",
+  "targetVersion": "0.7.0",
+  "previousVersion": "0.6.2",
+  "shortName": "dashboard-redesign",
+  "workingBranch": "ai/feat/0.7.0-dashboard-redesign",
+  "releaseBranch": "release/0.7.0-dashboard-redesign",
+  "projectScope": "current-project",
+  "archivedAt": "2026-04-22T07:46:58Z",
+  "history": "poggn/version-history.ndjson"
+}

@@ -1,0 +1,29 @@
+{
+  "topic": "dashboard-main-shell-redesign",
+  "version": "0.7.0",
+  "targetVersion": "0.7.0",
+  "changeType": "feat",
+  "versionBump": "minor",
+  "commitTitle": "feat: Dashboard shell redesign",
+  "commitSha": "9a8c2eb0d44b0aec5c028779618e1a603927ce63",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/0.7.0-dashboard-redesign",
+  "workingBranch": "ai/feat/0.7.0-dashboard-redesign",
+  "releaseBranch": "release/0.7.0-dashboard-redesign",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-22T07:47:04Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/0.7.0-dashboard-redesign'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/dashboard-main-shell-redesign",
+    "versionFile": "poggn/archive/dashboard-main-shell-redesign/version.json"
+  }
+}
