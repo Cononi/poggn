@@ -140,6 +140,16 @@
         "path": "poggn/active/pgg-major-bump-fix/reviews/refactor.review.md",
         "stage": "refactor"
       }
+    },
+    {
+      "id": "qa-report",
+      "type": "review",
+      "position": { "x": 880, "y": 480 },
+      "data": {
+        "label": "qa/report.md",
+        "path": "poggn/active/pgg-major-bump-fix/qa/report.md",
+        "stage": "qa"
+      }
     }
   ],
   "edges": [
@@ -156,6 +166,7 @@
     { "id": "e-plan-spec-qa", "source": "plan", "target": "spec-qa-major-bump-proof" },
     { "id": "e-task-implementation", "source": "task", "target": "implementation-index" },
     { "id": "e-implementation-review", "source": "implementation-index", "target": "code-review" },
-    { "id": "e-code-refactor-review", "source": "code-review", "target": "refactor-review" }
+    { "id": "e-code-refactor-review", "source": "code-review", "target": "refactor-review" },
+    { "id": "e-refactor-qa-report", "source": "refactor-review", "target": "qa-report" }
   ]
 }

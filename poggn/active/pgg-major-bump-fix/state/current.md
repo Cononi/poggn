@@ -6,11 +6,11 @@ pgg-major-bump-fix
 
 ## Current Stage
 
-refactor
+qa
 
 ## Goal
 
-`pgg-add` semver helper의 구조를 단순화하고 refactor evidence를 기록한다.
+major bump contract fix와 refactor 결과를 검증하고 archive 가능 여부를 판정한다.
 
 ## Confirmed Scope
 
@@ -19,6 +19,7 @@ refactor
 - generated README, workflow 문서, skill/template이 같은 semver 선택 기준과 proposal responsibility를 설명하도록 맞춘다.
 - `major` 선택 시 latest ledger 기준으로 실제 `1.0.0`이 계산되는 end-to-end regression proof를 추가 대상으로 잡는다.
 - refactor 단계에서는 `pgg-new-topic.sh`의 semver resolution inline 블록을 작은 helper들로 나누되 제품 범위는 넓히지 않는다.
+- QA 단계에서는 build, test, managed update, QA gate를 다시 확인하고 current-project verification contract는 `manual verification required`로 유지한다.
 
 ## Constraints
 
@@ -41,7 +42,7 @@ refactor
 
 ## Open Items
 
-- 없음
+- status: pass
 
 ## Active Specs
 
@@ -58,6 +59,14 @@ refactor
 - `T3`: completed
 - `T4`: completed
 - `T5`: completed
+
+## Verification
+
+- `pnpm build`: pass
+- `pnpm test`: pass
+- `node packages/cli/dist/index.js update --cwd /config/workspace/poggn-ai`: pass (`status=unchanged`)
+- `./.codex/sh/pgg-gate.sh pgg-qa pgg-major-bump-fix`: pass
+- current-project verification contract: `manual verification required`
 
 ## Git Publish Message
 
@@ -86,9 +95,11 @@ refactor
 | CREATE | `poggn/active/pgg-major-bump-fix/implementation/index.md` | 없음 |
 | CREATE | `poggn/active/pgg-major-bump-fix/reviews/code.review.md` | 없음 |
 | CREATE | `poggn/active/pgg-major-bump-fix/reviews/refactor.review.md` | 없음 |
+| CREATE | `poggn/active/pgg-major-bump-fix/reviews/qa.review.md` | 없음 |
 | UPDATE | `poggn/active/pgg-major-bump-fix/proposal.md` | 없음 |
 | CREATE | `poggn/active/pgg-major-bump-fix/plan.md` | 없음 |
 | CREATE | `poggn/active/pgg-major-bump-fix/task.md` | 없음 |
+| CREATE | `poggn/active/pgg-major-bump-fix/qa/report.md` | 없음 |
 | CREATE | `poggn/active/pgg-major-bump-fix/spec/proposal/semver-decision-contract.md` | 없음 |
 | CREATE | `poggn/active/pgg-major-bump-fix/spec/runtime/proposal-frontmatter-integrity.md` | 없음 |
 | CREATE | `poggn/active/pgg-major-bump-fix/spec/state/minimal-semver-handoff.md` | 없음 |
@@ -111,12 +122,16 @@ refactor
 | UPDATE | `poggn/active/pgg-major-bump-fix/state/history.ndjson` | 없음 |
 | UPDATE | `poggn/active/pgg-major-bump-fix/workflow.reactflow.json` | 없음 |
 
+## QA Report
+
+- ref: `qa/report.md`
+
 ## Last Expert Score
 
-- phase: refactor
-- score: 97
+- phase: qa
+- score: 96
 - blocking issues: 없음
 
 ## Next Action
 
-`pgg-qa`
+archive allowed
