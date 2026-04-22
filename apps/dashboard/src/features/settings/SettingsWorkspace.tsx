@@ -39,7 +39,7 @@ export function SettingsWorkspace(props: SettingsWorkspaceProps) {
   const editingDisabled = !props.isLiveMode;
 
   return (
-    <Paper sx={{ p: 2.25, borderRadius: 5 }}>
+    <Paper sx={{ p: 2.25, borderRadius: 1 }}>
       <Stack spacing={2}>
         <Stack spacing={1}>
           <Typography variant="overline" color="primary.main">
@@ -165,7 +165,7 @@ function SystemToggle(props: {
   onChange: (checked: boolean) => void;
 }) {
   return (
-    <Paper variant="outlined" sx={{ p: 1.5, borderRadius: 4 }}>
+    <Paper variant="outlined" sx={{ p: 1.5, borderRadius: 1 }}>
       <Stack direction="row" spacing={2} sx={{ alignItems: "center", justifyContent: "space-between" }}>
         <Typography variant="body1">{props.label}</Typography>
         <Switch

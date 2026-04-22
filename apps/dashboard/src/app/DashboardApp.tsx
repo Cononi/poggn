@@ -28,8 +28,7 @@ import { dashboardLocale } from "../shared/locale/dashboardLocale";
 import type {
   ArtifactSelection,
   DashboardLocale,
-  ProjectSnapshot,
-  TopicSummary
+  ProjectSnapshot
 } from "../shared/model/dashboard";
 import { useDashboardStore } from "../shared/store/dashboardStore";
 import {
@@ -41,7 +40,6 @@ import {
   splitVisibleTopics
 } from "../shared/utils/dashboard";
 import {
-  buildProjectRailProjects,
   createMutationPayload,
   markDashboardInteraction,
   resolveCurrentProject,
@@ -63,6 +61,7 @@ export default function DashboardApp() {
   const activeProjectsView = useDashboardStore((state) => state.activeProjectsView);
   const activeSettingsView = useDashboardStore((state) => state.activeSettingsView);
   const projectSurface = useDashboardStore((state) => state.projectSurface);
+  const themeMode = useDashboardStore((state) => state.themeMode);
   const selectedProjectId = useDashboardStore((state) => state.selectedProjectId);
   const selectedTopicKey = useDashboardStore((state) => state.selectedTopicKey);
   const topicFilter = useDashboardStore((state) => state.topicFilter);
@@ -70,6 +69,7 @@ export default function DashboardApp() {
   const setActiveProjectsView = useDashboardStore((state) => state.setActiveProjectsView);
   const setActiveSettingsView = useDashboardStore((state) => state.setActiveSettingsView);
   const setProjectSurface = useDashboardStore((state) => state.setProjectSurface);
+  const setThemeMode = useDashboardStore((state) => state.setThemeMode);
   const setSelectedProjectId = useDashboardStore((state) => state.setSelectedProjectId);
   const setSelectedTopicKey = useDashboardStore((state) => state.setSelectedTopicKey);
   const setTopicFilter = useDashboardStore((state) => state.setTopicFilter);
@@ -103,7 +103,6 @@ export default function DashboardApp() {
     () => [...(snapshot?.categories ?? [])].sort((left, right) => left.order - right.order),
     [snapshot?.categories]
   );
-  const railProjects = useMemo(() => buildProjectRailProjects(snapshot), [snapshot]);
   const visibleBuckets = useMemo(
     () => splitVisibleTopics(selectedProject, deferredFilter),
     [deferredFilter, selectedProject]
@@ -250,17 +249,6 @@ export default function DashboardApp() {
     });
   };
 
-  const selectProjectFromRail = (projectId: string) => {
-    markDashboardInteraction("project-switch", "start");
-    startTransition(() => {
-      setSelectedProjectId(projectId);
-      if (activeTopMenu === "projects" && activeProjectsView === "board") {
-        setProjectSurface("board");
-      }
-      setSelectedTopicKey(null);
-    });
-  };
-
   const openTopicDetail = (topicKey: string) => {
     markDashboardInteraction("detail-open", "start");
     startTransition(() => {
@@ -269,10 +257,6 @@ export default function DashboardApp() {
       setProjectSurface("detail");
       setSelectedTopicKey(topicKey);
     });
-  };
-
-  const previewTopicArtifacts = (topic: TopicSummary) => {
-    openTopicDetail(buildTopicKey(topic));
   };
 
   const renderProjectsSurface = () => {
@@ -318,20 +302,16 @@ export default function DashboardApp() {
 
       return (
         <ProjectListBoard
-          project={selectedProject}
-          selectedTopicKey={selectedTopicKey}
-          activeLanes={activeLanes}
-          archiveLanes={archiveLanes}
-          selectedTopic={selectedTopic}
-          topicFilter={topicFilter}
+          categories={categories}
+          projects={snapshot?.projects ?? []}
+          currentProjectId={currentProject?.id ?? null}
+          selectedProjectId={selectedProjectId}
+          latestActiveProjectId={latestActiveProject?.id ?? null}
           dictionary={dictionary}
           snapshotSource={snapshotSource}
-          onTopicFilterChange={(value) => {
-            markDashboardInteraction("topic-filter", "start");
-            setTopicFilter(value);
-          }}
-          onSelectTopic={openTopicDetail}
-          onPreviewArtifact={previewTopicArtifacts}
+          isLiveMode={isLiveMode}
+          onAddProject={openCreateProjectDialog}
+          onOpenProject={openProjectDetail}
         />
       );
     }
@@ -405,7 +385,9 @@ export default function DashboardApp() {
           latestActiveProject={latestActiveProject}
           dictionary={dictionary}
           snapshotSource={snapshotSource}
+          themeMode={themeMode}
           activeTopMenu={activeTopMenu}
+          onToggleThemeMode={() => setThemeMode(themeMode === "dark" ? "light" : "dark")}
           onChangeTopMenu={(next) => {
             setActiveTopMenu(next);
             if (next === "projects") {
@@ -430,10 +412,7 @@ export default function DashboardApp() {
             activeProjectsView={activeProjectsView}
             activeSettingsView={activeSettingsView}
             selectedProject={selectedProject}
-            railProjects={railProjects}
-            latestActiveProjectId={latestActiveProject?.id ?? null}
             dictionary={dictionary}
-            isLiveMode={isLiveMode}
             onOpenProjectsView={(view) => {
               setActiveTopMenu("projects");
               setActiveProjectsView(view);
@@ -445,8 +424,6 @@ export default function DashboardApp() {
               setActiveTopMenu("settings");
               setActiveSettingsView(view);
             }}
-            onSelectProject={selectProjectFromRail}
-            onAddProject={openCreateProjectDialog}
           />
 
           <Stack spacing={2.5}>
@@ -584,11 +561,13 @@ function DashboardHeader(props: {
   latestActiveProject: ProjectSnapshot | null;
   dictionary: DashboardLocale;
   snapshotSource: "live" | "static";
+  themeMode: "light" | "dark";
   activeTopMenu: "projects" | "settings";
+  onToggleThemeMode: () => void;
   onChangeTopMenu: (next: "projects" | "settings") => void;
 }) {
   return (
-    <Paper sx={{ p: { xs: 1.5, md: 2 }, borderRadius: 5 }}>
+    <Paper sx={{ p: { xs: 1.5, md: 2 }, borderRadius: 1 }}>
       <Stack direction={{ xs: "column", xl: "row" }} spacing={2} sx={{ justifyContent: "space-between" }}>
         <Stack spacing={1.5}>
           <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ alignItems: { md: "center" } }}>
@@ -618,6 +597,13 @@ function DashboardHeader(props: {
         </Stack>
 
         <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap", alignSelf: "flex-start" }}>
+          <Button variant="outlined" onClick={props.onToggleThemeMode}>
+            {props.themeMode === "dark" ? props.dictionary.lightMode : props.dictionary.darkMode}
+          </Button>
+          <Chip
+            label={`${props.dictionary.themeMode}: ${props.themeMode === "dark" ? props.dictionary.darkMode : props.dictionary.lightMode}`}
+            variant="outlined"
+          />
           <Chip
             label={`${props.dictionary.latestProject}: ${props.latestActiveProject?.name ?? "-"}`}
             color="primary"
@@ -640,14 +626,9 @@ function DashboardRail(props: {
   activeProjectsView: "board" | "categories" | "reports" | "board-settings";
   activeSettingsView: "main" | "refresh" | "git" | "system";
   selectedProject: ProjectSnapshot | null;
-  railProjects: ProjectSnapshot[];
-  latestActiveProjectId: string | null;
   dictionary: DashboardLocale;
-  isLiveMode: boolean;
   onOpenProjectsView: (view: "board" | "categories" | "reports" | "board-settings") => void;
   onOpenSettingsView: (view: "main" | "refresh" | "git" | "system") => void;
-  onSelectProject: (projectId: string) => void;
-  onAddProject: () => void;
 }) {
   const items =
     props.activeTopMenu === "projects"
@@ -667,7 +648,7 @@ function DashboardRail(props: {
   const activeId = props.activeTopMenu === "projects" ? props.activeProjectsView : props.activeSettingsView;
 
   return (
-    <Paper sx={{ p: 1.5, borderRadius: 5, alignSelf: "start" }}>
+    <Paper sx={{ p: 1.5, borderRadius: 1, alignSelf: "start" }}>
       <Stack spacing={1.5}>
         <Stack spacing={0.35}>
           <Typography variant="overline" color="text.secondary">
@@ -697,29 +678,10 @@ function DashboardRail(props: {
           ))}
         </Stack>
 
-        {props.activeTopMenu === "projects" ? (
+        {props.activeTopMenu === "settings" && props.selectedProject ? (
           <>
             <Divider />
-            <Button variant="contained" disabled={!props.isLiveMode} onClick={props.onAddProject}>
-              {props.dictionary.addProject}
-            </Button>
-            <Stack spacing={1}>
-              {props.railProjects.map((project) => (
-                <RailProjectCard
-                  key={project.id}
-                  project={project}
-                  isSelected={props.selectedProject?.id === project.id}
-                  isLatest={props.latestActiveProjectId === project.id}
-                  dictionary={props.dictionary}
-                  onClick={() => props.onSelectProject(project.id)}
-                />
-              ))}
-            </Stack>
-          </>
-        ) : props.selectedProject ? (
-          <>
-            <Divider />
-            <Paper sx={{ p: 1.25, borderRadius: 4, backgroundColor: alpha("#0c66e4", 0.06) }}>
+            <Paper sx={{ p: 1.25, borderRadius: 1, backgroundColor: alpha("#d1643a", 0.08) }}>
               <Typography variant="subtitle2">{props.selectedProject.name}</Typography>
               <Typography variant="caption" color="text.secondary">
                 {props.selectedProject.rootDir}
@@ -732,57 +694,10 @@ function DashboardRail(props: {
   );
 }
 
-function RailProjectCard(props: {
-  project: ProjectSnapshot;
-  isSelected: boolean;
-  isLatest: boolean;
-  dictionary: DashboardLocale;
-  onClick: () => void;
-}) {
-  return (
-    <Paper
-      variant="outlined"
-      onClick={props.onClick}
-      sx={{
-        p: 1.25,
-        borderRadius: 4,
-        cursor: "pointer",
-        backgroundColor: props.isSelected ? alpha("#0c66e4", 0.08) : "rgba(255,255,255,0.82)",
-        borderColor: props.isSelected ? alpha("#0c66e4", 0.32) : alpha("#091e42", 0.08)
-      }}
-    >
-      <Stack spacing={0.8}>
-        <Stack direction="row" spacing={1} sx={{ justifyContent: "space-between", alignItems: "flex-start" }}>
-          <Typography variant="subtitle2">{props.project.name}</Typography>
-          {props.isLatest ? <Chip size="small" color="primary" label={props.dictionary.latestBadge} /> : null}
-        </Stack>
-        <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
-          <Chip size="small" variant="outlined" label={`${props.dictionary.active}: ${props.project.activeTopics.length}`} />
-          {props.project.latestTopicStage ? (
-            <Chip size="small" variant="outlined" label={props.project.latestTopicStage} />
-          ) : null}
-        </Stack>
-        <Typography
-          variant="caption"
-          color="text.secondary"
-          sx={{
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden"
-          }}
-        >
-          {props.project.latestTopicName ?? props.project.rootDir}
-        </Typography>
-      </Stack>
-    </Paper>
-  );
-}
-
 function DashboardStatePanel(props: { title: string; helper: string }) {
   return (
     <Box sx={{ minHeight: "100vh", display: "grid", placeItems: "center", px: 2 }}>
-      <Paper sx={{ p: 3, borderRadius: 5, maxWidth: 640 }}>
+      <Paper sx={{ p: 3, borderRadius: 1, maxWidth: 640 }}>
         <Stack spacing={1}>
           <Typography variant="h5">{props.title}</Typography>
           <Typography variant="body2" color="text.secondary">

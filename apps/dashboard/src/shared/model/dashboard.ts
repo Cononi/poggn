@@ -160,6 +160,8 @@ export type DashboardQueryResult = {
   source: "live" | "static";
 };
 
+export type DashboardThemeMode = "light" | "dark";
+
 export type FlowStatus = "done" | "current" | "upcoming";
 
 export type FlowNodeData = {
@@ -200,6 +202,7 @@ export type DashboardStore = {
   activeProjectsView: "board" | "categories" | "reports" | "board-settings";
   activeSettingsView: "main" | "refresh" | "git" | "system";
   projectSurface: "board" | "detail";
+  themeMode: DashboardThemeMode;
   selectedProjectId: string | null;
   selectedTopicKey: string | null;
   topicFilter: string;
@@ -207,6 +210,7 @@ export type DashboardStore = {
   setActiveProjectsView: (value: "board" | "categories" | "reports" | "board-settings") => void;
   setActiveSettingsView: (value: "main" | "refresh" | "git" | "system") => void;
   setProjectSurface: (value: "board" | "detail") => void;
+  setThemeMode: (value: DashboardThemeMode) => void;
   setSelectedProjectId: (value: string | null) => void;
   setSelectedTopicKey: (value: string | null) => void;
   setTopicFilter: (value: string) => void;

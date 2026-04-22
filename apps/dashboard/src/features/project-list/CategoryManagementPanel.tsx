@@ -13,7 +13,7 @@ type CategoryManagementPanelProps = {
 
 export function CategoryManagementPanel(props: CategoryManagementPanelProps) {
   return (
-    <Paper sx={{ p: 2.5, borderRadius: 6 }}>
+    <Paper sx={{ p: 2.5, borderRadius: 1 }}>
       <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ mb: 2, justifyContent: "space-between" }}>
         <Stack spacing={1}>
           <Typography variant="h6">{props.dictionary.categoryManagement}</Typography>
@@ -28,7 +28,7 @@ export function CategoryManagementPanel(props: CategoryManagementPanelProps) {
 
       <Stack spacing={1.25}>
         {props.categories.map((category) => (
-          <Paper key={category.id} variant="outlined" sx={{ p: 1.5, borderRadius: 4 }}>
+          <Paper key={category.id} variant="outlined" sx={{ p: 1.5, borderRadius: 1 }}>
             <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ justifyContent: "space-between" }}>
               <Stack spacing={0.4}>
                 <Typography variant="subtitle1">

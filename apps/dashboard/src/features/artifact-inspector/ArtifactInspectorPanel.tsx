@@ -1,4 +1,4 @@
-import { alpha } from "@mui/material/styles";
+import { alpha, useTheme } from "@mui/material/styles";
 import { Alert, Box, Button, Chip, Divider, Paper, Stack, Typography } from "@mui/material";
 import type {
   ArtifactDocumentEntry,
@@ -20,8 +20,10 @@ type ArtifactInspectorPanelProps = {
 };
 
 export function ArtifactInspectorPanel(props: ArtifactInspectorPanelProps) {
+  const theme = useTheme();
+
   return (
-    <Paper sx={{ p: 2.5, borderRadius: 6, minHeight: 640 }}>
+    <Paper sx={{ p: 2.5, borderRadius: 1, minHeight: 640 }}>
       <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ mb: 2, justifyContent: "space-between" }}>
         <Box>
           <Typography variant="h6">{props.dictionary.inspector}</Typography>
@@ -118,10 +120,13 @@ export function ArtifactInspectorPanel(props: ArtifactInspectorPanelProps) {
                     variant="outlined"
                     sx={{
                       p: 2,
-                      borderRadius: 4,
+                      borderRadius: 1,
                       maxHeight: "42vh",
                       overflow: "auto",
-                      backgroundColor: alpha("#000000", 0.02)
+                      backgroundColor: alpha(
+                        theme.palette.text.primary,
+                        theme.palette.mode === "dark" ? 0.14 : 0.04
+                      )
                     }}
                   >
                     <Typography

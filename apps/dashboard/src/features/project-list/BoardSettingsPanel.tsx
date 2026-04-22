@@ -11,7 +11,7 @@ type BoardSettingsPanelProps = {
 
 export function BoardSettingsPanel(props: BoardSettingsPanelProps) {
   return (
-    <Paper sx={{ p: 2.5, borderRadius: 6 }}>
+    <Paper sx={{ p: 2.5, borderRadius: 1 }}>
       <Stack spacing={1} sx={{ mb: 2 }}>
         <Typography variant="h6">{props.dictionary.categoryOrdering}</Typography>
         <Typography variant="body2" color="text.secondary">
@@ -21,7 +21,7 @@ export function BoardSettingsPanel(props: BoardSettingsPanelProps) {
 
       <Stack spacing={1.25}>
         {props.categories.map((category, index) => (
-          <Paper key={category.id} variant="outlined" sx={{ p: 1.5, borderRadius: 4 }}>
+          <Paper key={category.id} variant="outlined" sx={{ p: 1.5, borderRadius: 1 }}>
             <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ justifyContent: "space-between" }}>
               <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap", alignItems: "center" }}>
                 <Typography variant="subtitle1">{category.name}</Typography>

@@ -23,7 +23,7 @@ type RecentActivityTableProps = {
 
 export function RecentActivityTable(props: RecentActivityTableProps) {
   return (
-    <Paper sx={{ p: 2.25, borderRadius: 5 }}>
+    <Paper sx={{ p: 2.25, borderRadius: 1 }}>
       <Stack spacing={1} sx={{ mb: 2 }}>
         <Typography variant="overline" color="primary.main">
           {props.dictionary.reports}

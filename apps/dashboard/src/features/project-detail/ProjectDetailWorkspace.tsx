@@ -46,13 +46,15 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
 
   return (
     <Stack spacing={3}>
-      <Paper sx={{ p: 2.25, borderRadius: 5, overflow: "hidden", position: "relative" }}>
+      <Paper sx={{ p: 2.25, borderRadius: 1, overflow: "hidden", position: "relative" }}>
         <Box
           sx={{
             position: "absolute",
             inset: 0,
             background:
-              "linear-gradient(135deg, rgba(12, 102, 228, 0.10), transparent 38%), linear-gradient(315deg, rgba(87, 157, 255, 0.10), transparent 32%)"
+              theme.palette.mode === "dark"
+                ? "linear-gradient(135deg, rgba(209, 100, 58, 0.16), transparent 42%), linear-gradient(315deg, rgba(56, 189, 248, 0.12), transparent 30%)"
+                : "linear-gradient(135deg, rgba(209, 100, 58, 0.10), transparent 38%), linear-gradient(315deg, rgba(56, 189, 248, 0.08), transparent 32%)"
           }}
         />
         <Stack spacing={2} sx={{ position: "relative" }}>
@@ -98,7 +100,7 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
         }}
       >
         <Stack spacing={3}>
-          <Paper sx={{ p: 2.25, borderRadius: 5 }}>
+          <Paper sx={{ p: 2.25, borderRadius: 1 }}>
             <Typography variant="h6" sx={{ mb: 2 }}>
               {props.dictionary.overview}
             </Typography>
@@ -110,7 +112,7 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
             </Box>
           </Paper>
 
-          <Paper sx={{ p: 2.25, borderRadius: 5 }}>
+          <Paper sx={{ p: 2.25, borderRadius: 1 }}>
             <Typography variant="h6" sx={{ mb: 2 }}>
               {props.dictionary.currentProject}
             </Typography>
@@ -134,7 +136,7 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
           </Paper>
 
           {props.selectedTopic?.bucket === "archive" && props.selectedTopic.releaseBranch ? (
-            <Paper sx={{ p: 2.25, borderRadius: 5 }}>
+            <Paper sx={{ p: 2.25, borderRadius: 1 }}>
               <Typography variant="h6" sx={{ mb: 2 }}>
                 {props.dictionary.releaseReview}
               </Typography>
@@ -186,7 +188,7 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
         </Stack>
 
         <Stack spacing={3}>
-          <Paper sx={{ p: 2.25, borderRadius: 5, minHeight: 640 }}>
+          <Paper sx={{ p: 2.25, borderRadius: 1, minHeight: 640 }}>
             <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ mb: 2, justifyContent: "space-between" }}>
               <Box>
                 <Typography variant="h6">{props.dictionary.workflow}</Typography>
@@ -202,12 +204,13 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
                   placeholder={props.dictionary.searchPlaceholder}
                   sx={{
                     minWidth: 220,
-                    border: `1px solid ${alpha(theme.palette.common.black, 0.1)}`,
-                    borderRadius: 999,
+                    border: `1px solid ${alpha(theme.palette.text.primary, 0.14)}`,
+                    borderRadius: 1,
                     px: 1.5,
                     py: 1,
                     font: "inherit",
-                    backgroundColor: "rgba(255,255,255,0.92)"
+                    color: "text.primary",
+                    backgroundColor: alpha(theme.palette.background.paper, 0.96)
                   }}
                 />
                 {props.selectedTopic ? (
@@ -235,7 +238,14 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
             </Stack>
 
             {props.selectedTopic && workflowModel ? (
-              <Box sx={{ height: 560, borderRadius: 5, overflow: "hidden", backgroundColor: "rgba(255,255,255,0.62)" }}>
+              <Box
+                sx={{
+                  height: 560,
+                  borderRadius: 1,
+                  overflow: "hidden",
+                  backgroundColor: alpha(theme.palette.background.paper, theme.palette.mode === "dark" ? 0.84 : 0.72)
+                }}
+              >
                 <ReactFlow
                   fitView
                   nodes={workflowModel.nodes}
@@ -307,12 +317,16 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
 }
 
 function MetricCard(props: { label: string; value: string; accent?: boolean }) {
+  const theme = useTheme();
+
   return (
     <Paper
       sx={{
         p: 1.75,
-        borderRadius: 4,
-        backgroundColor: props.accent ? alpha("#d1643a", 0.12) : alpha("#ffffff", 0.76)
+        borderRadius: 1,
+        backgroundColor: props.accent
+          ? alpha(theme.palette.primary.main, theme.palette.mode === "dark" ? 0.2 : 0.12)
+          : alpha(theme.palette.background.paper, 0.76)
       }}
     >
       <Typography variant="caption" color="text.secondary">

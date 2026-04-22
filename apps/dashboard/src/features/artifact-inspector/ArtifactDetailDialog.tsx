@@ -1,4 +1,5 @@
 import { Alert, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, Paper, Stack, Typography } from "@mui/material";
+import { alpha, useTheme } from "@mui/material/styles";
 import type { ArtifactSelection, DashboardLocale } from "../../shared/model/dashboard";
 import { formatDate } from "../../shared/utils/dashboard";
 import { DiffViewer } from "../../shared/ui/DiffViewer";
@@ -12,6 +13,8 @@ type ArtifactDetailDialogProps = {
 };
 
 export function ArtifactDetailDialog(props: ArtifactDetailDialogProps) {
+  const theme = useTheme();
+
   return (
     <Dialog open={props.open} onClose={props.onClose} fullWidth maxWidth="lg">
       <DialogTitle>{props.detailSelection?.detail?.title ?? props.detailSelection?.title}</DialogTitle>
@@ -43,10 +46,13 @@ export function ArtifactDetailDialog(props: ArtifactDetailDialogProps) {
                 variant="outlined"
                 sx={{
                   p: 2,
-                  borderRadius: 4,
+                  borderRadius: 1,
                   maxHeight: "65vh",
                   overflow: "auto",
-                  backgroundColor: "rgba(0,0,0,0.02)"
+                  backgroundColor: alpha(
+                    theme.palette.text.primary,
+                    theme.palette.mode === "dark" ? 0.14 : 0.04
+                  )
                 }}
               >
                 <Typography

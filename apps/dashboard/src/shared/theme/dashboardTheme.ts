@@ -1,93 +1,158 @@
 import { alpha, createTheme } from "@mui/material/styles";
+import type { DashboardThemeMode } from "../model/dashboard";
 
-export const dashboardTheme = createTheme({
-  palette: {
-    mode: "light",
-    primary: {
-      main: "#0c66e4"
+export function createDashboardTheme(mode: DashboardThemeMode) {
+  const isDark = mode === "dark";
+  const primary = "#d1643a";
+  const secondary = isDark ? "#94a3b8" : "#56657f";
+  const backgroundDefault = isDark ? "#101417" : "#f3eee8";
+  const backgroundPaper = isDark ? "#151c22" : "#fffdf9";
+  const surfaceBorder = isDark ? alpha("#f8fafc", 0.1) : alpha("#111827", 0.12);
+
+  return createTheme({
+    palette: {
+      mode,
+      primary: {
+        main: primary
+      },
+      secondary: {
+        main: secondary
+      },
+      success: {
+        main: isDark ? "#34d399" : "#15803d"
+      },
+      warning: {
+        main: isDark ? "#fbbf24" : "#b45309"
+      },
+      info: {
+        main: isDark ? "#38bdf8" : "#0284c7"
+      },
+      background: {
+        default: backgroundDefault,
+        paper: backgroundPaper
+      },
+      text: {
+        primary: isDark ? "#f8fafc" : "#171717",
+        secondary: isDark ? "#94a3b8" : "#5b6472"
+      },
+      divider: surfaceBorder
     },
-    secondary: {
-      main: "#44546f"
+    shape: {
+      borderRadius: 1
     },
-    success: {
-      main: "#1f845a"
+    typography: {
+      fontFamily: '"IBM Plex Sans", "Sora", "Avenir Next", sans-serif',
+      h1: {
+        fontWeight: 700,
+        letterSpacing: "-0.05em"
+      },
+      h2: {
+        fontWeight: 700,
+        letterSpacing: "-0.03em"
+      },
+      h3: {
+        fontWeight: 700,
+        letterSpacing: "-0.02em"
+      },
+      overline: {
+        fontWeight: 700,
+        letterSpacing: "0.18em"
+      },
+      button: {
+        textTransform: "none",
+        fontWeight: 600
+      }
     },
-    warning: {
-      main: "#b65c02"
-    },
-    info: {
-      main: "#388bff"
-    },
-    background: {
-      default: "#f7f8fa",
-      paper: "rgba(255, 255, 255, 0.88)"
-    },
-    text: {
-      primary: "#172b4d",
-      secondary: "#5e6c84"
+    components: {
+      MuiCssBaseline: {
+        styleOverrides: {
+          "*": {
+            boxSizing: "border-box"
+          },
+          "html, body": {
+            margin: 0,
+            color: isDark ? "#f8fafc" : "#171717"
+          },
+          "button, input, textarea": {
+            font: "inherit"
+          },
+          "code, pre": {
+            fontFamily: '"IBM Plex Mono", "SFMono-Regular", monospace'
+          },
+          body: {
+            minWidth: 320,
+            minHeight: "100vh",
+            background: isDark
+              ? "radial-gradient(circle at top left, rgba(209, 100, 58, 0.14), transparent 24%), radial-gradient(circle at top right, rgba(56, 189, 248, 0.12), transparent 20%), linear-gradient(180deg, #0f1317 0%, #121920 100%)"
+              : "radial-gradient(circle at top left, rgba(209, 100, 58, 0.14), transparent 24%), radial-gradient(circle at top right, rgba(56, 189, 248, 0.10), transparent 18%), linear-gradient(180deg, #f7f1ea 0%, #ece7df 100%)"
+          },
+          "#root": {
+            minHeight: "100vh"
+          },
+          ".react-flow__attribution": {
+            display: "none"
+          },
+          ".react-flow__controls": {
+            boxShadow: isDark
+              ? "0 12px 24px rgba(0, 0, 0, 0.36)"
+              : "0 12px 24px rgba(17, 24, 39, 0.12)",
+            borderRadius: 1,
+            overflow: "hidden",
+            border: `1px solid ${surfaceBorder}`
+          },
+          ".react-flow__minimap": {
+            borderRadius: 1,
+            overflow: "hidden",
+            boxShadow: isDark
+              ? "0 14px 28px rgba(0, 0, 0, 0.28)"
+              : "0 14px 28px rgba(17, 24, 39, 0.12)",
+            border: `1px solid ${surfaceBorder}`
+          }
+        }
+      },
+      MuiPaper: {
+        styleOverrides: {
+          root: {
+            backgroundImage: "none",
+            border: `1px solid ${surfaceBorder}`
+          }
+        }
+      },
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            borderRadius: 1
+          }
+        }
+      },
+      MuiChip: {
+        styleOverrides: {
+          root: {
+            borderRadius: 1
+          }
+        }
+      },
+      MuiDialog: {
+        styleOverrides: {
+          paper: {
+            borderRadius: 1
+          }
+        }
+      },
+      MuiOutlinedInput: {
+        styleOverrides: {
+          root: {
+            borderRadius: 1
+          }
+        }
+      },
+      MuiCard: {
+        styleOverrides: {
+          root: {
+            borderRadius: 1
+          }
+        }
+      }
     }
-  },
-  shape: {
-    borderRadius: 16
-  },
-  typography: {
-    fontFamily: '"IBM Plex Sans", "Sora", "Avenir Next", sans-serif',
-    h1: {
-      fontWeight: 700,
-      letterSpacing: "-0.05em"
-    },
-    h2: {
-      fontWeight: 700,
-      letterSpacing: "-0.03em"
-    },
-    h3: {
-      fontWeight: 700,
-      letterSpacing: "-0.02em"
-    },
-    overline: {
-      fontWeight: 700,
-      letterSpacing: "0.18em"
-    },
-    button: {
-      textTransform: "none",
-      fontWeight: 600
-    }
-  },
-  components: {
-    MuiCssBaseline: {
-      styleOverrides: {
-        body: {
-          minWidth: 320,
-          minHeight: "100vh",
-          background:
-            "radial-gradient(circle at top left, rgba(56, 139, 255, 0.18), transparent 26%), radial-gradient(circle at top right, rgba(9, 30, 66, 0.08), transparent 20%), linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%)"
-        },
-        "#root": {
-          minHeight: "100vh"
-        }
-      }
-    },
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          backdropFilter: "blur(16px)",
-          border: `1px solid ${alpha("#091e42", 0.08)}`
-        }
-      }
-    },
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: 12
-        }
-      }
-    },
-    MuiChip: {
-      styleOverrides: {
-        root: {
-          borderRadius: 999
-        }
-      }
-    }
-  }
-});
+  });
+}

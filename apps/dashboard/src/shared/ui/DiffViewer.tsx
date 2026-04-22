@@ -6,7 +6,7 @@ export function DiffViewer(props: { value: string }) {
       variant="outlined"
       sx={{
         p: 0,
-        borderRadius: 4,
+        borderRadius: 1,
         maxHeight: "65vh",
         overflow: "auto",
         backgroundColor: "rgba(22, 19, 17, 0.96)"

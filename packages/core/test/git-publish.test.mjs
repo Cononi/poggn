@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -342,6 +342,14 @@ function runStageCommitHelper(rootDir, topic, stage, summary, why, footer) {
   );
 }
 
+function runGitPublishHelper(rootDir, topic) {
+  return JSON.parse(
+    execFileSync(path.join(rootDir, ".codex/sh/pgg-git-publish.sh"), [topic], {
+      encoding: "utf8"
+    })
+  );
+}
+
 async function loadPublishMetadata(rootDir, topic) {
   return JSON.parse(await readFile(path.join(rootDir, `poggn/archive/${topic}/git/publish.json`), "utf8"));
 }
@@ -350,10 +358,35 @@ async function readArchivedHistory(rootDir, topic) {
   return readFile(path.join(rootDir, `poggn/archive/${topic}/state/history.ndjson`), "utf8");
 }
 
+async function archiveQaTopicForPublish(rootDir, topic, changedPaths, goal, options = {}) {
+  const branch = await createQaTopic(rootDir, topic, changedPaths, goal, options);
+  const activeDir = path.join(rootDir, "poggn", "active", topic);
+  const archiveDir = path.join(rootDir, "poggn", "archive", topic);
+  git(rootDir, ["add", "-A"]);
+  git(rootDir, ["commit", "-m", "chore: archive publish fixture"]);
+  await mkdir(path.dirname(archiveDir), { recursive: true });
+  await rename(activeDir, archiveDir);
+  execFileSync(path.join(rootDir, ".codex/sh/pgg-version.sh"), [archiveDir], {
+    encoding: "utf8"
+  });
+  return branch;
+}
+
 function readRemoteRef(remoteDir, ref) {
   return execFileSync("git", ["--git-dir", remoteDir, "rev-parse", ref], {
     encoding: "utf8"
   }).trim();
+}
+
+function assertRecoveredBranchRecovery(payload, expectedFrom) {
+  assert.equal(payload.branchRecovery, "recovered");
+  assert.equal(payload.branchRecoveryFrom, expectedFrom);
+  assert.match(payload.branchRecoveryReason ?? "", /Governed checkout recovered/);
+}
+
+function assertNoBranchRecovery(payload) {
+  assert.equal(payload.branchRecovery, "not_attempted");
+  assert.equal(payload.branchRecoveryFrom, null);
 }
 
 test("git mode defaults to off, can be enabled, and appears in dashboard snapshots", async () => {
@@ -533,29 +566,123 @@ test("archive helper marks update publish when the remote release branch already
   });
 });
 
-test("archive helper blocks main direct push and requires the ai branch", async () => {
-  await withGitPublishFixture("pgg-git-main-guard", { remote: true }, async ({ rootDir }) => {
+test("archive helper completes after QA stage recovery from main", async () => {
+  await withGitPublishFixture("pgg-git-main-guard", { remote: true }, async ({ rootDir, remoteDir }) => {
     await writeFile(path.join(rootDir, "feature.txt"), "main guard case\n", "utf8");
     const branch = await createQaTopic(rootDir, "git-main-guard", ["feature.txt"], "Main branch guardrail", {
       qaPublishMessage: {
         title: "feat: main branch guardrail",
         why: "Release automation must refuse direct main pushes so publish only happens from the governed ai branch.",
         footer: "Refs: QA-301"
-      }
+      },
+      createBranch: false
     });
     git(rootDir, ["checkout", "main"]);
 
     const result = runArchiveHelper(rootDir, "git-main-guard");
     const metadata = await loadPublishMetadata(rootDir, "git-main-guard");
+    const remoteReleaseHead = readRemoteRef(remoteDir, `refs/heads/${branch.releaseBranch}`);
 
-    assert.equal(result.qaCompletion.resultType, "publish_blocked");
-    assert.equal(result.git.resultType, "publish_blocked");
-    assert.equal(result.git.pushStatus, "not_attempted");
-    assert.match(result.git.reason, /main direct push is forbidden/);
+    assert.equal(result.qaCompletion.resultType, "committed");
+    assert.equal(result.git.resultType, "published");
+    assert.equal(result.git.pushStatus, "success");
+    assert.equal(result.git.commitSha, remoteReleaseHead);
+    assertRecoveredBranchRecovery(result.qaCompletion, "main");
     assert.equal(metadata.workingBranch, branch.workingBranch);
     assert.equal(metadata.releaseBranch, branch.releaseBranch);
-    assert.equal(metadata.publishMode, "not_attempted");
-    assert.equal(metadata.upstreamStatus, "not_attempted");
+    assert.equal(metadata.publishMode, "first_publish");
+    assert.equal(metadata.upstreamStatus, "configured");
+    assertNoBranchRecovery(metadata);
+    assert.equal(git(rootDir, ["branch", "--show-current"]), branch.releaseBranch);
+  });
+});
+
+test("archive helper completes after QA stage recovery from a branch mismatch", async () => {
+  await withGitPublishFixture("pgg-git-branch-recovery", { remote: true }, async ({ rootDir, remoteDir }) => {
+    await writeFile(path.join(rootDir, "feature.txt"), "branch mismatch case\n", "utf8");
+    const branch = await createQaTopic(rootDir, "git-branch-recovery", ["feature.txt"], "Branch mismatch recovery", {
+      qaPublishMessage: {
+        title: "feat: branch mismatch recovery",
+        why: "Governed publish should recover onto the topic ai branch before release promotion when the current branch is unrelated.",
+        footer: "Refs: QA-302"
+      }
+    });
+    git(rootDir, ["checkout", "-B", "wip/local-branch"]);
+
+    const result = runArchiveHelper(rootDir, "git-branch-recovery");
+    const metadata = await loadPublishMetadata(rootDir, "git-branch-recovery");
+    const remoteReleaseHead = readRemoteRef(remoteDir, `refs/heads/${branch.releaseBranch}`);
+
+    assert.equal(result.qaCompletion.resultType, "committed");
+    assert.equal(result.git.resultType, "published");
+    assert.equal(result.git.commitSha, remoteReleaseHead);
+    assertRecoveredBranchRecovery(result.qaCompletion, "wip/local-branch");
+    assertNoBranchRecovery(metadata);
+    assert.equal(git(rootDir, ["branch", "--show-current"]), branch.releaseBranch);
+  });
+});
+
+test("git publish helper recovers from main by checking out the governed ai branch", async () => {
+  await withGitPublishFixture("pgg-git-publish-main-recovery", { remote: true }, async ({ rootDir, remoteDir }) => {
+    await writeFile(path.join(rootDir, "feature.txt"), "direct publish main recovery\n", "utf8");
+    const branch = await archiveQaTopicForPublish(
+      rootDir,
+      "git-publish-main-recovery",
+      ["feature.txt"],
+      "Direct publish main recovery",
+      {
+        qaPublishMessage: {
+          title: "feat: direct publish main recovery",
+          why: "Direct publish should recover onto the governed ai branch before release promotion when archive work already exists.",
+          footer: "Refs: QA-303"
+        },
+        createBranch: false,
+        shortName: "pub-main"
+      }
+    );
+    git(rootDir, ["checkout", "main"]);
+
+    const result = runGitPublishHelper(rootDir, "git-publish-main-recovery");
+    const metadata = await loadPublishMetadata(rootDir, "git-publish-main-recovery");
+    const remoteReleaseHead = readRemoteRef(remoteDir, `refs/heads/${branch.releaseBranch}`);
+
+    assert.equal(result.resultType, "published");
+    assert.equal(result.pushStatus, "success");
+    assert.equal(result.commitSha, remoteReleaseHead);
+    assertRecoveredBranchRecovery(result, "main");
+    assertRecoveredBranchRecovery(metadata, "main");
+    assert.equal(git(rootDir, ["branch", "--show-current"]), branch.releaseBranch);
+  });
+});
+
+test("git publish helper recovers from a branch mismatch before governed publish", async () => {
+  await withGitPublishFixture("pgg-git-publish-branch-recovery", { remote: true }, async ({ rootDir, remoteDir }) => {
+    await writeFile(path.join(rootDir, "feature.txt"), "direct publish mismatch recovery\n", "utf8");
+    const branch = await archiveQaTopicForPublish(
+      rootDir,
+      "git-publish-branch-recovery",
+      ["feature.txt"],
+      "Direct publish branch mismatch recovery",
+      {
+        qaPublishMessage: {
+          title: "feat: direct publish branch recovery",
+          why: "Direct publish should recover onto the governed ai branch before release promotion when the current branch is unrelated.",
+          footer: "Refs: QA-304"
+        },
+        shortName: "pub-branch"
+      }
+    );
+    git(rootDir, ["checkout", "-B", "wip/local-branch"]);
+
+    const result = runGitPublishHelper(rootDir, "git-publish-branch-recovery");
+    const metadata = await loadPublishMetadata(rootDir, "git-publish-branch-recovery");
+    const remoteReleaseHead = readRemoteRef(remoteDir, `refs/heads/${branch.releaseBranch}`);
+
+    assert.equal(result.resultType, "published");
+    assert.equal(result.commitSha, remoteReleaseHead);
+    assertRecoveredBranchRecovery(result, "wip/local-branch");
+    assertRecoveredBranchRecovery(metadata, "wip/local-branch");
+    assert.equal(git(rootDir, ["branch", "--show-current"]), branch.releaseBranch);
   });
 });
 
@@ -675,6 +802,41 @@ test("stage commit helper records archive-type-aware implementation commits", as
     assert.match(commitMessage, /^Refs: TASK-101$/m);
     assert.match(history, /"stage":"implementation"/);
     assert.match(history, /"event":"stage-commit"/);
+  });
+});
+
+test("stage commit helper recovers from main onto the governed working branch", async () => {
+  await withGitPublishFixture("pgg-stage-commit-main-recovery", { remote: false }, async ({ rootDir }) => {
+    await writeFile(path.join(rootDir, "feature.txt"), "main recovery change\n", "utf8");
+    const branch = await createActiveStageTopic(
+      rootDir,
+      "stage-commit-main-recovery",
+      "implementation",
+      ["feature.txt"],
+      "Stage helper main branch recovery",
+      {
+        archiveType: "fix",
+        versionBump: "patch",
+        targetVersion: "0.1.1",
+        shortName: "stage-main"
+      }
+    );
+    git(rootDir, ["checkout", "main"]);
+    git(rootDir, ["branch", "-D", branch.workingBranch]);
+
+    const result = runStageCommitHelper(
+      rootDir,
+      "stage-commit-main-recovery",
+      "implementation",
+      "main recovery proof",
+      "The stage helper should recover onto the governed working branch before recording a stage-local commit."
+    );
+
+    assert.equal(result.resultType, "committed");
+    assertRecoveredBranchRecovery(result, "main");
+    assert.equal(result.workingBranch, branch.workingBranch);
+    assert.equal(git(rootDir, ["branch", "--show-current"]), branch.workingBranch);
+    assert.notEqual(git(rootDir, ["branch", "--list", branch.workingBranch]), "");
   });
 });
 

@@ -84,23 +84,6 @@ export function resolveSnapshotRefreshInterval(payload: DashboardQueryResult | u
   return currentProject?.refreshIntervalMs ?? 10_000;
 }
 
-export function buildProjectRailProjects(snapshot: DashboardSnapshot | null): ProjectSnapshot[] {
-  if (!snapshot) {
-    return [];
-  }
-
-  return [...snapshot.projects].sort((left, right) => {
-    const rightActivity = right.latestActivityAt ?? "";
-    const leftActivity = left.latestActivityAt ?? "";
-    const activityCompare = rightActivity.localeCompare(leftActivity);
-    if (activityCompare !== 0) {
-      return activityCompare;
-    }
-
-    return left.name.localeCompare(right.name);
-  });
-}
-
 export function createMutationPayload(
   path: string,
   method: DashboardMutationMethod,

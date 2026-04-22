@@ -14,6 +14,7 @@ type TopicLifecycleBoardProps = {
 };
 
 export function TopicLifecycleBoard(props: TopicLifecycleBoardProps) {
+  const theme = useTheme();
   const boardTitle =
     props.board === "active" ? props.dictionary.activeBoard : props.dictionary.archiveBoard;
 
@@ -21,8 +22,11 @@ export function TopicLifecycleBoard(props: TopicLifecycleBoardProps) {
     <Paper
       sx={{
         p: { xs: 1.75, md: 2.25 },
-        borderRadius: 5,
-        backgroundColor: props.board === "active" ? "rgba(255,255,255,0.92)" : "rgba(244,245,247,0.92)"
+        borderRadius: 1,
+        backgroundColor:
+          props.board === "active"
+            ? alpha(theme.palette.background.paper, 0.92)
+            : alpha(theme.palette.background.paper, theme.palette.mode === "dark" ? 0.78 : 0.86)
       }}
     >
       <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ mb: 2, justifyContent: "space-between" }}>
@@ -53,7 +57,12 @@ export function TopicLifecycleBoard(props: TopicLifecycleBoardProps) {
           <Paper
             key={lane.id}
             variant="outlined"
-            sx={{ p: 1.25, borderRadius: 4, minHeight: 320, backgroundColor: "rgba(255,255,255,0.88)" }}
+            sx={{
+              p: 1.25,
+              borderRadius: 1,
+              minHeight: 320,
+              backgroundColor: alpha(theme.palette.background.paper, 0.9)
+            }}
           >
             <Stack spacing={0.75} sx={{ mb: 1.5, pb: 1.25, borderBottom: "1px solid rgba(9, 30, 66, 0.08)" }}>
               <Stack direction="row" spacing={1} sx={{ alignItems: "center", justifyContent: "space-between" }}>
@@ -71,7 +80,7 @@ export function TopicLifecycleBoard(props: TopicLifecycleBoardProps) {
                   variant="outlined"
                   sx={{
                     p: 2,
-                    borderRadius: 4,
+                    borderRadius: 1,
                     borderStyle: "dashed",
                     textAlign: "center",
                     color: "text.secondary"
@@ -120,11 +129,11 @@ function TopicCard(props: {
   return (
     <Card
       sx={{
-        borderRadius: 3.5,
-        borderColor: props.isSelected ? alpha(accent, 0.48) : alpha("#091e42", 0.09),
+        borderRadius: 1,
+        borderColor: props.isSelected ? alpha(accent, 0.48) : alpha(theme.palette.text.primary, 0.12),
         borderStyle: "solid",
         borderWidth: 1,
-        background: `linear-gradient(180deg, ${alpha(accent, 0.1)}, rgba(255,255,255,0.96))`
+        background: `linear-gradient(180deg, ${alpha(accent, 0.1)}, ${alpha(theme.palette.background.paper, 0.96)})`
       }}
     >
       <CardActionArea onClick={props.onSelect}>

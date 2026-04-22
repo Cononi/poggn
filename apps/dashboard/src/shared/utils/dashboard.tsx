@@ -411,10 +411,10 @@ export function buildWorkflowModel(
       style: {
         width: size.width,
         minHeight: size.height,
-        borderRadius: 18,
+        borderRadius: 1,
         border: `1px solid ${alpha(color, 0.42)}`,
-        background: `linear-gradient(180deg, ${alpha(color, 0.18)}, rgba(255,255,255,0.96))`,
-        boxShadow: `0 18px 36px ${alpha(color, 0.12)}`,
+        background: `linear-gradient(180deg, ${alpha(color, 0.18)}, ${alpha(theme.palette.background.paper, 0.96)})`,
+        boxShadow: `0 18px 36px ${alpha(theme.palette.common.black, theme.palette.mode === "dark" ? 0.3 : 0.12)}`,
         padding: 12
       }
     } as Node<FlowNodeData>;
