@@ -1,0 +1,128 @@
+{
+  "topic": "pgg-major-bump-fix",
+  "nodes": [
+    {
+      "id": "proposal",
+      "type": "doc",
+      "position": { "x": 0, "y": 0 },
+      "data": {
+        "label": "proposal.md",
+        "path": "poggn/active/pgg-major-bump-fix/proposal.md",
+        "stage": "proposal"
+      }
+    },
+    {
+      "id": "proposal-review",
+      "type": "review",
+      "position": { "x": 220, "y": 0 },
+      "data": {
+        "label": "reviews/proposal.review.md",
+        "path": "poggn/active/pgg-major-bump-fix/reviews/proposal.review.md",
+        "stage": "proposal"
+      }
+    },
+    {
+      "id": "plan",
+      "type": "doc",
+      "position": { "x": 0, "y": 160 },
+      "data": {
+        "label": "plan.md",
+        "path": "poggn/active/pgg-major-bump-fix/plan.md",
+        "stage": "plan"
+      }
+    },
+    {
+      "id": "task",
+      "type": "task",
+      "position": { "x": 220, "y": 160 },
+      "data": {
+        "label": "task.md",
+        "path": "poggn/active/pgg-major-bump-fix/task.md",
+        "stage": "plan"
+      }
+    },
+    {
+      "id": "plan-review",
+      "type": "review",
+      "position": { "x": 440, "y": 160 },
+      "data": {
+        "label": "reviews/plan.review.md",
+        "path": "poggn/active/pgg-major-bump-fix/reviews/plan.review.md",
+        "stage": "plan"
+      }
+    },
+    {
+      "id": "task-review",
+      "type": "review",
+      "position": { "x": 660, "y": 160 },
+      "data": {
+        "label": "reviews/task.review.md",
+        "path": "poggn/active/pgg-major-bump-fix/reviews/task.review.md",
+        "stage": "plan"
+      }
+    },
+    {
+      "id": "spec-proposal-semver-decision",
+      "type": "spec",
+      "position": { "x": 0, "y": 320 },
+      "data": {
+        "label": "spec/proposal/semver-decision-contract.md",
+        "path": "poggn/active/pgg-major-bump-fix/spec/proposal/semver-decision-contract.md",
+        "stage": "plan"
+      }
+    },
+    {
+      "id": "spec-runtime-frontmatter-integrity",
+      "type": "spec",
+      "position": { "x": 220, "y": 320 },
+      "data": {
+        "label": "spec/runtime/proposal-frontmatter-integrity.md",
+        "path": "poggn/active/pgg-major-bump-fix/spec/runtime/proposal-frontmatter-integrity.md",
+        "stage": "plan"
+      }
+    },
+    {
+      "id": "spec-state-minimal-semver-handoff",
+      "type": "spec",
+      "position": { "x": 440, "y": 320 },
+      "data": {
+        "label": "spec/state/minimal-semver-handoff.md",
+        "path": "poggn/active/pgg-major-bump-fix/spec/state/minimal-semver-handoff.md",
+        "stage": "plan"
+      }
+    },
+    {
+      "id": "spec-docs-semver-guidance",
+      "type": "spec",
+      "position": { "x": 660, "y": 320 },
+      "data": {
+        "label": "spec/docs/semver-guidance-alignment.md",
+        "path": "poggn/active/pgg-major-bump-fix/spec/docs/semver-guidance-alignment.md",
+        "stage": "plan"
+      }
+    },
+    {
+      "id": "spec-qa-major-bump-proof",
+      "type": "spec",
+      "position": { "x": 880, "y": 320 },
+      "data": {
+        "label": "spec/qa/regression-proof-for-major-bump-flow.md",
+        "path": "poggn/active/pgg-major-bump-fix/spec/qa/regression-proof-for-major-bump-flow.md",
+        "stage": "plan"
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e-proposal-review", "source": "proposal", "target": "proposal-review" },
+    { "id": "e-proposal-plan", "source": "proposal", "target": "plan" },
+    { "id": "e-proposal-review-plan", "source": "proposal-review", "target": "plan" },
+    { "id": "e-plan-task", "source": "plan", "target": "task" },
+    { "id": "e-plan-review", "source": "plan", "target": "plan-review" },
+    { "id": "e-task-review", "source": "task", "target": "task-review" },
+    { "id": "e-plan-spec-proposal", "source": "plan", "target": "spec-proposal-semver-decision" },
+    { "id": "e-plan-spec-runtime", "source": "plan", "target": "spec-runtime-frontmatter-integrity" },
+    { "id": "e-plan-spec-state", "source": "plan", "target": "spec-state-minimal-semver-handoff" },
+    { "id": "e-plan-spec-docs", "source": "plan", "target": "spec-docs-semver-guidance" },
+    { "id": "e-plan-spec-qa", "source": "plan", "target": "spec-qa-major-bump-proof" }
+  ]
+}

@@ -1,0 +1,175 @@
+{
+  "schemaVersion": 5,
+  "projectName": "poggn",
+  "rootDir": "/config/workspace/poggn-ai",
+  "provider": "codex",
+  "language": "ko",
+  "autoMode": "on",
+  "installedVersion": "0.1.0",
+  "updatedAt": "2026-04-22T07:50:36.492Z",
+  "dashboard": {
+    "title": "poggn dashboard",
+    "defaultPort": 4173,
+    "refreshIntervalMs": 10000
+  },
+  "managedFiles": [
+    {
+      "path": "AGENTS.md",
+      "checksum": "77835158a4676013b46618a22d7942c7a9aa086e3e1720f0e76d0eb20afc8444",
+      "executable": false
+    },
+    {
+      "path": ".codex/add/WOKR-FLOW.md",
+      "checksum": "75dbf0700fa8e25dbbeb0ab40422c672af8b43d37e8c742a95812818567fddee",
+      "executable": false
+    },
+    {
+      "path": ".codex/add/STATE-CONTRACT.md",
+      "checksum": "080d85272cf2378d435ff3a09bb75b29ae03977a533ac02293a778efd53830b8",
+      "executable": false
+    },
+    {
+      "path": ".codex/add/EXPERT-ROUTING.md",
+      "checksum": "74e48bbc2fb931ea139f24874044b9395a1303b178681fde1aec99e3fc301b76",
+      "executable": false
+    },
+    {
+      "path": ".codex/add/IMPLEMENTATION.md",
+      "checksum": "842531d420438914c49c9ae4b1c392ab02876fe505918dd3edf1318c6d0b62fd",
+      "executable": false
+    },
+    {
+      "path": ".codex/add/REVIEW-RUBRIC.md",
+      "checksum": "19e6db183f71c17088ea0388a9c6a77f3a0d626eef8b89a1a973671688a0150b",
+      "executable": false
+    },
+    {
+      "path": ".codex/add/SHELL-RULES.md",
+      "checksum": "61f57a92ec32093b6e5e1b08884c9c4c8273ee30633093e38962eed25ad03430",
+      "executable": false
+    },
+    {
+      "path": ".codex/skills/pgg-add/SKILL.md",
+      "checksum": "9649fc349a75a87251af057a50877bf528fd47b85e7b021c9ea391131d09a2ee",
+      "executable": false
+    },
+    {
+      "path": ".codex/skills/pgg-plan/SKILL.md",
+      "checksum": "944f8c4394c048ddefd76d703bf215b383580d372682f778acb0366f4c573abd",
+      "executable": false
+    },
+    {
+      "path": ".codex/skills/pgg-code/SKILL.md",
+      "checksum": "3d5c311d6d191f63bf2a2ced38b98b186cd168b402b67bcc60e52f15df65564c",
+      "executable": false
+    },
+    {
+      "path": ".codex/skills/pgg-refactor/SKILL.md",
+      "checksum": "b7027ef95d2d768234bc21662cd8f4a99a3107d44f68a870129027f601a6eb7d",
+      "executable": false
+    },
+    {
+      "path": ".codex/skills/pgg-qa/SKILL.md",
+      "checksum": "dc0e1c885f9752d6b185fdc5381087f8431752ad741492b21a88bf3af17561e2",
+      "executable": false
+    },
+    {
+      "path": ".codex/skills/pgg-token/SKILL.md",
+      "checksum": "8e329b32f8886c7bcf7d4367c7ae82814d5e68b80053c3bb460e2c086bd20fce",
+      "executable": false
+    },
+    {
+      "path": ".codex/skills/pgg-performance/SKILL.md",
+      "checksum": "b33279af6dc5930a20c3790df3ca3484e0f16e86acee311608f554974b1eb786",
+      "executable": false
+    },
+    {
+      "path": ".codex/skills/pgg-status/SKILL.md",
+      "checksum": "d67054349628e03b4fd2face832d50f1647f0835ccac4ee67942a8e2451aa50d",
+      "executable": false
+    },
+    {
+      "path": ".codex/sh/pgg-git-prefix.sh",
+      "checksum": "046ef620ceaf5780e8b4bf6305c820e19d9aa1f3862ea40e12caf27e466983cd",
+      "executable": true
+    },
+    {
+      "path": ".codex/sh/pgg-new-topic.sh",
+      "checksum": "59d252521c40fada3357651edf6dff5735a5eb60f7794c3ceff548a56896eecd",
+      "executable": true
+    },
+    {
+      "path": ".codex/sh/pgg-gate.sh",
+      "checksum": "c162ced5e788bb36dfd38f506c5bee7718f205e021c95971b588df15832f5974",
+      "executable": true
+    },
+    {
+      "path": ".codex/sh/pgg-diff.sh",
+      "checksum": "125fcc2418ef442cff9c153946ccd02bdd2f660d8c9eea1842f8da30b78e37d2",
+      "executable": true
+    },
+    {
+      "path": ".codex/sh/pgg-diff-index.sh",
+      "checksum": "a1f5e6ac2eae35857dc64b78dd431f8762fdc13423128effc08b6e1554d7aa7c",
+      "executable": true
+    },
+    {
+      "path": ".codex/sh/pgg-reactflow-build.sh",
+      "checksum": "d45aba5a0c491296323bfc44ecc15be0877aff253e8b282ad62ee72931c39e24",
+      "executable": true
+    },
+    {
+      "path": ".codex/sh/pgg-state-pack.sh",
+      "checksum": "ed2fc5be7423e29fcc602d6950c45170d32d678a7bf7314d890d7e6be1f8913b",
+      "executable": true
+    },
+    {
+      "path": ".codex/sh/pgg-stage-commit.sh",
+      "checksum": "9a7543cc2ed259e78ae1d5d2b9f17db7e3b365122fa921c9cbf777e533bb8a0a",
+      "executable": true
+    },
+    {
+      "path": ".codex/sh/pgg-version.sh",
+      "checksum": "e47d40ebb404347148ebe7d117bc18b7496f8d00f501caa63a94e29cb63a17b1",
+      "executable": true
+    },
+    {
+      "path": ".codex/sh/pgg-git-publish.sh",
+      "checksum": "214b0a4fb5e8dab7dda38bd325c0f102561fa943d7fc9200298834fdfdc0da40",
+      "executable": true
+    },
+    {
+      "path": ".codex/sh/pgg-archive.sh",
+      "checksum": "9b50d55b74e94f61b386c442bcd6a16402b7a2491ba64757e74dc07fb2f9c59e",
+      "executable": true
+    },
+    {
+      "path": "poggn/active/.gitkeep",
+      "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "executable": false
+    },
+    {
+      "path": "poggn/archive/.gitkeep",
+      "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "executable": false
+    },
+    {
+      "path": "poggn/version-history.ndjson",
+      "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "executable": false
+    }
+  ],
+  "teamsMode": "off",
+  "verification": {
+    "mode": "manual",
+    "preset": null,
+    "commands": [],
+    "manualReason": "verification contract not declared"
+  },
+  "git": {
+    "mode": "on",
+    "defaultRemote": "origin",
+    "workingBranchPrefix": "ai",
+    "releaseBranchPrefix": "release"
+  }
+}

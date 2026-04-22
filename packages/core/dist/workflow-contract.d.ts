@@ -1,0 +1,16 @@
+export declare const CORE_WORKFLOW_SKILLS: readonly ["pgg-add", "pgg-plan", "pgg-code", "pgg-refactor", "pgg-qa"];
+export declare const OPTIONAL_AUDIT_SKILLS: readonly ["pgg-token", "pgg-performance"];
+export declare const WORKFLOW_SKILLS: readonly ["pgg-add", "pgg-plan", "pgg-code", "pgg-refactor", "pgg-qa", "pgg-token", "pgg-performance"];
+export type WorkflowSkillName = (typeof WORKFLOW_SKILLS)[number];
+export declare const STANDALONE_SKILLS: readonly ["pgg-status"];
+export type StandaloneSkillName = (typeof STANDALONE_SKILLS)[number];
+export declare const GENERATED_SKILLS: readonly ["pgg-add", "pgg-plan", "pgg-code", "pgg-refactor", "pgg-qa", "pgg-token", "pgg-performance", "pgg-status"];
+export type GeneratedSkillName = WorkflowSkillName | StandaloneSkillName;
+export declare const WORKFLOW_FRONTMATTER_STAGES = "proposal | plan | task | implementation | refactor | token | performance | qa";
+export declare const WORKFLOW_FRONTMATTER_SKILLS: string;
+export declare const README_WORKFLOW_STAGE_SUMMARIES_KO: readonly ["1. `pgg-add`: proposal, 사용자 질문 기록, 전문가 attribution review 생성", "2. `pgg-plan`: plan, task, spec, plan/task review 생성", "3. `pgg-code`: 구현과 diff, code review 기록", "4. `pgg-refactor`: 레거시 제거와 구조 개선, refactor review 기록", "5. `pgg-qa`: `qa/report.md` 검증과 archive 판정"];
+export declare const README_WORKFLOW_STAGE_SUMMARIES_EN: readonly ["1. `pgg-add`: create the proposal, the user-question record, and the attributed proposal review", "2. `pgg-plan`: create the plan, task, spec, and plan/task reviews", "3. `pgg-code`: implement the change and record diffs plus the code review", "4. `pgg-refactor`: remove legacy code, improve structure, and record the refactor review", "5. `pgg-qa`: validate `qa/report.md` and decide archive readiness"];
+export declare const README_OPTIONAL_AUDIT_SUMMARIES_KO: readonly ["- `pgg-token`: workflow 자산, handoff, helper, generated 문서의 token 비용을 점검할 때만 실행하는 optional audit", "- `pgg-performance`: 성능 민감 변경이나 선언된 verification contract가 있을 때만 실행하는 optional audit"];
+export declare const README_OPTIONAL_AUDIT_SUMMARIES_EN: readonly ["- `pgg-token`: an optional audit used only when workflow assets, handoff, helpers, or generated docs need token-cost review", "- `pgg-performance`: an optional audit used only when the topic has performance-sensitive changes or a declared verification contract"];
+export declare const MANDATORY_IMPLEMENTATION_CRITERIA_KO: readonly ["중복 제거", "단일 책임", "가독성", "추상화", "일관성", "테스트에 좋은 코드", "예외 처리 필수", "작은 단위 처리", "의존성 관리", "확장성", "네이밍"];
+export declare const MANDATORY_IMPLEMENTATION_CRITERIA_EN: readonly ["remove duplication", "keep single responsibility", "optimize readability", "use clear abstraction boundaries", "preserve consistency", "keep the code test-friendly", "handle exceptions explicitly", "prefer small units with one purpose", "keep dependencies loosely coupled", "preserve extensibility under OCP", "use names that make responsibilities obvious"];

@@ -1,0 +1,4 @@
+{"ts":"2026-04-22T12:03:09Z","stage":"proposal","event":"topic-created"}
+{"ts":"2026-04-22T12:04:59Z","stage":"proposal","status":"reviewed","score":97,"summary":"`pgg-add` semver contract drift, state handoff metadata 누락, frontmatter 정합성 문제를 major bump confusion의 원인으로 확정했다.","next":"pgg-plan"}
+{"ts":"2026-04-22T12:08:04Z","stage":"plan","status":"reviewed","score":97,"summary":"semver decision contract, frontmatter integrity, minimal handoff, docs alignment, regression proof를 plan/task/spec로 분해했다.","next":"pgg-code"}
+{"ts":"2026-04-22T12:23:37Z","stage":"implementation","event":"stage-commit","archiveType":"fix","commitTitle":"fix: Proposal semver source","summary":"Proposal semver source","why":"Proposal 단계에서 category와 semver impact를 분리해 major 선택 기준을 명확히 남겨야 한다.","footer":"Refs: pgg-major-bump-fix"}
