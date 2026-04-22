@@ -5,7 +5,6 @@ import type {
   ArtifactDocumentEntry,
   ArtifactGroupKey,
   ArtifactSelection,
-  DashboardSnapshot,
   FlowNodeData,
   FlowStatus,
   ProjectSnapshot,
@@ -22,34 +21,8 @@ export function formatDate(value: string, language: "ko" | "en"): string {
   return new Date(value).toLocaleString(language === "ko" ? "ko-KR" : "en-US");
 }
 
-export function applyOptimisticMove(
-  snapshot: DashboardSnapshot,
-  payload: { projectId: string; targetCategoryId: string; targetIndex?: number }
-): DashboardSnapshot {
-  const categories = snapshot.categories.map((category) => ({
-    ...category,
-    projectIds: category.projectIds.filter((projectId) => projectId !== payload.projectId)
-  }));
-  const target = categories.find((category) => category.id === payload.targetCategoryId);
-  if (target) {
-    const index = Math.max(0, Math.min(payload.targetIndex ?? target.projectIds.length, target.projectIds.length));
-    target.projectIds.splice(index, 0, payload.projectId);
-  }
-
-  return {
-    ...snapshot,
-    categories,
-    projects: snapshot.projects.map((project) =>
-      project.id === payload.projectId
-        ? {
-            ...project,
-            categoryIds: categories
-              .filter((category) => category.projectIds.includes(project.id))
-              .map((category) => category.id)
-          }
-        : project
-    )
-  };
+export function buildTopicKey(topic: Pick<TopicSummary, "bucket" | "name">): string {
+  return `${topic.bucket}:${topic.name}`;
 }
 
 export function filterTopics(project: ProjectSnapshot | null, filter: string): TopicSummary[] {
@@ -284,7 +257,7 @@ export function getDefaultArtifactSelection(topic: TopicSummary | null): Artifac
     return null;
   }
 
-  const topicKey = `${topic.bucket}:${topic.name}`;
+  const topicKey = buildTopicKey(topic);
   const entries = buildTopicArtifactEntries(topic);
   const preferred = entries.find((entry) =>
     entry.sourcePath.endsWith("/state/current.md") ||

@@ -1,4 +1,16 @@
-import { Alert, Chip, Paper, Stack, Table, TableBody, TableCell, TableHead, TableRow, Typography } from "@mui/material";
+import {
+  Alert,
+  Chip,
+  Paper,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography
+} from "@mui/material";
 import type { DashboardLocale, DashboardRecentActivityEntry } from "../../shared/model/dashboard";
 import { formatDate } from "../../shared/utils/dashboard";
 
@@ -11,8 +23,11 @@ type RecentActivityTableProps = {
 
 export function RecentActivityTable(props: RecentActivityTableProps) {
   return (
-    <Paper sx={{ p: 2.5, borderRadius: 6 }}>
+    <Paper sx={{ p: 2.25, borderRadius: 5 }}>
       <Stack spacing={1} sx={{ mb: 2 }}>
+        <Typography variant="overline" color="primary.main">
+          {props.dictionary.reports}
+        </Typography>
         <Typography variant="h6">{props.dictionary.reportsTitle}</Typography>
         <Typography variant="body2" color="text.secondary">
           {props.dictionary.reportsHint}
@@ -22,44 +37,46 @@ export function RecentActivityTable(props: RecentActivityTableProps) {
       {props.entries.length === 0 ? (
         <Alert severity="info">{props.dictionary.noRecentActivity}</Alert>
       ) : (
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>{props.dictionary.project}</TableCell>
-              <TableCell>{props.dictionary.topic}</TableCell>
-              <TableCell>{props.dictionary.topicStage}</TableCell>
-              <TableCell>{props.dictionary.topicScore}</TableCell>
-              <TableCell>{props.dictionary.topicNext}</TableCell>
-              <TableCell>{props.dictionary.updated}</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {props.entries.map((entry) => (
-              <TableRow
-                key={entry.id}
-                hover
-                sx={{ cursor: "pointer" }}
-                onClick={() => props.onOpenProject(entry.projectId)}
-              >
-                <TableCell>
-                  <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap", alignItems: "center" }}>
-                    <Typography variant="body2">{entry.projectName}</Typography>
-                    {entry.bucket === "active" ? (
-                      <Chip size="small" color="primary" label={props.dictionary.active} />
-                    ) : (
-                      <Chip size="small" label={props.dictionary.archive} />
-                    )}
-                  </Stack>
-                </TableCell>
-                <TableCell>{entry.topicName}</TableCell>
-                <TableCell>{entry.stage ?? "-"}</TableCell>
-                <TableCell>{typeof entry.score === "number" ? entry.score : "-"}</TableCell>
-                <TableCell>{entry.nextAction ?? "-"}</TableCell>
-                <TableCell>{formatDate(entry.updatedAt, props.language)}</TableCell>
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>{props.dictionary.project}</TableCell>
+                <TableCell>{props.dictionary.topic}</TableCell>
+                <TableCell>{props.dictionary.topicStage}</TableCell>
+                <TableCell>{props.dictionary.topicScore}</TableCell>
+                <TableCell>{props.dictionary.topicNext}</TableCell>
+                <TableCell>{props.dictionary.updated}</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHead>
+            <TableBody>
+              {props.entries.map((entry) => (
+                <TableRow
+                  key={entry.id}
+                  hover
+                  sx={{ cursor: "pointer" }}
+                  onClick={() => props.onOpenProject(entry.projectId)}
+                >
+                  <TableCell>
+                    <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap", alignItems: "center" }}>
+                      <Typography variant="body2">{entry.projectName}</Typography>
+                      {entry.bucket === "active" ? (
+                        <Chip size="small" color="primary" label={props.dictionary.active} />
+                      ) : (
+                        <Chip size="small" label={props.dictionary.archive} />
+                      )}
+                    </Stack>
+                  </TableCell>
+                  <TableCell>{entry.topicName}</TableCell>
+                  <TableCell>{entry.stage ?? "-"}</TableCell>
+                  <TableCell>{typeof entry.score === "number" ? entry.score : "-"}</TableCell>
+                  <TableCell>{entry.nextAction ?? "-"}</TableCell>
+                  <TableCell>{formatDate(entry.updatedAt, props.language)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
     </Paper>
   );

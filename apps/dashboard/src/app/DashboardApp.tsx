@@ -1,17 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { alpha } from "@mui/material/styles";
 import {
   Alert,
   Box,
   Button,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  Divider,
   Paper,
   Stack,
   TextField,
-  ToggleButton,
-  ToggleButtonGroup,
   Typography
 } from "@mui/material";
 import { startTransition, useDeferredValue, useEffect, useMemo, useState } from "react";
@@ -24,21 +25,33 @@ import { RecentActivityTable } from "../features/reports/RecentActivityTable";
 import { SettingsWorkspace } from "../features/settings/SettingsWorkspace";
 import { fetchDashboardSnapshot, requestDashboardSnapshot } from "../shared/api/dashboard";
 import { dashboardLocale } from "../shared/locale/dashboardLocale";
-import type { ArtifactSelection, DashboardQueryResult } from "../shared/model/dashboard";
+import type {
+  ArtifactSelection,
+  DashboardLocale,
+  ProjectSnapshot,
+  TopicSummary
+} from "../shared/model/dashboard";
 import { useDashboardStore } from "../shared/store/dashboardStore";
 import {
-  applyOptimisticMove,
   buildTopicArtifactEntries,
+  buildTopicKey,
+  buildTopicLanes,
   createArtifactSelection,
-  filterTopics,
-  getDefaultArtifactSelection
+  getDefaultArtifactSelection,
+  splitVisibleTopics
 } from "../shared/utils/dashboard";
 import {
-  buildCategoryColumns,
+  buildProjectRailProjects,
   createMutationPayload,
+  markDashboardInteraction,
   resolveCurrentProject,
+  resolveInitialSelectedProjectId,
   resolveLatestActiveProject,
+  resolveNextDetailSelection,
+  resolveSnapshotRefreshInterval,
   resolveSelectedProject,
+  resolveSelectedTopic,
+  resolveVisibleTopicState,
   type DashboardMutationPayload
 } from "./dashboardShell";
 
@@ -63,7 +76,6 @@ export default function DashboardApp() {
   const deferredFilter = useDeferredValue(topicFilter);
 
   const [feedback, setFeedback] = useState<string | null>(null);
-  const [draggingProjectId, setDraggingProjectId] = useState<string | null>(null);
   const [categoryDialogMode, setCategoryDialogMode] = useState<CategoryDialogMode>(null);
   const [categoryDraft, setCategoryDraft] = useState("");
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
@@ -76,13 +88,7 @@ export default function DashboardApp() {
   const snapshotQuery = useQuery({
     queryKey: ["dashboard-snapshot"],
     queryFn: fetchDashboardSnapshot,
-    refetchInterval: (query) => {
-      const payload = query.state.data as DashboardQueryResult | undefined;
-      const snapshot = payload?.snapshot;
-      const currentProject =
-        snapshot?.projects.find((project) => project.id === snapshot.currentProjectId) ?? null;
-      return currentProject?.refreshIntervalMs ?? 10_000;
-    }
+    refetchInterval: (query) => resolveSnapshotRefreshInterval(query.state.data)
   });
 
   const snapshot = snapshotQuery.data?.snapshot ?? null;
@@ -93,105 +99,95 @@ export default function DashboardApp() {
   const dictionary = dashboardLocale[(selectedProject ?? currentProject)?.language ?? "en"];
   const isLiveMode = snapshotSource === "live";
 
-  useEffect(() => {
-    if (!snapshot?.projects.length) {
-      return;
-    }
-
-    if (!selectedProjectId) {
-      startTransition(() => {
-        setSelectedProjectId(snapshot.currentProjectId ?? snapshot.projects[0]?.id ?? null);
-      });
-    }
-  }, [selectedProjectId, setSelectedProjectId, snapshot]);
-
-  const visibleTopics = filterTopics(selectedProject, deferredFilter);
-  const selectedTopic =
-    visibleTopics.find((topic) => `${topic.bucket}:${topic.name}` === selectedTopicKey) ??
-    visibleTopics[0] ??
-    null;
-
-  useEffect(() => {
-    if (!visibleTopics.length) {
-      if (selectedTopicKey) {
-        startTransition(() => {
-          setSelectedTopicKey(null);
-        });
-      }
-      return;
-    }
-
-    if (
-      !selectedTopicKey ||
-      !visibleTopics.some((topic) => `${topic.bucket}:${topic.name}` === selectedTopicKey)
-    ) {
-      startTransition(() => {
-        setSelectedTopicKey(`${visibleTopics[0]!.bucket}:${visibleTopics[0]!.name}`);
-      });
-    }
-  }, [selectedTopicKey, setSelectedTopicKey, visibleTopics]);
-
-  const artifactEntries = buildTopicArtifactEntries(selectedTopic);
-
-  useEffect(() => {
-    const nextSelection = getDefaultArtifactSelection(selectedTopic);
-    if (!nextSelection) {
-      setDetailSelection(null);
-      return;
-    }
-
-    if (
-      !detailSelection ||
-      detailSelection.topicKey !== nextSelection.topicKey ||
-      !artifactEntries.some((entry) => entry.sourcePath === detailSelection.sourcePath)
-    ) {
-      setDetailSelection(nextSelection);
-    }
-  }, [artifactEntries, detailSelection, selectedTopic]);
-
   const categories = useMemo(
     () => [...(snapshot?.categories ?? [])].sort((left, right) => left.order - right.order),
     [snapshot?.categories]
   );
-  const categoryColumns = useMemo(() => buildCategoryColumns(snapshot), [snapshot]);
+  const railProjects = useMemo(() => buildProjectRailProjects(snapshot), [snapshot]);
+  const visibleBuckets = useMemo(
+    () => splitVisibleTopics(selectedProject, deferredFilter),
+    [deferredFilter, selectedProject]
+  );
+  const visibleTopics = useMemo(
+    () => [...visibleBuckets.activeTopics, ...visibleBuckets.archivedTopics],
+    [visibleBuckets.activeTopics, visibleBuckets.archivedTopics]
+  );
+  const selectedTopic = useMemo(
+    () => resolveSelectedTopic(visibleTopics, selectedTopicKey),
+    [selectedTopicKey, visibleTopics]
+  );
+  const activeLanes = useMemo(
+    () => buildTopicLanes(visibleBuckets.activeTopics, "active", dictionary),
+    [dictionary, visibleBuckets.activeTopics]
+  );
+  const archiveLanes = useMemo(
+    () => buildTopicLanes(visibleBuckets.archivedTopics, "archive", dictionary),
+    [dictionary, visibleBuckets.archivedTopics]
+  );
+  const artifactEntries = useMemo(() => buildTopicArtifactEntries(selectedTopic), [selectedTopic]);
 
-  const moveProjectMutation = useMutation({
-    mutationFn: async (payload: {
-      projectId: string;
-      targetCategoryId: string;
-      targetIndex?: number;
-    }) => {
-      if (!isLiveMode) {
-        throw new Error(dictionary.dashboardError);
-      }
-
-      return requestDashboardSnapshot("/api/dashboard/categories/move", {
-        method: "POST",
-        body: JSON.stringify(payload)
-      });
-    },
-    onMutate: async (payload) => {
-      await queryClient.cancelQueries({ queryKey: ["dashboard-snapshot"] });
-      const previous = queryClient.getQueryData<DashboardQueryResult>(["dashboard-snapshot"]);
-      if (previous) {
-        queryClient.setQueryData<DashboardQueryResult>(["dashboard-snapshot"], {
-          ...previous,
-          snapshot: applyOptimisticMove(previous.snapshot, payload)
-        });
-      }
-
-      return { previous };
-    },
-    onError: (error, _payload, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(["dashboard-snapshot"], context.previous);
-      }
-      setFeedback(error instanceof Error ? error.message : dictionary.dashboardError);
-    },
-    onSettled: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["dashboard-snapshot"] });
+  useEffect(() => {
+    const nextSelectedProjectId = resolveInitialSelectedProjectId(snapshot, selectedProjectId);
+    if (!nextSelectedProjectId) {
+      return;
     }
-  });
+
+    startTransition(() => {
+      setSelectedProjectId(nextSelectedProjectId);
+    });
+  }, [selectedProjectId, setSelectedProjectId, snapshot]);
+
+  useEffect(() => {
+    const nextVisibleTopicState = resolveVisibleTopicState(
+      visibleTopics,
+      selectedTopicKey,
+      projectSurface
+    );
+    if (!nextVisibleTopicState) {
+      return;
+    }
+
+    startTransition(() => {
+      setSelectedTopicKey(nextVisibleTopicState.nextSelectedTopicKey);
+      setProjectSurface(nextVisibleTopicState.nextProjectSurface);
+    });
+  }, [projectSurface, selectedTopicKey, setProjectSurface, setSelectedTopicKey, visibleTopics]);
+
+  useEffect(() => {
+    const nextSelection = resolveNextDetailSelection(selectedTopic, detailSelection, artifactEntries);
+    if (
+      detailSelection?.topicKey === nextSelection?.topicKey &&
+      detailSelection?.sourcePath === nextSelection?.sourcePath
+    ) {
+      return;
+    }
+
+    setDetailSelection(nextSelection);
+  }, [artifactEntries, detailSelection, selectedTopic]);
+
+  useEffect(() => {
+    if (snapshot?.generatedAt) {
+      markDashboardInteraction("snapshot-ready", "ready");
+    }
+  }, [snapshot?.generatedAt]);
+
+  useEffect(() => {
+    if (selectedProject?.id) {
+      markDashboardInteraction("project-switch", "ready");
+    }
+  }, [selectedProject?.id]);
+
+  useEffect(() => {
+    if (selectedProject) {
+      markDashboardInteraction("topic-filter", "ready");
+    }
+  }, [deferredFilter, selectedProject, visibleTopics.length]);
+
+  useEffect(() => {
+    if (projectSurface === "detail" && selectedTopic) {
+      markDashboardInteraction("detail-open", "ready");
+    }
+  }, [projectSurface, selectedTopic]);
 
   const snapshotMutation = useMutation({
     mutationFn: async (payload: DashboardMutationPayload) => {
@@ -211,16 +207,6 @@ export default function DashboardApp() {
       setFeedback(error instanceof Error ? error.message : dictionary.dashboardError);
     }
   });
-
-  const openProjectDetail = (projectId: string) => {
-    startTransition(() => {
-      setSelectedProjectId(projectId);
-      setActiveTopMenu("projects");
-      setActiveProjectsView("board");
-      setProjectSurface("detail");
-      setSelectedTopicKey(null);
-    });
-  };
 
   const mutateSnapshot = (payload: DashboardMutationPayload) => {
     snapshotMutation.mutate(payload);
@@ -253,17 +239,166 @@ export default function DashboardApp() {
     setProjectDialogOpen(true);
   };
 
+  const openProjectDetail = (projectId: string) => {
+    markDashboardInteraction("project-switch", "start");
+    startTransition(() => {
+      setSelectedProjectId(projectId);
+      setActiveTopMenu("projects");
+      setActiveProjectsView("board");
+      setProjectSurface("detail");
+      setSelectedTopicKey(null);
+    });
+  };
+
+  const selectProjectFromRail = (projectId: string) => {
+    markDashboardInteraction("project-switch", "start");
+    startTransition(() => {
+      setSelectedProjectId(projectId);
+      if (activeTopMenu === "projects" && activeProjectsView === "board") {
+        setProjectSurface("board");
+      }
+      setSelectedTopicKey(null);
+    });
+  };
+
+  const openTopicDetail = (topicKey: string) => {
+    markDashboardInteraction("detail-open", "start");
+    startTransition(() => {
+      setActiveTopMenu("projects");
+      setActiveProjectsView("board");
+      setProjectSurface("detail");
+      setSelectedTopicKey(topicKey);
+    });
+  };
+
+  const previewTopicArtifacts = (topic: TopicSummary) => {
+    openTopicDetail(buildTopicKey(topic));
+  };
+
+  const renderProjectsSurface = () => {
+    if (activeProjectsView === "board") {
+      if (projectSurface === "detail") {
+        return (
+          <ProjectDetailWorkspace
+            project={selectedProject}
+            selectedTopic={selectedTopic}
+            activeTopics={visibleBuckets.activeTopics}
+            archivedTopics={visibleBuckets.archivedTopics}
+            selectedTopicKey={selectedTopicKey}
+            topicFilter={topicFilter}
+            detailSelection={detailSelection}
+            artifactEntries={artifactEntries}
+            dictionary={dictionary}
+            onBack={() => setProjectSurface("board")}
+            onTopicFilterChange={(value) => {
+              markDashboardInteraction("topic-filter", "start");
+              setTopicFilter(value);
+            }}
+            onSelectTopic={(topicKey) => setSelectedTopicKey(topicKey)}
+            onPreviewArtifact={(topic) => {
+              const preview = getDefaultArtifactSelection(topic);
+              setDetailSelection(preview);
+            }}
+            onSelectArtifact={(entry) => {
+              if (!selectedTopic) {
+                return;
+              }
+              setDetailSelection(
+                createArtifactSelection(buildTopicKey(selectedTopic), entry)
+              );
+            }}
+            onOpenDetailDialog={() => setDetailDialogOpen(true)}
+            onWorkflowNodeClick={(selection) => {
+              setDetailSelection(selection);
+              setDetailDialogOpen(true);
+            }}
+          />
+        );
+      }
+
+      return (
+        <ProjectListBoard
+          project={selectedProject}
+          selectedTopicKey={selectedTopicKey}
+          activeLanes={activeLanes}
+          archiveLanes={archiveLanes}
+          selectedTopic={selectedTopic}
+          topicFilter={topicFilter}
+          dictionary={dictionary}
+          snapshotSource={snapshotSource}
+          onTopicFilterChange={(value) => {
+            markDashboardInteraction("topic-filter", "start");
+            setTopicFilter(value);
+          }}
+          onSelectTopic={openTopicDetail}
+          onPreviewArtifact={previewTopicArtifacts}
+        />
+      );
+    }
+
+    if (activeProjectsView === "categories") {
+      return (
+        <CategoryManagementPanel
+          categories={categories}
+          dictionary={dictionary}
+          isLiveMode={isLiveMode}
+          onCreateCategory={() => openCategoryDialog("create")}
+          onEditCategory={(categoryId, currentName) => openCategoryDialog("edit", categoryId, currentName)}
+          onSetDefaultCategory={(categoryId) =>
+            mutateSnapshot(createMutationPayload(`/api/dashboard/categories/${categoryId}/default`, "POST"))
+          }
+          onDeleteCategory={(categoryId) =>
+            mutateSnapshot(createMutationPayload(`/api/dashboard/categories/${categoryId}`, "DELETE"))
+          }
+        />
+      );
+    }
+
+    if (activeProjectsView === "reports") {
+      return (
+        <RecentActivityTable
+          entries={snapshot?.recentActivity ?? []}
+          dictionary={dictionary}
+          language={selectedProject?.language ?? currentProject?.language ?? "en"}
+          onOpenProject={openProjectDetail}
+        />
+      );
+    }
+
+    return (
+      <BoardSettingsPanel
+        categories={categories}
+        dictionary={dictionary}
+        isLiveMode={isLiveMode}
+        onMoveCategory={(categoryId, targetIndex) =>
+          mutateSnapshot(
+            createMutationPayload(`/api/dashboard/categories/${categoryId}/reorder`, "POST", {
+              targetIndex
+            })
+          )
+        }
+        onToggleCategory={(categoryId, visible) =>
+          mutateSnapshot(
+            createMutationPayload(`/api/dashboard/categories/${categoryId}/visibility`, "PATCH", {
+              visible
+            })
+          )
+        }
+      />
+    );
+  };
+
   if (snapshotQuery.isLoading) {
-    return <Box sx={{ p: 4 }}>{dictionary.loading}</Box>;
+    return <DashboardStatePanel title={dictionary.loading} helper={dictionary.subtitle} />;
   }
 
   if (!snapshot || snapshot.projects.length === 0) {
-    return <Box sx={{ p: 4 }}>{dictionary.empty}</Box>;
+    return <DashboardStatePanel title={dictionary.empty} helper={dictionary.subtitle} />;
   }
 
   return (
-    <Box sx={{ minHeight: "100vh", p: { xs: 2, md: 3 } }}>
-      <Stack spacing={3}>
+    <Box sx={{ minHeight: "100vh", px: { xs: 1.5, md: 2.5 }, py: { xs: 1.5, md: 2 } }}>
+      <Stack spacing={2}>
         <DashboardHeader
           title={currentProject?.dashboardTitle ?? dictionary.dashboardFallbackTitle}
           subtitle={dictionary.subtitle}
@@ -285,15 +420,20 @@ export default function DashboardApp() {
         <Box
           sx={{
             display: "grid",
-            gap: 3,
-            gridTemplateColumns: { xs: "1fr", xl: "280px minmax(0, 1fr)" }
+            gap: 2,
+            gridTemplateColumns: { xs: "1fr", lg: "300px minmax(0, 1fr)" },
+            alignItems: "start"
           }}
         >
-          <DashboardSidebar
+          <DashboardRail
             activeTopMenu={activeTopMenu}
             activeProjectsView={activeProjectsView}
             activeSettingsView={activeSettingsView}
+            selectedProject={selectedProject}
+            railProjects={railProjects}
+            latestActiveProjectId={latestActiveProject?.id ?? null}
             dictionary={dictionary}
+            isLiveMode={isLiveMode}
             onOpenProjectsView={(view) => {
               setActiveTopMenu("projects");
               setActiveProjectsView(view);
@@ -305,9 +445,11 @@ export default function DashboardApp() {
               setActiveTopMenu("settings");
               setActiveSettingsView(view);
             }}
+            onSelectProject={selectProjectFromRail}
+            onAddProject={openCreateProjectDialog}
           />
 
-          <Stack spacing={3}>
+          <Stack spacing={2.5}>
             {feedback ? (
               <Alert severity="error" onClose={() => setFeedback(null)}>
                 {feedback}
@@ -315,117 +457,7 @@ export default function DashboardApp() {
             ) : null}
 
             {activeTopMenu === "projects" ? (
-              activeProjectsView === "board" ? (
-                projectSurface === "detail" ? (
-                  <ProjectDetailWorkspace
-                    project={selectedProject}
-                    selectedTopic={selectedTopic}
-                    activeTopics={visibleTopics.filter((topic) => topic.bucket === "active")}
-                    archivedTopics={visibleTopics.filter((topic) => topic.bucket === "archive")}
-                    selectedTopicKey={selectedTopicKey}
-                    topicFilter={topicFilter}
-                    detailSelection={detailSelection}
-                    artifactEntries={artifactEntries}
-                    dictionary={dictionary}
-                    onBack={() => setProjectSurface("board")}
-                    onTopicFilterChange={setTopicFilter}
-                    onSelectTopic={setSelectedTopicKey}
-                    onPreviewArtifact={(topic) => {
-                      const preview = getDefaultArtifactSelection(topic);
-                      setDetailSelection(preview);
-                    }}
-                    onSelectArtifact={(entry) => {
-                      if (!selectedTopic) {
-                        return;
-                      }
-                      setDetailSelection(
-                        createArtifactSelection(`${selectedTopic.bucket}:${selectedTopic.name}`, entry)
-                      );
-                    }}
-                    onOpenDetailDialog={() => setDetailDialogOpen(true)}
-                    onWorkflowNodeClick={(selection) => {
-                      setDetailSelection(selection);
-                      setDetailDialogOpen(true);
-                    }}
-                  />
-                ) : (
-                  <>
-                    {categoryColumns.length === 0 ? (
-                      <Alert severity="info">{dictionary.noVisibleCategories}</Alert>
-                    ) : null}
-                    <ProjectListBoard
-                      categories={categoryColumns}
-                      latestActiveProjectId={snapshot.latestActiveProjectId}
-                      selectedProjectId={selectedProject?.id ?? null}
-                      dictionary={dictionary}
-                      isLiveMode={isLiveMode}
-                      onCreateProject={openCreateProjectDialog}
-                      onOpenProject={openProjectDetail}
-                      onDragStart={(projectId) => setDraggingProjectId(projectId)}
-                      onDragEnd={() => setDraggingProjectId(null)}
-                      onDropProject={(categoryId, targetIndex) => {
-                        if (draggingProjectId) {
-                          moveProjectMutation.mutate({
-                            projectId: draggingProjectId,
-                            targetCategoryId: categoryId,
-                            targetIndex
-                          });
-                        }
-                        setDraggingProjectId(null);
-                      }}
-                    />
-                  </>
-                )
-              ) : activeProjectsView === "categories" ? (
-                <CategoryManagementPanel
-                  categories={categories}
-                  dictionary={dictionary}
-                  isLiveMode={isLiveMode}
-                  onCreateCategory={() => openCategoryDialog("create")}
-                  onEditCategory={(categoryId, currentName) =>
-                    openCategoryDialog("edit", categoryId, currentName)
-                  }
-                  onSetDefaultCategory={(categoryId) =>
-                    mutateSnapshot(
-                      createMutationPayload(`/api/dashboard/categories/${categoryId}/default`, "POST")
-                    )
-                  }
-                  onDeleteCategory={(categoryId) =>
-                    mutateSnapshot(
-                      createMutationPayload(`/api/dashboard/categories/${categoryId}`, "DELETE")
-                    )
-                  }
-                />
-              ) : activeProjectsView === "reports" ? (
-                <RecentActivityTable
-                  entries={snapshot.recentActivity}
-                  dictionary={dictionary}
-                  language={selectedProject?.language ?? currentProject?.language ?? "en"}
-                  onOpenProject={openProjectDetail}
-                />
-              ) : (
-                <BoardSettingsPanel
-                  categories={categories}
-                  dictionary={dictionary}
-                  isLiveMode={isLiveMode}
-                  onMoveCategory={(categoryId, targetIndex) =>
-                    mutateSnapshot(
-                      createMutationPayload(`/api/dashboard/categories/${categoryId}/reorder`, "POST", {
-                        targetIndex
-                      })
-                    )
-                  }
-                  onToggleCategory={(categoryId, visible) =>
-                    mutateSnapshot(
-                      createMutationPayload(
-                        `/api/dashboard/categories/${categoryId}/visibility`,
-                        "PATCH",
-                        { visible }
-                      )
-                    )
-                  }
-                />
-              )
+              renderProjectsSurface()
             ) : (
               <SettingsWorkspace
                 project={currentProject}
@@ -550,84 +582,72 @@ function DashboardHeader(props: {
   title: string;
   subtitle: string;
   latestActiveProject: ProjectSnapshot | null;
-  dictionary: Record<string, string>;
+  dictionary: DashboardLocale;
   snapshotSource: "live" | "static";
   activeTopMenu: "projects" | "settings";
   onChangeTopMenu: (next: "projects" | "settings") => void;
 }) {
   return (
-    <Paper sx={{ p: { xs: 2.5, md: 3 }, borderRadius: 7, overflow: "hidden", position: "relative" }}>
-      <Box
-        sx={{
-          position: "absolute",
-          inset: 0,
-          background:
-            "radial-gradient(circle at top left, rgba(209, 100, 58, 0.18), transparent 30%), radial-gradient(circle at bottom right, rgba(57, 90, 115, 0.14), transparent 26%)"
-        }}
-      />
-      <Stack spacing={2.5} sx={{ position: "relative" }}>
-        <Stack direction={{ xs: "column", xl: "row" }} spacing={2} sx={{ justifyContent: "space-between" }}>
-          <Stack spacing={1}>
-            <Typography variant="overline" color="primary.main">
-              {props.dictionary.eyebrow}
-            </Typography>
-            <Typography variant="h2" sx={{ lineHeight: 0.96 }}>
-              {props.title}
-            </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 760 }}>
-              {props.subtitle}
-            </Typography>
+    <Paper sx={{ p: { xs: 1.5, md: 2 }, borderRadius: 5 }}>
+      <Stack direction={{ xs: "column", xl: "row" }} spacing={2} sx={{ justifyContent: "space-between" }}>
+        <Stack spacing={1.5}>
+          <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ alignItems: { md: "center" } }}>
+            <Stack spacing={0.35}>
+              <Typography variant="overline" color="primary.main">
+                {props.dictionary.eyebrow}
+              </Typography>
+              <Typography variant="h4" sx={{ lineHeight: 1 }}>
+                {props.title}
+              </Typography>
+            </Stack>
+            <Stack direction="row" spacing={1}>
+              {(["projects", "settings"] as const).map((menu) => (
+                <Button
+                  key={menu}
+                  variant={props.activeTopMenu === menu ? "contained" : "text"}
+                  onClick={() => props.onChangeTopMenu(menu)}
+                >
+                  {menu === "projects" ? props.dictionary.projects : props.dictionary.settings}
+                </Button>
+              ))}
+            </Stack>
           </Stack>
-
-          <Paper
-            sx={{
-              p: 1.5,
-              borderRadius: 4,
-              minWidth: { xs: "100%", xl: 320 },
-              backgroundColor: "rgba(255,255,255,0.68)"
-            }}
-          >
-            <Typography variant="caption" color="text.secondary">
-              {props.dictionary.latestProject}
-            </Typography>
-            <Typography variant="subtitle1" sx={{ mt: 0.5 }}>
-              {props.latestActiveProject?.name ?? "-"}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {props.latestActiveProject?.latestTopicName ?? "-"}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {props.snapshotSource === "live" ? props.dictionary.liveMode : props.dictionary.staticMode}
-            </Typography>
-          </Paper>
+          <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 720 }}>
+            {props.subtitle}
+          </Typography>
         </Stack>
 
-        <ToggleButtonGroup
-          value={props.activeTopMenu}
-          exclusive
-          onChange={(_event, value) => {
-            if (value) {
-              props.onChangeTopMenu(value);
+        <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap", alignSelf: "flex-start" }}>
+          <Chip
+            label={`${props.dictionary.latestProject}: ${props.latestActiveProject?.name ?? "-"}`}
+            color="primary"
+            variant="outlined"
+          />
+          <Chip
+            label={
+              props.snapshotSource === "live" ? props.dictionary.liveMode : props.dictionary.staticMode
             }
-          }}
-          size="small"
-          color="primary"
-        >
-          <ToggleButton value="projects">{props.dictionary.projects}</ToggleButton>
-          <ToggleButton value="settings">{props.dictionary.settings}</ToggleButton>
-        </ToggleButtonGroup>
+            variant="outlined"
+          />
+        </Stack>
       </Stack>
     </Paper>
   );
 }
 
-function DashboardSidebar(props: {
+function DashboardRail(props: {
   activeTopMenu: "projects" | "settings";
   activeProjectsView: "board" | "categories" | "reports" | "board-settings";
   activeSettingsView: "main" | "refresh" | "git" | "system";
-  dictionary: Record<string, string>;
+  selectedProject: ProjectSnapshot | null;
+  railProjects: ProjectSnapshot[];
+  latestActiveProjectId: string | null;
+  dictionary: DashboardLocale;
+  isLiveMode: boolean;
   onOpenProjectsView: (view: "board" | "categories" | "reports" | "board-settings") => void;
   onOpenSettingsView: (view: "main" | "refresh" | "git" | "system") => void;
+  onSelectProject: (projectId: string) => void;
+  onAddProject: () => void;
 }) {
   const items =
     props.activeTopMenu === "projects"
@@ -647,25 +667,129 @@ function DashboardSidebar(props: {
   const activeId = props.activeTopMenu === "projects" ? props.activeProjectsView : props.activeSettingsView;
 
   return (
-    <Paper sx={{ p: 1.5, borderRadius: 6, alignSelf: "start" }}>
-      <Stack spacing={1}>
-        {items.map((item) => (
-          <Button
-            key={item.id}
-            variant={activeId === item.id ? "contained" : "text"}
-            onClick={() => {
-              if (props.activeTopMenu === "projects") {
-                props.onOpenProjectsView(item.id as "board" | "categories" | "reports" | "board-settings");
-              } else {
-                props.onOpenSettingsView(item.id as "main" | "refresh" | "git" | "system");
-              }
-            }}
-            sx={{ justifyContent: "flex-start", borderRadius: 3, py: 1.25 }}
-          >
-            {item.label}
-          </Button>
-        ))}
+    <Paper sx={{ p: 1.5, borderRadius: 5, alignSelf: "start" }}>
+      <Stack spacing={1.5}>
+        <Stack spacing={0.35}>
+          <Typography variant="overline" color="text.secondary">
+            {props.activeTopMenu === "projects" ? props.dictionary.projectRailTitle : props.dictionary.settingsTitle}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {props.activeTopMenu === "projects" ? props.dictionary.projectRailHint : props.dictionary.settingsHint}
+          </Typography>
+        </Stack>
+
+        <Stack direction={{ xs: "row", lg: "column" }} spacing={1} sx={{ overflowX: { xs: "auto", lg: "visible" } }}>
+          {items.map((item) => (
+            <Button
+              key={item.id}
+              variant={activeId === item.id ? "contained" : "text"}
+              onClick={() => {
+                if (props.activeTopMenu === "projects") {
+                  props.onOpenProjectsView(item.id as "board" | "categories" | "reports" | "board-settings");
+                } else {
+                  props.onOpenSettingsView(item.id as "main" | "refresh" | "git" | "system");
+                }
+              }}
+              sx={{ justifyContent: "flex-start", minWidth: { xs: "auto", lg: "100%" } }}
+            >
+              {item.label}
+            </Button>
+          ))}
+        </Stack>
+
+        {props.activeTopMenu === "projects" ? (
+          <>
+            <Divider />
+            <Button variant="contained" disabled={!props.isLiveMode} onClick={props.onAddProject}>
+              {props.dictionary.addProject}
+            </Button>
+            <Stack spacing={1}>
+              {props.railProjects.map((project) => (
+                <RailProjectCard
+                  key={project.id}
+                  project={project}
+                  isSelected={props.selectedProject?.id === project.id}
+                  isLatest={props.latestActiveProjectId === project.id}
+                  dictionary={props.dictionary}
+                  onClick={() => props.onSelectProject(project.id)}
+                />
+              ))}
+            </Stack>
+          </>
+        ) : props.selectedProject ? (
+          <>
+            <Divider />
+            <Paper sx={{ p: 1.25, borderRadius: 4, backgroundColor: alpha("#0c66e4", 0.06) }}>
+              <Typography variant="subtitle2">{props.selectedProject.name}</Typography>
+              <Typography variant="caption" color="text.secondary">
+                {props.selectedProject.rootDir}
+              </Typography>
+            </Paper>
+          </>
+        ) : null}
       </Stack>
     </Paper>
+  );
+}
+
+function RailProjectCard(props: {
+  project: ProjectSnapshot;
+  isSelected: boolean;
+  isLatest: boolean;
+  dictionary: DashboardLocale;
+  onClick: () => void;
+}) {
+  return (
+    <Paper
+      variant="outlined"
+      onClick={props.onClick}
+      sx={{
+        p: 1.25,
+        borderRadius: 4,
+        cursor: "pointer",
+        backgroundColor: props.isSelected ? alpha("#0c66e4", 0.08) : "rgba(255,255,255,0.82)",
+        borderColor: props.isSelected ? alpha("#0c66e4", 0.32) : alpha("#091e42", 0.08)
+      }}
+    >
+      <Stack spacing={0.8}>
+        <Stack direction="row" spacing={1} sx={{ justifyContent: "space-between", alignItems: "flex-start" }}>
+          <Typography variant="subtitle2">{props.project.name}</Typography>
+          {props.isLatest ? <Chip size="small" color="primary" label={props.dictionary.latestBadge} /> : null}
+        </Stack>
+        <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
+          <Chip size="small" variant="outlined" label={`${props.dictionary.active}: ${props.project.activeTopics.length}`} />
+          {props.project.latestTopicStage ? (
+            <Chip size="small" variant="outlined" label={props.project.latestTopicStage} />
+          ) : null}
+        </Stack>
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden"
+          }}
+        >
+          {props.project.latestTopicName ?? props.project.rootDir}
+        </Typography>
+      </Stack>
+    </Paper>
+  );
+}
+
+function DashboardStatePanel(props: { title: string; helper: string }) {
+  return (
+    <Box sx={{ minHeight: "100vh", display: "grid", placeItems: "center", px: 2 }}>
+      <Paper sx={{ p: 3, borderRadius: 5, maxWidth: 640 }}>
+        <Stack spacing={1}>
+          <Typography variant="h5">{props.title}</Typography>
+          <Typography variant="body2" color="text.secondary">
+            {props.helper}
+          </Typography>
+        </Stack>
+      </Paper>
+    </Box>
   );
 }

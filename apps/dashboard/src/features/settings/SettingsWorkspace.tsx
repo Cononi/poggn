@@ -39,9 +39,12 @@ export function SettingsWorkspace(props: SettingsWorkspaceProps) {
   const editingDisabled = !props.isLiveMode;
 
   return (
-    <Paper sx={{ p: 2.5, borderRadius: 6 }}>
+    <Paper sx={{ p: 2.25, borderRadius: 5 }}>
       <Stack spacing={2}>
         <Stack spacing={1}>
+          <Typography variant="overline" color="primary.main">
+            {props.dictionary.settings}
+          </Typography>
           <Typography variant="h6">{props.dictionary.settingsTitle}</Typography>
           <Typography variant="body2" color="text.secondary">
             {props.dictionary.settingsHint}
