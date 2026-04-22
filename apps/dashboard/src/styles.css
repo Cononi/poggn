@@ -5,6 +5,7 @@
 html,
 body {
   margin: 0;
+  color: #172b4d;
 }
 
 button,
@@ -23,13 +24,13 @@ pre {
 }
 
 .react-flow__controls {
-  box-shadow: 0 18px 40px rgba(30, 21, 15, 0.12);
-  border-radius: 14px;
+  box-shadow: 0 14px 28px rgba(9, 30, 66, 0.12);
+  border-radius: 12px;
   overflow: hidden;
 }
 
 .react-flow__minimap {
-  border-radius: 16px;
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 20px 44px rgba(27, 20, 15, 0.12);
+  box-shadow: 0 16px 32px rgba(9, 30, 66, 0.12);
 }

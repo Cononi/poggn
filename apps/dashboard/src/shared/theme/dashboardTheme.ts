@@ -4,31 +4,34 @@ export const dashboardTheme = createTheme({
   palette: {
     mode: "light",
     primary: {
-      main: "#d1643a"
+      main: "#0c66e4"
     },
     secondary: {
-      main: "#385a73"
+      main: "#44546f"
     },
     success: {
-      main: "#2f7d62"
+      main: "#1f845a"
     },
     warning: {
-      main: "#c88d1d"
+      main: "#b65c02"
+    },
+    info: {
+      main: "#388bff"
     },
     background: {
-      default: "#f4efe6",
-      paper: "rgba(255, 251, 246, 0.88)"
+      default: "#f7f8fa",
+      paper: "rgba(255, 255, 255, 0.88)"
     },
     text: {
-      primary: "#201a16",
-      secondary: "#6d6258"
+      primary: "#172b4d",
+      secondary: "#5e6c84"
     }
   },
   shape: {
-    borderRadius: 20
+    borderRadius: 16
   },
   typography: {
-    fontFamily: '"Sora", "IBM Plex Sans", "Avenir Next", sans-serif',
+    fontFamily: '"IBM Plex Sans", "Sora", "Avenir Next", sans-serif',
     h1: {
       fontWeight: 700,
       letterSpacing: "-0.05em"
@@ -57,7 +60,7 @@ export const dashboardTheme = createTheme({
           minWidth: 320,
           minHeight: "100vh",
           background:
-            "radial-gradient(circle at top left, rgba(219, 137, 88, 0.34), transparent 28%), radial-gradient(circle at top right, rgba(72, 114, 140, 0.18), transparent 22%), linear-gradient(180deg, #fbf7f1 0%, #efe6d9 100%)"
+            "radial-gradient(circle at top left, rgba(56, 139, 255, 0.18), transparent 26%), radial-gradient(circle at top right, rgba(9, 30, 66, 0.08), transparent 20%), linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%)"
         },
         "#root": {
           minHeight: "100vh"
@@ -67,8 +70,15 @@ export const dashboardTheme = createTheme({
     MuiPaper: {
       styleOverrides: {
         root: {
-          backdropFilter: "blur(18px)",
-          border: `1px solid ${alpha("#3a2e21", 0.09)}`
+          backdropFilter: "blur(16px)",
+          border: `1px solid ${alpha("#091e42", 0.08)}`
+        }
+      }
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 12
         }
       }
     },

@@ -243,6 +243,7 @@ export default defineConfig({
   plugins: [react(), createDashboardApiPlugin()],
   server: {
     host: "127.0.0.1",
+    allowedHosts: ["3000.code.warin.kr"],
     port: 4173
   }
 });

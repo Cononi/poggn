@@ -1,5 +1,5 @@
 import { alpha, useTheme } from "@mui/material/styles";
-import { Alert, Box, Chip, Paper, Stack, Typography } from "@mui/material";
+import { Alert, Box, Button, Chip, Paper, Stack, Typography } from "@mui/material";
 import { Background, Controls, MiniMap, ReactFlow } from "@xyflow/react";
 import type {
   ArtifactDocumentEntry,
@@ -46,13 +46,13 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
 
   return (
     <Stack spacing={3}>
-      <Paper sx={{ p: 2.5, borderRadius: 6, overflow: "hidden", position: "relative" }}>
+      <Paper sx={{ p: 2.25, borderRadius: 5, overflow: "hidden", position: "relative" }}>
         <Box
           sx={{
             position: "absolute",
             inset: 0,
             background:
-              "linear-gradient(135deg, rgba(209, 100, 58, 0.10), transparent 38%), linear-gradient(315deg, rgba(57, 90, 115, 0.10), transparent 32%)"
+              "linear-gradient(135deg, rgba(12, 102, 228, 0.10), transparent 38%), linear-gradient(315deg, rgba(87, 157, 255, 0.10), transparent 32%)"
           }}
         />
         <Stack spacing={2} sx={{ position: "relative" }}>
@@ -61,7 +61,7 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
               <Typography variant="overline" color="primary.main">
                 {props.dictionary.workspace}
               </Typography>
-              <Typography variant="h3" sx={{ mb: 0.5 }}>
+              <Typography variant="h4" sx={{ mb: 0.5 }}>
                 {props.project.name}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 760 }}>
@@ -69,7 +69,9 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
               </Typography>
             </Box>
             <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap", alignSelf: "flex-start" }}>
-              <Chip color="primary" variant="outlined" label={props.dictionary.backToBoard} onClick={props.onBack} />
+              <Button variant="contained" size="small" onClick={props.onBack}>
+                {props.dictionary.backToBoard}
+              </Button>
               <Chip label={`${props.dictionary.provider}: ${props.project.provider}`} />
               <Chip label={`${props.dictionary.language}: ${props.project.language}`} />
               <Chip label={`${props.dictionary.autoMode}: ${props.project.autoMode}`} />
@@ -96,7 +98,7 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
         }}
       >
         <Stack spacing={3}>
-          <Paper sx={{ p: 2.5, borderRadius: 6 }}>
+          <Paper sx={{ p: 2.25, borderRadius: 5 }}>
             <Typography variant="h6" sx={{ mb: 2 }}>
               {props.dictionary.overview}
             </Typography>
@@ -108,7 +110,7 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
             </Box>
           </Paper>
 
-          <Paper sx={{ p: 2.5, borderRadius: 6 }}>
+          <Paper sx={{ p: 2.25, borderRadius: 5 }}>
             <Typography variant="h6" sx={{ mb: 2 }}>
               {props.dictionary.currentProject}
             </Typography>
@@ -132,7 +134,7 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
           </Paper>
 
           {props.selectedTopic?.bucket === "archive" && props.selectedTopic.releaseBranch ? (
-            <Paper sx={{ p: 2.5, borderRadius: 6 }}>
+            <Paper sx={{ p: 2.25, borderRadius: 5 }}>
               <Typography variant="h6" sx={{ mb: 2 }}>
                 {props.dictionary.releaseReview}
               </Typography>
@@ -184,7 +186,7 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
         </Stack>
 
         <Stack spacing={3}>
-          <Paper sx={{ p: 2.5, borderRadius: 6, minHeight: 640 }}>
+          <Paper sx={{ p: 2.25, borderRadius: 5, minHeight: 640 }}>
             <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ mb: 2, justifyContent: "space-between" }}>
               <Box>
                 <Typography variant="h6">{props.dictionary.workflow}</Typography>
@@ -205,7 +207,7 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
                     px: 1.5,
                     py: 1,
                     font: "inherit",
-                    backgroundColor: "rgba(255,255,255,0.72)"
+                    backgroundColor: "rgba(255,255,255,0.92)"
                   }}
                 />
                 {props.selectedTopic ? (

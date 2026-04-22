@@ -1,7 +1,7 @@
-import { alpha } from "@mui/material/styles";
+import { alpha, type Theme, useTheme } from "@mui/material/styles";
 import { Box, Card, CardActionArea, CardContent, Chip, Paper, Stack, Typography } from "@mui/material";
 import type { DashboardLocale, TopicLane, TopicSummary } from "../../shared/model/dashboard";
-import { buildTopicArtifactEntries, formatDate } from "../../shared/utils/dashboard";
+import { buildTopicArtifactEntries, buildTopicKey, formatDate } from "../../shared/utils/dashboard";
 
 type TopicLifecycleBoardProps = {
   board: "active" | "archive";
@@ -18,11 +18,22 @@ export function TopicLifecycleBoard(props: TopicLifecycleBoardProps) {
     props.board === "active" ? props.dictionary.activeBoard : props.dictionary.archiveBoard;
 
   return (
-    <Paper sx={{ p: 2.5, borderRadius: 6 }}>
+    <Paper
+      sx={{
+        p: { xs: 1.75, md: 2.25 },
+        borderRadius: 5,
+        backgroundColor: props.board === "active" ? "rgba(255,255,255,0.92)" : "rgba(244,245,247,0.92)"
+      }}
+    >
       <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ mb: 2, justifyContent: "space-between" }}>
         <Box>
-          <Typography variant="h6">{boardTitle}</Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="overline" color="text.secondary">
+            {boardTitle}
+          </Typography>
+          <Typography variant="h6" sx={{ mt: 0.5 }}>
+            {boardTitle}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 720 }}>
             {props.dictionary.lifecycleBoardHint}
           </Typography>
         </Box>
@@ -32,7 +43,7 @@ export function TopicLifecycleBoard(props: TopicLifecycleBoardProps) {
         sx={{
           display: "grid",
           gridAutoFlow: "column",
-          gridAutoColumns: "minmax(260px, 300px)",
+          gridAutoColumns: "minmax(260px, 320px)",
           gap: 2,
           overflowX: "auto",
           pb: 1
@@ -42,17 +53,15 @@ export function TopicLifecycleBoard(props: TopicLifecycleBoardProps) {
           <Paper
             key={lane.id}
             variant="outlined"
-            sx={{
-              p: 1.5,
-              borderRadius: 5,
-              minHeight: 340,
-              backgroundColor: "rgba(255,255,255,0.72)"
-            }}
+            sx={{ p: 1.25, borderRadius: 4, minHeight: 320, backgroundColor: "rgba(255,255,255,0.88)" }}
           >
-            <Stack spacing={0.75} sx={{ mb: 1.5 }}>
-              <Typography variant="subtitle1">{lane.label}</Typography>
+            <Stack spacing={0.75} sx={{ mb: 1.5, pb: 1.25, borderBottom: "1px solid rgba(9, 30, 66, 0.08)" }}>
+              <Stack direction="row" spacing={1} sx={{ alignItems: "center", justifyContent: "space-between" }}>
+                <Typography variant="subtitle1">{lane.label}</Typography>
+                <Chip size="small" variant="outlined" label={lane.topics.length} />
+              </Stack>
               <Typography variant="caption" color="text.secondary">
-                {lane.topics.length} {props.dictionary.projects.toLowerCase()}
+                {lane.helper}
               </Typography>
             </Stack>
 
@@ -74,12 +83,12 @@ export function TopicLifecycleBoard(props: TopicLifecycleBoardProps) {
 
               {lane.topics.map((topic) => (
                 <TopicCard
-                  key={`${topic.bucket}:${topic.name}`}
+                  key={buildTopicKey(topic)}
                   topic={topic}
-                  isSelected={props.selectedTopicKey === `${topic.bucket}:${topic.name}`}
+                  isSelected={props.selectedTopicKey === buildTopicKey(topic)}
                   dictionary={props.dictionary}
                   language={props.language}
-                  onSelect={() => props.onSelectTopic(`${topic.bucket}:${topic.name}`)}
+                  onSelect={() => props.onSelectTopic(buildTopicKey(topic))}
                   onPreviewArtifact={() => props.onPreviewArtifact(topic)}
                 />
               ))}
@@ -99,122 +108,94 @@ function TopicCard(props: {
   onSelect: () => void;
   onPreviewArtifact: () => void;
 }) {
+  const theme = useTheme();
   const artifactEntries = buildTopicArtifactEntries(props.topic);
+  const accent = getTopicAccent(props.topic, theme);
+  const updatedLabel = props.topic.updatedAt
+    ? formatDate(props.topic.updatedAt, props.language)
+    : props.topic.archivedAt
+      ? formatDate(props.topic.archivedAt, props.language)
+      : "-";
 
   return (
     <Card
       sx={{
-        borderRadius: 4,
-        borderColor: props.isSelected ? alpha("#d1643a", 0.38) : alpha("#000000", 0.08),
+        borderRadius: 3.5,
+        borderColor: props.isSelected ? alpha(accent, 0.48) : alpha("#091e42", 0.09),
         borderStyle: "solid",
-        borderWidth: 1
+        borderWidth: 1,
+        background: `linear-gradient(180deg, ${alpha(accent, 0.1)}, rgba(255,255,255,0.96))`
       }}
     >
       <CardActionArea onClick={props.onSelect}>
         <CardContent>
-          <Stack spacing={1.1}>
+          <Stack spacing={1.15}>
             <Stack direction="row" spacing={1} sx={{ justifyContent: "space-between", alignItems: "flex-start" }}>
-              <Typography variant="subtitle1">{props.topic.name}</Typography>
-              <Chip
-                size="small"
-                color={props.topic.bucket === "archive" ? "default" : "primary"}
-                label={props.topic.bucket === "archive" ? props.dictionary.archive : props.dictionary.active}
-              />
-            </Stack>
-
-            <Typography variant="body2" color="text.secondary">
-              {props.topic.goal ?? "-"}
-            </Typography>
-
-            <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
-              {props.topic.stage ? <Chip size="small" label={`${props.dictionary.topicStage}: ${props.topic.stage}`} /> : null}
-              {props.topic.archiveType ? (
-                <Chip size="small" label={`${props.dictionary.archiveType}: ${props.topic.archiveType}`} />
-              ) : null}
-              {props.topic.versionBump ? (
-                <Chip size="small" label={`${props.dictionary.versionBump}: ${props.topic.versionBump}`} />
-              ) : null}
-              {props.topic.version ? (
-                <Chip size="small" label={`${props.dictionary.version}: ${props.topic.version}`} />
-              ) : null}
-              {props.topic.publishResultType ? (
-                <Chip size="small" variant="outlined" label={`${props.dictionary.publishStatus}: ${props.topic.publishResultType}`} />
-              ) : null}
-              {typeof props.topic.score === "number" ? (
-                <Chip size="small" color="success" label={`${props.dictionary.topicScore}: ${props.topic.score}`} />
-              ) : null}
-            </Stack>
-
-            <Stack spacing={0.4}>
-              <Typography variant="caption" color="text.secondary">
-                {props.dictionary.topicNext}
-              </Typography>
-              <Typography variant="body2">{props.topic.nextAction ?? "-"}</Typography>
-              {props.topic.bucket === "archive" && props.topic.archivedAt ? (
-                <Typography variant="caption" color="text.secondary">
-                  {props.dictionary.archivedAt}: {formatDate(props.topic.archivedAt, props.language)}
+              <Stack spacing={0.5} sx={{ minWidth: 0 }}>
+                <Typography
+                  variant="subtitle2"
+                  sx={{
+                    lineHeight: 1.3,
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden"
+                  }}
+                >
+                  {props.topic.name}
                 </Typography>
-              ) : null}
-            </Stack>
-
-            {props.topic.bucket === "archive" && props.topic.releaseBranch ? (
-              <Stack spacing={0.4}>
-                <Typography variant="caption" color="text.secondary">
-                  {props.dictionary.releaseReview}
-                </Typography>
-                <Typography variant="body2">{props.topic.releaseBranch}</Typography>
-                {props.topic.workingBranch ? (
-                  <Typography variant="caption" color="text.secondary">
-                    {props.dictionary.workingBranch}: {props.topic.workingBranch}
-                  </Typography>
-                ) : null}
-                {props.topic.publishMode ? (
-                  <Typography variant="caption" color="text.secondary">
-                    {props.dictionary.publishMode}: {props.topic.publishMode}
-                  </Typography>
-                ) : null}
-                {props.topic.upstreamStatus ? (
-                  <Typography variant="caption" color="text.secondary">
-                    {props.dictionary.upstreamStatus}: {props.topic.upstreamStatus}
-                  </Typography>
-                ) : null}
-                {props.topic.cleanupStatus ? (
-                  <Typography variant="caption" color="text.secondary">
-                    {props.dictionary.cleanupStatus}: {props.topic.cleanupStatus}
-                  </Typography>
-                ) : null}
-                <Typography variant="caption" color="text.secondary">
-                  {props.dictionary.releaseReviewHint}
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden"
+                  }}
+                >
+                  {props.topic.goal ?? "-"}
                 </Typography>
               </Stack>
+              <Chip size="small" color={props.topic.bucket === "archive" ? "default" : "primary"} label={props.topic.bucket} />
+            </Stack>
+
+            <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
+              {props.topic.stage ? <Chip size="small" label={props.topic.stage} /> : null}
+              {props.topic.archiveType ? (
+                <Chip size="small" label={props.topic.archiveType} />
+              ) : null}
+              {props.topic.versionBump ? (
+                <Chip size="small" label={props.topic.versionBump} />
+              ) : null}
+              {props.topic.version ? (
+                <Chip size="small" label={props.topic.version} />
+              ) : null}
+              {props.topic.publishResultType ? (
+                <Chip size="small" variant="outlined" label={props.topic.publishResultType} />
+              ) : null}
+              {typeof props.topic.score === "number" ? (
+                <Chip size="small" color="success" label={`score ${props.topic.score}`} />
+              ) : null}
+            </Stack>
+
+            <MetricLine label={props.dictionary.topicNext} value={props.topic.nextAction ?? "-"} />
+            <MetricLine label={props.dictionary.updated} value={updatedLabel} />
+
+            {props.topic.bucket === "archive" && props.topic.releaseBranch ? (
+              <MetricLine label={props.dictionary.releaseBranch} value={props.topic.releaseBranch} />
             ) : null}
 
             <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
               <Chip
                 size="small"
                 variant="outlined"
-                label={`${props.dictionary.artifactCompleteness}: ${props.topic.artifactCompleteness}`}
+                label={props.topic.artifactCompleteness}
               />
-              <Chip
-                size="small"
-                variant="outlined"
-                label={`L ${props.topic.artifactSummary.lifecycleDocs.count}`}
-              />
-              <Chip
-                size="small"
-                variant="outlined"
-                label={`R ${props.topic.artifactSummary.reviewDocs.count}`}
-              />
-              <Chip
-                size="small"
-                variant="outlined"
-                label={`I ${props.topic.artifactSummary.implementationDocs.count}`}
-              />
-              <Chip
-                size="small"
-                variant="outlined"
-                label={`Q ${props.topic.artifactSummary.qaDocs.count}`}
-              />
+              <Chip size="small" variant="outlined" label={`L ${props.topic.artifactSummary.lifecycleDocs.count}`} />
+              <Chip size="small" variant="outlined" label={`R ${props.topic.artifactSummary.reviewDocs.count}`} />
+              <Chip size="small" variant="outlined" label={`I ${props.topic.artifactSummary.implementationDocs.count}`} />
+              <Chip size="small" variant="outlined" label={`Q ${props.topic.artifactSummary.qaDocs.count}`} />
             </Stack>
 
             {props.topic.blockingIssues && props.topic.blockingIssues !== "없음" ? (
@@ -243,4 +224,48 @@ function TopicCard(props: {
       </CardActionArea>
     </Card>
   );
+}
+
+function MetricLine(props: { label: string; value: string }) {
+  return (
+    <Box>
+      <Typography variant="caption" color="text.secondary">
+        {props.label}
+      </Typography>
+      <Typography
+        variant="body2"
+        sx={{
+          display: "-webkit-box",
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: "vertical",
+          overflow: "hidden"
+        }}
+      >
+        {props.value}
+      </Typography>
+    </Box>
+  );
+}
+
+function getTopicAccent(topic: TopicSummary, theme: Theme): string {
+  if (topic.blockingIssues && topic.blockingIssues !== "없음" && topic.blockingIssues !== "none") {
+    return theme.palette.error.main;
+  }
+  if (topic.bucket === "archive") {
+    return theme.palette.grey[500];
+  }
+  if (topic.stage === "proposal") {
+    return theme.palette.info.main;
+  }
+  if (topic.stage === "plan" || topic.stage === "task") {
+    return theme.palette.secondary.main;
+  }
+  if (topic.stage === "implementation") {
+    return theme.palette.primary.main;
+  }
+  if (topic.stage === "refactor") {
+    return theme.palette.warning.main;
+  }
+
+  return theme.palette.success.main;
 }

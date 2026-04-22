@@ -212,10 +212,6 @@ export type DashboardStore = {
   setTopicFilter: (value: string) => void;
 };
 
-export type CategoryColumn = ProjectCategory & {
-  projects: ProjectSnapshot[];
-};
-
 export type TopicLane = {
   id: string;
   label: string;

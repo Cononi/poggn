@@ -1,8 +1,12 @@
 import type {
-  CategoryColumn,
+  ArtifactDocumentEntry,
+  ArtifactSelection,
+  DashboardQueryResult,
   DashboardSnapshot,
-  ProjectSnapshot
+  ProjectSnapshot,
+  TopicSummary
 } from "../shared/model/dashboard";
+import { getDefaultArtifactSelection } from "../shared/utils/dashboard";
 
 export type DashboardMutationMethod = "POST" | "PATCH" | "DELETE";
 
@@ -11,6 +15,13 @@ export type DashboardMutationPayload = {
   method: DashboardMutationMethod;
   body?: string;
 };
+
+export type DashboardInteractionName =
+  | "snapshot-ready"
+  | "project-switch"
+  | "topic-filter"
+  | "detail-open"
+  | "project-move";
 
 export function resolveCurrentProject(snapshot: DashboardSnapshot | null): ProjectSnapshot | null {
   if (!snapshot) {
@@ -47,22 +58,47 @@ export function resolveLatestActiveProject(
   return snapshot.projects.find((project) => project.id === snapshot.latestActiveProjectId) ?? fallbackProject;
 }
 
-export function buildCategoryColumns(snapshot: DashboardSnapshot | null): CategoryColumn[] {
+export function resolveSelectedTopic(
+  topics: TopicSummary[],
+  selectedTopicKey: string | null
+): TopicSummary | null {
+  if (!topics.length) {
+    return null;
+  }
+
+  if (!selectedTopicKey) {
+    return topics[0] ?? null;
+  }
+
+  return topics.find((topic) => `${topic.bucket}:${topic.name}` === selectedTopicKey) ?? topics[0] ?? null;
+}
+
+export function resolveSnapshotRefreshInterval(payload: DashboardQueryResult | undefined): number {
+  const snapshot = payload?.snapshot;
+  if (!snapshot) {
+    return 10_000;
+  }
+
+  const currentProject =
+    snapshot.projects.find((project) => project.id === snapshot.currentProjectId) ?? null;
+  return currentProject?.refreshIntervalMs ?? 10_000;
+}
+
+export function buildProjectRailProjects(snapshot: DashboardSnapshot | null): ProjectSnapshot[] {
   if (!snapshot) {
     return [];
   }
 
-  const categories = [...snapshot.categories].sort((left, right) => left.order - right.order);
-  const projectsById = new Map(snapshot.projects.map((project) => [project.id, project]));
+  return [...snapshot.projects].sort((left, right) => {
+    const rightActivity = right.latestActivityAt ?? "";
+    const leftActivity = left.latestActivityAt ?? "";
+    const activityCompare = rightActivity.localeCompare(leftActivity);
+    if (activityCompare !== 0) {
+      return activityCompare;
+    }
 
-  return categories
-    .filter((category) => category.visible)
-    .map((category) => ({
-      ...category,
-      projects: category.projectIds
-        .map((projectId) => projectsById.get(projectId))
-        .filter((project): project is ProjectSnapshot => Boolean(project))
-    }));
+    return left.name.localeCompare(right.name);
+  });
 }
 
 export function createMutationPayload(
@@ -75,4 +111,87 @@ export function createMutationPayload(
     method,
     body: body ? JSON.stringify(body) : undefined
   };
+}
+
+export function resolveInitialSelectedProjectId(
+  snapshot: DashboardSnapshot | null,
+  selectedProjectId: string | null
+): string | null {
+  if (!snapshot?.projects.length || selectedProjectId) {
+    return null;
+  }
+
+  return snapshot.currentProjectId ?? snapshot.projects[0]?.id ?? null;
+}
+
+export function resolveVisibleTopicState(
+  visibleTopics: TopicSummary[],
+  selectedTopicKey: string | null,
+  projectSurface: "board" | "detail"
+): {
+  nextSelectedTopicKey: string | null;
+  nextProjectSurface: "board" | "detail";
+} | null {
+  if (!visibleTopics.length) {
+    const nextSelectedTopicKey = selectedTopicKey ? null : selectedTopicKey;
+    const nextProjectSurface = projectSurface === "detail" ? "board" : projectSurface;
+    if (
+      nextSelectedTopicKey === selectedTopicKey &&
+      nextProjectSurface === projectSurface
+    ) {
+      return null;
+    }
+
+    return {
+      nextSelectedTopicKey,
+      nextProjectSurface
+    };
+  }
+
+  const hasSelectedTopic =
+    selectedTopicKey !== null &&
+    visibleTopics.some((topic) => `${topic.bucket}:${topic.name}` === selectedTopicKey);
+  if (projectSurface !== "detail" || hasSelectedTopic) {
+    return null;
+  }
+
+  return {
+    nextSelectedTopicKey: `${visibleTopics[0]!.bucket}:${visibleTopics[0]!.name}`,
+    nextProjectSurface: projectSurface
+  };
+}
+
+export function resolveNextDetailSelection(
+  selectedTopic: TopicSummary | null,
+  currentSelection: ArtifactSelection | null,
+  artifactEntries: ArtifactDocumentEntry[]
+): ArtifactSelection | null {
+  const nextSelection = getDefaultArtifactSelection(selectedTopic);
+  if (!nextSelection) {
+    return null;
+  }
+
+  const hasCurrentEntry =
+    currentSelection !== null &&
+    artifactEntries.some((entry) => entry.sourcePath === currentSelection.sourcePath);
+  if (
+    currentSelection &&
+    currentSelection.topicKey === nextSelection.topicKey &&
+    hasCurrentEntry
+  ) {
+    return currentSelection;
+  }
+
+  return nextSelection;
+}
+
+export function markDashboardInteraction(
+  name: DashboardInteractionName,
+  phase: "start" | "ready"
+): void {
+  if (typeof performance === "undefined" || typeof performance.mark !== "function") {
+    return;
+  }
+
+  performance.mark(`dashboard:${name}:${phase}`);
 }
