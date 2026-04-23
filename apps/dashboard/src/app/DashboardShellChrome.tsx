@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import { alpha, useTheme } from "@mui/material/styles";
 import {
   Avatar,
@@ -234,55 +234,11 @@ export function ProjectContextSidebar(props: ProjectContextSidebarProps) {
           <>
             <SidebarSectionLabel label={props.dictionary.workspaceSectionTitle} />
             {props.project ? (
-              <ButtonBase
+              <ProjectSelectorTriggerCard
+                project={props.project}
+                dictionary={props.dictionary}
                 onClick={props.onOpenProjectSelector}
-                sx={{
-                  width: "100%",
-                  display: "block",
-                  textAlign: "left",
-                  borderRadius: 1
-                }}
-              >
-                <Paper
-                  sx={{
-                    p: 1.5,
-                    borderRadius: 1,
-                    bgcolor: alpha(theme.palette.background.default, 0.42),
-                    border: `1px solid ${alpha(theme.palette.primary.main, 0.16)}`
-                  }}
-                >
-                  <Stack spacing={1.1}>
-                    <Stack direction="row" spacing={1.2} sx={{ alignItems: "center" }}>
-                      <Avatar
-                        variant="rounded"
-                        sx={{
-                          width: 44,
-                          height: 44,
-                          bgcolor: alpha(theme.palette.primary.main, 0.22),
-                          color: "primary.light"
-                        }}
-                      >
-                        {props.project.name.slice(0, 1).toUpperCase()}
-                      </Avatar>
-                      <Box sx={{ minWidth: 0, flex: 1 }}>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                          {props.project.name}
-                        </Typography>
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          sx={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
-                        >
-                          {props.dictionary.projectIdentityHint}
-                        </Typography>
-                      </Box>
-                    </Stack>
-                    <Typography variant="caption" color="primary.main" sx={{ fontWeight: 700 }}>
-                      {props.dictionary.changeProjectAction}
-                    </Typography>
-                  </Stack>
-                </Paper>
-              </ButtonBase>
+              />
             ) : null}
 
             {!props.projectDetailOpen ? (
@@ -411,8 +367,12 @@ export function DashboardStatePanel(props: { title: string; helper: string }) {
 
 export function ProjectSelectorDialog(props: ProjectSelectorDialogProps) {
   const theme = useTheme();
-  const sections = buildProjectBoardSections(props.categories, props.projects).filter(
-    (section) => section.projects.length > 0
+  const sections = useMemo(
+    () =>
+      buildProjectBoardSections(props.categories, props.projects).filter(
+        (section) => section.projects.length > 0
+      ),
+    [props.categories, props.projects]
   );
 
   return (
@@ -442,8 +402,7 @@ export function ProjectSelectorDialog(props: ProjectSelectorDialogProps) {
                   <Stack divider={<Divider flexItem />}>
                     {section.projects.map((project) => {
                       const selected = project.id === props.project?.id;
-                      const projectVersion =
-                        project.projectVersion ?? project.pggVersion ?? project.installedVersion ?? props.dictionary.unknown;
+                      const projectVersion = resolveProjectVersionLabel(project, props.dictionary);
 
                       return (
                         <ButtonBase
@@ -530,6 +489,66 @@ function SidebarSectionLabel(props: { label: string }) {
     <Typography variant="overline" color="text.secondary" sx={{ px: 0.25 }}>
       {props.label}
     </Typography>
+  );
+}
+
+function ProjectSelectorTriggerCard(props: {
+  project: ProjectSnapshot;
+  dictionary: DashboardLocale;
+  onClick: () => void;
+}) {
+  const theme = useTheme();
+
+  return (
+    <ButtonBase
+      onClick={props.onClick}
+      sx={{
+        width: "100%",
+        display: "block",
+        textAlign: "left",
+        borderRadius: 1
+      }}
+    >
+      <Paper
+        sx={{
+          p: 1.5,
+          borderRadius: 1,
+          bgcolor: alpha(theme.palette.background.default, 0.42),
+          border: `1px solid ${alpha(theme.palette.primary.main, 0.16)}`
+        }}
+      >
+        <Stack spacing={1.1}>
+          <Stack direction="row" spacing={1.2} sx={{ alignItems: "center" }}>
+            <Avatar
+              variant="rounded"
+              sx={{
+                width: 44,
+                height: 44,
+                bgcolor: alpha(theme.palette.primary.main, 0.22),
+                color: "primary.light"
+              }}
+            >
+              {props.project.name.slice(0, 1).toUpperCase()}
+            </Avatar>
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                {props.project.name}
+              </Typography>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
+              >
+                {props.dictionary.projectIdentityHint}
+              </Typography>
+            </Box>
+          </Stack>
+          <Typography variant="caption" color="primary.main" sx={{ fontWeight: 700 }}>
+            {props.dictionary.changeProjectAction}
+          </Typography>
+        </Stack>
+      </Paper>
+    </ButtonBase>
   );
 }
 
@@ -635,6 +654,10 @@ function BrandMark(props: { title: string; titleIconSvg: string }) {
       }}
     />
   );
+}
+
+function resolveProjectVersionLabel(project: ProjectSnapshot, dictionary: DashboardLocale): string {
+  return project.projectVersion ?? project.pggVersion ?? project.installedVersion ?? dictionary.unknown;
 }
 
 function countProjectsForCategory(category: ProjectCategory, projects: ProjectSnapshot[]): number {

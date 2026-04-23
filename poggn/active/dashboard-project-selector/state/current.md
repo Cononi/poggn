@@ -6,7 +6,7 @@ dashboard-project-selector
 
 ## Current Stage
 
-implementation
+refactor
 
 ## Goal
 
@@ -22,6 +22,7 @@ implementation
 - task review: `poggn/active/dashboard-project-selector/reviews/task.review.md`
 - implementation index: `poggn/active/dashboard-project-selector/implementation/index.md`
 - code review: `poggn/active/dashboard-project-selector/reviews/code.review.md`
+- refactor review: `poggn/active/dashboard-project-selector/reviews/refactor.review.md`
 - spec:
   - `poggn/active/dashboard-project-selector/spec/ui/project-selector-modal.md`
   - `poggn/active/dashboard-project-selector/spec/ui/project-surface-selection-sync.md`
@@ -63,6 +64,7 @@ implementation
 - CREATE `poggn/active/dashboard-project-selector/implementation/diffs/002_UPDATE_apps_dashboard_src_app_DashboardShellChrome_tsx.diff`
 - CREATE `poggn/active/dashboard-project-selector/implementation/diffs/003_UPDATE_apps_dashboard_src_shared_locale_dashboardLocale_ts.diff`
 - CREATE `poggn/active/dashboard-project-selector/reviews/code.review.md`
+- CREATE `poggn/active/dashboard-project-selector/reviews/refactor.review.md`
 - CREATE `poggn/active/dashboard-project-selector/state/current.md`
 - CREATE `poggn/active/dashboard-project-selector/state/history.ndjson`
 - CREATE `poggn/active/dashboard-project-selector/state/dirty-worktree-baseline.txt`
@@ -82,8 +84,8 @@ implementation
 
 ## Next Workflow
 
-- `pgg-refactor`
-- reason: selector modal과 selected project sync 구현이 끝나 구조 정리와 dead path 점검 단계로 넘길 수 있다.
+- `pgg-qa`
+- reason: selector modal 구조 정리와 dead-path cleanup까지 끝나 QA 검증 단계로 넘길 수 있다.
 
 ## Verification
 

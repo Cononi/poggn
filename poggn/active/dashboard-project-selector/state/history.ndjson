@@ -3,3 +3,5 @@
 {"ts":"2026-04-23T15:29:24Z","stage":"plan","event":"plan-docs-created"}
 {"ts":"2026-04-23T15:36:51Z","stage":"implementation","event":"implementation-started"}
 {"ts":"2026-04-23T15:37:47Z","stage":"implementation","event":"stage-commit","archiveType":"feat","commitTitle":"feat: project selector modal","summary":"project selector modal","why":"workspace selector를 modal 기반 project picker로 바꾸고 선택 프로젝트 기준으로 Project 화면 문맥을 일관되게 맞춰야 전환 흐름이 자연스러워진다.","footer":"Refs: dashboard-project-selector","branchRecovery":"recovered","branchRecoveryReason":"Governed checkout recovered the stage helper onto 'ai/feat/0.14.0-dashboard-project-selector' from 'main'.","branchRecoveryFrom":"main"}
+{"ts":"2026-04-23T15:39:55Z","stage":"refactor","event":"refactor-reviewed"}
+{"ts":"2026-04-23T15:41:52Z","stage":"refactor","event":"stage-commit","archiveType":"feat","commitTitle":"feat: selector flow cleanup","summary":"selector flow cleanup","why":"project selector 전환 경로의 반복 상태 처리와 sidebar selector 책임을 정리해 qa 전에 구조를 단순화해야 이후 검증과 유지보수가 쉬워진다.","footer":"Refs: dashboard-project-selector"}

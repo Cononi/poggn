@@ -116,6 +116,7 @@ export default function DashboardApp() {
   const selectedProject = resolveSelectedProject(snapshot, selectedProjectId, currentProject);
   const latestActiveProject = resolveLatestActiveProject(snapshot, currentProject);
   const boardContextProject = selectedProject ?? currentProject;
+  const projectContextId = boardContextProject?.id ?? null;
   const projectSurfaceProject = activeTopMenu === "projects" ? boardContextProject : currentProject;
   const dictionary = dashboardLocale[projectSurfaceProject?.language ?? "en"];
   const isLiveMode = snapshotSource === "live";
@@ -264,25 +265,25 @@ export default function DashboardApp() {
   const detailFileQuery = useQuery({
     queryKey: [
       "dashboard-topic-file-detail",
-      boardContextProject?.id ?? null,
+      projectContextId,
       detailTopic?.bucket ?? null,
       detailTopic?.name ?? null,
       detailSelection?.relativePath ?? null
     ],
     queryFn: async () => {
-      if (!boardContextProject?.id || !detailTopic || !detailSelection?.relativePath) {
+      if (!projectContextId || !detailTopic || !detailSelection?.relativePath) {
         throw new Error(dictionary.detailUnavailable);
       }
 
       return fetchTopicFileDetail(
-        boardContextProject.id,
+        projectContextId,
         detailTopic.bucket,
         detailTopic.name,
         detailSelection.relativePath
       );
     },
     enabled: Boolean(
-      boardContextProject?.id &&
+      projectContextId &&
         detailTopic &&
         detailSelection?.relativePath &&
         !detailSelection.detail
@@ -324,24 +325,24 @@ export default function DashboardApp() {
   const fileDetailQuery = useQuery({
     queryKey: [
       "dashboard-topic-browser-file-detail",
-      boardContextProject?.id ?? null,
+      projectContextId,
       fileTopic?.bucket ?? null,
       fileTopic?.name ?? null,
       fileSelection?.relativePath ?? null
     ],
     queryFn: async () => {
-      if (!boardContextProject?.id || !fileTopic || !fileSelection?.relativePath) {
+      if (!projectContextId || !fileTopic || !fileSelection?.relativePath) {
         throw new Error(dictionary.detailUnavailable);
       }
 
       return fetchTopicFileDetail(
-        boardContextProject.id,
+        projectContextId,
         fileTopic.bucket,
         fileTopic.name,
         fileSelection.relativePath
       );
     },
-    enabled: Boolean(boardContextProject?.id && fileTopic && fileSelection?.relativePath && !fileSelection.detail)
+    enabled: Boolean(projectContextId && fileTopic && fileSelection?.relativePath && !fileSelection.detail)
   });
 
   useEffect(() => {
@@ -403,12 +404,12 @@ export default function DashboardApp() {
 
   const saveFileMutation = useMutation({
     mutationFn: async (content: string) => {
-      if (!boardContextProject?.id || !fileTopic || !fileSelection?.relativePath) {
+      if (!projectContextId || !fileTopic || !fileSelection?.relativePath) {
         throw new Error(dictionary.detailUnavailable);
       }
 
       return saveTopicFileDetail(
-        boardContextProject.id,
+        projectContextId,
         fileTopic.bucket,
         fileTopic.name,
         fileSelection.relativePath,
@@ -435,12 +436,12 @@ export default function DashboardApp() {
 
   const deleteFileMutation = useMutation({
     mutationFn: async () => {
-      if (!boardContextProject?.id || !fileTopic || !fileSelection?.relativePath) {
+      if (!projectContextId || !fileTopic || !fileSelection?.relativePath) {
         throw new Error(dictionary.detailUnavailable);
       }
 
       return removeTopicFile(
-        boardContextProject.id,
+        projectContextId,
         fileTopic.bucket,
         fileTopic.name,
         fileSelection.relativePath
@@ -459,6 +460,14 @@ export default function DashboardApp() {
 
   const mutateSnapshot = (payload: DashboardMutationPayload) => {
     snapshotMutation.mutate(payload);
+  };
+
+  const resetProjectSurfaceSelection = () => {
+    setSelectedTopicKey(null);
+    setTopicFilter("");
+    setDetailSelection(null);
+    setFileSelection(null);
+    setDetailDialogOpen(false);
   };
 
   const mutateCurrentProject = (
@@ -482,11 +491,7 @@ export default function DashboardApp() {
       setActiveSidebarItem("board");
       setProjectDetailOpen(true);
       setActiveDetailSection("project-info");
-      setSelectedTopicKey(null);
-      setTopicFilter("");
-      setDetailSelection(null);
-      setFileSelection(null);
-      setDetailDialogOpen(false);
+      resetProjectSurfaceSelection();
       setProjectSelectorOpen(false);
       if (isCompactShell) {
         setSidebarDrawerOpen(false);
