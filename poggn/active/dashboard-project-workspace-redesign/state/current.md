@@ -6,11 +6,11 @@ dashboard-project-workspace-redesign
 
 ## Current Stage
 
-implementation
+refactor
 
 ## Goal
 
-승인된 dashboard project workspace plan을 구현했고, 다음 `pgg-refactor`가 구조 정리나 후속 개선 후보를 바로 검토할 수 있게 한다.
+구현된 dashboard project workspace에서 중복 selection/path 파생과 dead wiring을 정리했고, 다음 `pgg-qa`가 회귀 확인에 바로 들어갈 수 있게 한다.
 
 ## Confirmed Scope
 
@@ -24,6 +24,8 @@ implementation
 - workflow/timeline click은 동일한 artifact modal contract로 연결되며 diff/markdown/text를 분기해 보여 준다.
 - report는 QA report와 existing review artifact 중심으로, files는 topic-internal file browser와 live mode edit/delete로 구현했다.
 - 문서 읽기 surface는 React Markdown + syntax highlight + diff viewer contract로 통일했다.
+- refactor 단계에서 topic sourcePath, relativePath, artifact selection 파생 로직을 shared util로 모았다.
+- refactor 단계에서 detail workspace의 미사용 prop과 history/report/files preview 반복 handler를 제거했다.
 
 ## Constraints
 
@@ -42,7 +44,7 @@ implementation
 
 ## Open Items
 
-- status: ready for `pgg-refactor`
+- status: ready for `pgg-qa`
 - blocking issues: 없음
 - note: `pnpm --filter @pgg/dashboard build`는 통과했지만 production chunk size warning이 남아 있다
 - note: live dashboard에서 file edit/delete interaction은 수동 검증이 아직 남아 있다
@@ -86,6 +88,7 @@ implementation
 - ref: `reviews/plan.review.md`
 - ref: `reviews/task.review.md`
 - ref: `reviews/code.review.md`
+- ref: `reviews/refactor.review.md`
 
 ## Implementation
 
@@ -113,8 +116,12 @@ implementation
 | UPDATE | `apps/dashboard/vite.config.ts` | `implementation/diffs/016_UPDATE_apps_dashboard_vite_config_ts.diff` |
 | UPDATE | `packages/core/src/index.ts` | `implementation/diffs/017_UPDATE_packages_core_src_index_ts.diff` |
 | UPDATE | `pnpm-lock.yaml` | `implementation/diffs/018_UPDATE_pnpm-lock_yaml.diff` |
+| UPDATE | `apps/dashboard/src/app/DashboardApp.tsx` | `implementation/diffs/019_UPDATE_apps_dashboard_src_app_DashboardApp_tsx.diff` |
+| UPDATE | `apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx` | `implementation/diffs/020_UPDATE_apps_dashboard_src_features_project-detail_ProjectDetailWorkspace_tsx.diff` |
+| UPDATE | `apps/dashboard/src/shared/utils/dashboard.tsx` | `implementation/diffs/021_UPDATE_apps_dashboard_src_shared_utils_dashboard_tsx.diff` |
 | CREATE | `poggn/active/dashboard-project-workspace-redesign/implementation/index.md` | 없음 |
 | CREATE | `poggn/active/dashboard-project-workspace-redesign/reviews/code.review.md` | 없음 |
+| CREATE | `poggn/active/dashboard-project-workspace-redesign/reviews/refactor.review.md` | 없음 |
 | UPDATE | `poggn/active/dashboard-project-workspace-redesign/state/current.md` | 없음 |
 | UPDATE | `poggn/active/dashboard-project-workspace-redesign/state/history.ndjson` | 없음 |
 
@@ -125,8 +132,8 @@ implementation
 
 ## Last Expert Score
 
-- phase: implementation
-- score: 96
+- phase: refactor
+- score: 95
 - blocking issues: 없음
 
 ## Git Publish Message
@@ -137,4 +144,4 @@ implementation
 
 ## Next Action
 
-`pgg-refactor`
+`pgg-qa`

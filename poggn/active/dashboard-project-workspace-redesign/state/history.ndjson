@@ -1,4 +1,6 @@
 {"ts":"2026-04-23T05:17:50Z","stage":"proposal","event":"topic-created"}
 {"ts":"2026-04-23T05:21:25Z","stage":"plan","event":"documents-created"}
 {"ts":"2026-04-23T06:11:06Z","stage":"implementation","event":"implemented"}
+{"ts":"2026-04-23T07:19:46Z","stage":"refactor","event":"refactored"}
 {"ts":"2026-04-23T07:07:56Z","stage":"implementation","event":"stage-commit","archiveType":"feat","commitTitle":"feat: dashboard project workspace","summary":"dashboard project workspace","why":"board/detail workflow workspace와 topic-internal file contract를 구현한다","footer":"Refs: dashboard-project-workspace-redesign","branchRecovery":"recovered","branchRecoveryReason":"Governed checkout recovered the stage helper onto 'ai/feat/0.12.0-dashboard-project-workspace' from 'release/0.11.1-dashboard-board-polish'.","branchRecoveryFrom":"release/0.11.1-dashboard-board-polish"}
+{"ts":"2026-04-23T07:30:54Z","stage":"refactor","event":"stage-commit","archiveType":"feat","commitTitle":"feat: dashboard workspace cleanup","summary":"dashboard workspace cleanup","why":"artifact selection/path 중복과 dead prop wiring을 정리한다","footer":"Refs: dashboard-project-workspace-redesign"}

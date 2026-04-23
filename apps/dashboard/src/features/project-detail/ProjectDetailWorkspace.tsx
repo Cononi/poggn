@@ -26,14 +26,15 @@ import type {
   DashboardLocale,
   DashboardWorkflowViewMode,
   ProjectSnapshot,
-  TopicFileEntry,
   TopicSummary
 } from "../../shared/model/dashboard";
 import {
   buildTopicArtifactEntries,
+  buildTopicFileArtifactEntry,
   buildTopicKey,
   buildTopicLanes,
   buildWorkflowModel,
+  createTopicArtifactSelection,
   formatDate,
   getStatusColor
 } from "../../shared/utils/dashboard";
@@ -50,7 +51,6 @@ type ProjectDetailWorkspaceProps = {
   activeSection: DashboardDetailSection;
   workflowViewMode: DashboardWorkflowViewMode;
   detailSelection: ArtifactSelection | null;
-  artifactEntries: ArtifactDocumentEntry[];
   dictionary: DashboardLocale;
   isLiveMode: boolean;
   fileMutationPending: boolean;
@@ -71,6 +71,8 @@ type TimelineItem = {
   sourcePath: string | null;
   status: "done" | "current" | "upcoming";
   detail: ArtifactSelection["detail"];
+  positionX: number;
+  positionY: number;
 };
 
 export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
@@ -90,15 +92,11 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
           title: node.data.title,
           sourcePath: node.data.sourcePath,
           status: node.data.status,
-          detail: node.data.detail
+          detail: node.data.detail,
+          positionX: node.position.x,
+          positionY: node.position.y
         }))
-        .sort(
-          (left, right) =>
-            (workflowModel?.nodes.find((node) => node.id === left.id)?.position.x ?? 0) -
-              (workflowModel?.nodes.find((node) => node.id === right.id)?.position.x ?? 0) ||
-            (workflowModel?.nodes.find((node) => node.id === left.id)?.position.y ?? 0) -
-              (workflowModel?.nodes.find((node) => node.id === right.id)?.position.y ?? 0)
-        ),
+        .sort((left, right) => left.positionX - right.positionX || left.positionY - right.positionY),
     [workflowModel]
   );
   const activeLanes = useMemo(
@@ -141,6 +139,26 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
     props.detailSelection?.topicKey === (props.selectedTopic ? buildTopicKey(props.selectedTopic) : null) &&
     props.detailSelection?.relativePath
       ? selectedTopicFiles.find((file) => file.relativePath === props.detailSelection?.relativePath) ?? null
+      : null;
+  const openTopicPreview = (topic: TopicSummary) => {
+    props.onSelectTopic(buildTopicKey(topic));
+    const entry = buildTopicArtifactEntries(topic)[0] ?? null;
+    if (entry) {
+      props.onSelectArtifact(entry);
+    }
+  };
+  const createWorkflowSelection = (
+    title: string,
+    detail: ArtifactSelection["detail"],
+    sourcePath: string | null
+  ) =>
+    props.selectedTopic
+      ? createTopicArtifactSelection(props.selectedTopic, {
+          title,
+          detail,
+          sourcePath,
+          editable: true
+        })
       : null;
 
   return (
@@ -313,18 +331,16 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
                     nodesDraggable={false}
                     nodesConnectable={false}
                     elementsSelectable={false}
-                    onNodeClick={(_event, node) =>
-                      props.onWorkflowNodeClick({
-                        topicKey: buildTopicKey(props.selectedTopic!),
-                        title: node.data.title,
-                        detail: node.data.detail,
-                        sourcePath: node.data.sourcePath,
-                        relativePath: node.data.sourcePath?.startsWith(`poggn/${props.selectedTopic!.bucket}/${props.selectedTopic!.name}/`)
-                          ? node.data.sourcePath.slice(`poggn/${props.selectedTopic!.bucket}/${props.selectedTopic!.name}/`.length)
-                          : null,
-                        editable: true
-                      })
-                    }
+                    onNodeClick={(_event, node) => {
+                      const selection = createWorkflowSelection(
+                        node.data.title,
+                        node.data.detail,
+                        node.data.sourcePath
+                      );
+                      if (selection) {
+                        props.onWorkflowNodeClick(selection);
+                      }
+                    }}
                   >
                     <MiniMap pannable zoomable nodeColor={(node) => getStatusColor(node.data.status, theme)} />
                     <Controls />
@@ -337,18 +353,12 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
                 {timelineItems.map((item) => (
                   <ButtonBase
                     key={item.id}
-                    onClick={() =>
-                      props.onWorkflowNodeClick({
-                        topicKey: buildTopicKey(props.selectedTopic!),
-                        title: item.title,
-                        detail: item.detail,
-                        sourcePath: item.sourcePath,
-                        relativePath: item.sourcePath?.startsWith(`poggn/${props.selectedTopic!.bucket}/${props.selectedTopic!.name}/`)
-                          ? item.sourcePath.slice(`poggn/${props.selectedTopic!.bucket}/${props.selectedTopic!.name}/`.length)
-                          : null,
-                        editable: true
-                      })
-                    }
+                    onClick={() => {
+                      const selection = createWorkflowSelection(item.title, item.detail, item.sourcePath);
+                      if (selection) {
+                        props.onWorkflowNodeClick(selection);
+                      }
+                    }}
                     sx={{ width: "100%", textAlign: "left" }}
                   >
                     <Paper
@@ -394,13 +404,7 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
             dictionary={props.dictionary}
             language={language}
             onSelectTopic={props.onSelectTopic}
-            onPreviewArtifact={(topic) => {
-              props.onSelectTopic(buildTopicKey(topic));
-              const entry = buildTopicArtifactEntries(topic)[0] ?? null;
-              if (entry) {
-                props.onSelectArtifact(entry);
-              }
-            }}
+            onPreviewArtifact={openTopicPreview}
           />
           <TopicLifecycleBoard
             board="archive"
@@ -409,13 +413,7 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
             dictionary={props.dictionary}
             language={language}
             onSelectTopic={props.onSelectTopic}
-            onPreviewArtifact={(topic) => {
-              props.onSelectTopic(buildTopicKey(topic));
-              const entry = buildTopicArtifactEntries(topic)[0] ?? null;
-              if (entry) {
-                props.onSelectArtifact(entry);
-              }
-            }}
+            onPreviewArtifact={openTopicPreview}
           />
         </Stack>
       ) : null}
@@ -455,7 +453,7 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
                           variant="contained"
                           onClick={() => {
                             props.onSelectTopic(buildTopicKey(topic));
-                            props.onSelectArtifact(toArtifactEntry(qaReport));
+                            props.onSelectArtifact(buildTopicFileArtifactEntry(qaReport));
                             props.onOpenDetailDialog();
                           }}
                         >
@@ -472,7 +470,7 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
                               variant="outlined"
                               onClick={() => {
                                 props.onSelectTopic(buildTopicKey(topic));
-                                props.onSelectArtifact(toArtifactEntry(file));
+                                props.onSelectArtifact(buildTopicFileArtifactEntry(file));
                                 props.onOpenDetailDialog();
                               }}
                             >
@@ -513,7 +511,7 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
                   selectedTopicFiles.map((file) => (
                     <ButtonBase
                       key={file.relativePath}
-                      onClick={() => props.onSelectArtifact(toArtifactEntry(file))}
+                      onClick={() => props.onSelectArtifact(buildTopicFileArtifactEntry(file))}
                       sx={{ width: "100%", textAlign: "left" }}
                     >
                       <Paper
@@ -741,27 +739,4 @@ function MetricRow(props: { label: string; value: string }) {
       </Typography>
     </Box>
   );
-}
-
-function toArtifactEntry(file: TopicFileEntry): ArtifactDocumentEntry {
-  return {
-    id: file.sourcePath,
-    label: file.relativePath.split("/").pop() ?? file.relativePath,
-    sourcePath: file.sourcePath,
-    relativePath: file.relativePath,
-    detail: null,
-    group: file.relativePath.startsWith("reviews/")
-      ? "reviewDocs"
-      : file.relativePath.startsWith("spec/")
-        ? "specDocs"
-        : file.relativePath.startsWith("implementation/")
-          ? "implementationDocs"
-          : file.relativePath.startsWith("qa/")
-            ? "qaDocs"
-            : file.relativePath.endsWith("workflow.reactflow.json")
-              ? "workflowDocs"
-              : "lifecycleDocs",
-    updatedAt: file.updatedAt,
-    editable: file.editable
-  };
 }

@@ -42,10 +42,10 @@ import type {
 import { useDashboardStore } from "../shared/store/dashboardStore";
 import { normalizeDashboardTitleIconSvg, toSvgDataUrl } from "../shared/utils/brand";
 import {
-  buildTopicArtifactEntries,
   buildTopicKey,
   createArtifactSelection,
   getDefaultArtifactSelection,
+  resolveTopicKeyFromSourcePath,
   splitVisibleTopics
 } from "../shared/utils/dashboard";
 import { DashboardStatePanel, ProjectContextSidebar, TopNavigation } from "./DashboardShellChrome";
@@ -137,7 +137,6 @@ export default function DashboardApp() {
     () => resolveSelectedTopic(visibleTopics, nextVisibleTopicKey),
     [nextVisibleTopicKey, visibleTopics]
   );
-  const artifactEntries = useMemo(() => buildTopicArtifactEntries(selectedTopic), [selectedTopic]);
   const detailTopic = useMemo(
     () =>
       detailSelection
@@ -422,7 +421,7 @@ export default function DashboardApp() {
   const handleSelectArtifact = (sourcePath: string, selection: ArtifactSelection | null) => {
     const resolvedTopicKey =
       selection?.topicKey ??
-      resolveArtifactTopicKey(sourcePath) ??
+      resolveTopicKeyFromSourcePath(sourcePath) ??
       (selectedTopic ? buildTopicKey(selectedTopic) : null);
 
     if (!selection || !resolvedTopicKey) {
@@ -556,7 +555,6 @@ export default function DashboardApp() {
           activeSection={activeDetailSection}
           workflowViewMode={workflowViewMode}
           detailSelection={detailSelection}
-          artifactEntries={artifactEntries}
           dictionary={dictionary}
           isLiveMode={isLiveMode}
           fileMutationPending={saveFileMutation.isPending || deleteFileMutation.isPending}
@@ -569,7 +567,8 @@ export default function DashboardApp() {
           onSelectTopic={setSelectedTopicKey}
           onSelectArtifact={(entry) => {
             const topicKey =
-              resolveArtifactTopicKey(entry.sourcePath) ?? (selectedTopic ? buildTopicKey(selectedTopic) : null);
+              resolveTopicKeyFromSourcePath(entry.sourcePath) ??
+              (selectedTopic ? buildTopicKey(selectedTopic) : null);
 
             if (!topicKey) {
               return;
@@ -851,17 +850,4 @@ export default function DashboardApp() {
       />
     </Box>
   );
-}
-
-function resolveArtifactTopicKey(sourcePath: string | null): string | null {
-  if (!sourcePath) {
-    return null;
-  }
-
-  const match = /^poggn\/(active|archive)\/([^/]+)\//.exec(sourcePath);
-  if (!match) {
-    return null;
-  }
-
-  return `${match[1]}:${match[2]}`;
 }

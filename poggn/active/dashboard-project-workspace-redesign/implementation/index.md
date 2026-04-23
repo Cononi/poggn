@@ -37,6 +37,9 @@ state:
 | 016 | UPDATE | `apps/dashboard/vite.config.ts` | `implementation/diffs/016_UPDATE_apps_dashboard_vite_config_ts.diff` | `T1`, `T5` | live dashboard dev API에 topic file content read/update/delete endpoint를 추가 |
 | 017 | UPDATE | `packages/core/src/index.ts` | `implementation/diffs/017_UPDATE_packages_core_src_index_ts.diff` | `T1`, `T5` | topic file listing, user question record parsing, safe topic file mutation helper를 추가 |
 | 018 | UPDATE | `pnpm-lock.yaml` | `implementation/diffs/018_UPDATE_pnpm-lock_yaml.diff` | `T1`, `T5` | 새 markdown/syntax highlight 의존성에 맞춰 lockfile을 갱신 |
+| 019 | UPDATE | `apps/dashboard/src/app/DashboardApp.tsx` | `implementation/diffs/019_UPDATE_apps_dashboard_src_app_DashboardApp_tsx.diff` | `T6` | sourcePath 기반 topic key 해석 helper를 shared util로 이동시키고 detail workspace dead prop wiring을 제거 |
+| 020 | UPDATE | `apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx` | `implementation/diffs/020_UPDATE_apps_dashboard_src_features_project-detail_ProjectDetailWorkspace_tsx.diff` | `T4`, `T5`, `T6` | workflow/history/report/files의 artifact selection 생성 경로를 공통 helper로 통합하고 반복 preview handler를 축약 |
+| 021 | UPDATE | `apps/dashboard/src/shared/utils/dashboard.tsx` | `implementation/diffs/021_UPDATE_apps_dashboard_src_shared_utils_dashboard_tsx.diff` | `T4`, `T5`, `T6` | topic path prefix, relative path, file artifact entry, inline selection helper를 공통 유틸로 추출 |
 
 ## Notes
 
@@ -44,6 +47,8 @@ state:
 - project card click은 dedicated detail workspace로 이동하며 global sidebar에서는 `History`, `Report`를 제거했다.
 - workflow surface는 initial question record, timeline/react-flow dual view, artifact modal contract를 같은 source로 공유한다.
 - files surface는 topic-relative path 기준으로만 읽기/수정/삭제를 허용하고, static snapshot에서는 read-only를 유지한다.
+- refactor 단계에서 topic sourcePath/relativePath/selection 파생을 shared util로 모아 workflow와 files surface의 중복 객체 생성을 제거했다.
+- refactor 단계에서 `ProjectDetailWorkspace`의 미사용 `artifactEntries` prop과 반복 history preview callback을 제거했다.
 - `pnpm --filter @pgg/dashboard build`가 통과했다.
 - current-project verification contract는 없으므로 `manual verification required`를 유지한다.
 - Vite production build에는 large chunk warning이 남아 있으며 기능 오류가 아닌 bundle split 후속 개선 후보로 남긴다.

@@ -8,9 +8,11 @@ import type {
   FlowNodeData,
   FlowStatus,
   ProjectSnapshot,
+  TopicFileEntry,
   TopicLane,
   TopicSummary,
   WorkflowDocument,
+  WorkflowDetailPayload,
   WorkflowNode
 } from "../model/dashboard";
 
@@ -23,6 +25,35 @@ export function formatDate(value: string, language: "ko" | "en"): string {
 
 export function buildTopicKey(topic: Pick<TopicSummary, "bucket" | "name">): string {
   return `${topic.bucket}:${topic.name}`;
+}
+
+export function buildTopicSourcePathPrefix(topic: Pick<TopicSummary, "bucket" | "name">): string {
+  return `poggn/${topic.bucket}/${topic.name}/`;
+}
+
+export function resolveTopicRelativePath(
+  topic: Pick<TopicSummary, "bucket" | "name">,
+  sourcePath: string | null
+): string | null {
+  if (!sourcePath) {
+    return null;
+  }
+
+  const prefix = buildTopicSourcePathPrefix(topic);
+  return sourcePath.startsWith(prefix) ? sourcePath.slice(prefix.length) : null;
+}
+
+export function resolveTopicKeyFromSourcePath(sourcePath: string | null): string | null {
+  if (!sourcePath) {
+    return null;
+  }
+
+  const match = /^poggn\/(active|archive)\/([^/]+)\//.exec(sourcePath);
+  if (!match) {
+    return null;
+  }
+
+  return `${match[1]}:${match[2]}`;
 }
 
 export function filterTopics(project: ProjectSnapshot | null, filter: string): TopicSummary[] {
@@ -130,7 +161,7 @@ export function buildTopicLanes(
 }
 
 function topicRelativePathToSourcePath(topic: TopicSummary, relativePath: string): string {
-  return `poggn/${topic.bucket}/${topic.name}/${relativePath}`;
+  return `${buildTopicSourcePathPrefix(topic)}${relativePath}`;
 }
 
 function resolveArtifactGroupFromPath(sourcePath: string): ArtifactGroupKey {
@@ -160,23 +191,55 @@ function resolveArtifactGroupFromPath(sourcePath: string): ArtifactGroupKey {
   return "lifecycleDocs";
 }
 
+export function buildTopicFileArtifactEntry(file: TopicFileEntry): ArtifactDocumentEntry {
+  return {
+    id: file.sourcePath,
+    label: file.relativePath.split("/").pop() ?? file.relativePath,
+    sourcePath: file.sourcePath,
+    relativePath: file.relativePath,
+    detail: null,
+    group: resolveArtifactGroupFromPath(file.sourcePath),
+    updatedAt: file.updatedAt,
+    editable: file.editable
+  };
+}
+
+export function createTopicArtifactSelection(
+  topic: Pick<TopicSummary, "bucket" | "name">,
+  payload: {
+    title: string;
+    detail: WorkflowDetailPayload | null;
+    sourcePath: string | null;
+    editable: boolean;
+  }
+): ArtifactSelection {
+  return {
+    topicKey: buildTopicKey(topic),
+    title: payload.title,
+    detail: payload.detail,
+    sourcePath: payload.sourcePath,
+    relativePath: resolveTopicRelativePath(topic, payload.sourcePath),
+    editable: payload.editable
+  };
+}
+
 export function buildTopicArtifactEntries(topic: TopicSummary | null): ArtifactDocumentEntry[] {
   if (!topic) {
     return [];
   }
 
   const entries = new Map<string, ArtifactDocumentEntry>();
+  const prefixTopic = { bucket: topic.bucket, name: topic.name } as const;
   for (const node of topic.workflow?.nodes ?? []) {
     const sourcePath = node.data.detail?.sourcePath ?? node.data.path ?? node.data.diffRef ?? null;
     if (!sourcePath) {
       continue;
     }
-    const prefix = `poggn/${topic.bucket}/${topic.name}/`;
     entries.set(sourcePath, {
       id: node.id,
       label: node.data.label ?? node.id,
       sourcePath,
-      relativePath: sourcePath.startsWith(prefix) ? sourcePath.slice(prefix.length) : null,
+      relativePath: resolveTopicRelativePath(prefixTopic, sourcePath),
       detail: node.data.detail ?? null,
       group: resolveArtifactGroupFromPath(sourcePath),
       updatedAt: node.data.detail?.updatedAt ?? null,
@@ -249,16 +312,7 @@ export function buildTopicArtifactEntries(topic: TopicSummary | null): ArtifactD
       return;
     }
 
-    entries.set(file.sourcePath, {
-      id: file.sourcePath,
-      label: file.relativePath.split("/").pop() ?? file.relativePath,
-      sourcePath: file.sourcePath,
-      relativePath: file.relativePath,
-      detail: null,
-      group: resolveArtifactGroupFromPath(file.sourcePath),
-      updatedAt: file.updatedAt,
-      editable: file.editable
-    });
+    entries.set(file.sourcePath, buildTopicFileArtifactEntry(file));
   });
 
   return [...entries.values()].sort((left, right) => left.sourcePath.localeCompare(right.sourcePath));
