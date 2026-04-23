@@ -6,11 +6,11 @@ dashboard-project-workspace-redesign
 
 ## Current Stage
 
-refactor
+qa
 
 ## Goal
 
-구현된 dashboard project workspace에서 중복 selection/path 파생과 dead wiring을 정리했고, 다음 `pgg-qa`가 회귀 확인에 바로 들어갈 수 있게 한다.
+dashboard project workspace 구현과 refactor 정리를 검증했고, archive/publish bookkeeping으로 넘길 수 있게 한다.
 
 ## Confirmed Scope
 
@@ -44,10 +44,11 @@ refactor
 
 ## Open Items
 
-- status: ready for `pgg-qa`
+- status: ready for `archive`
 - blocking issues: 없음
 - note: `pnpm --filter @pgg/dashboard build`는 통과했지만 production chunk size warning이 남아 있다
 - note: live dashboard에서 file edit/delete interaction은 수동 검증이 아직 남아 있다
+- note: 작업트리에 topic과 무관한 untracked 파일 `add-img/3.png`가 남아 있다
 
 ## User Question Record
 
@@ -90,6 +91,10 @@ refactor
 - ref: `reviews/code.review.md`
 - ref: `reviews/refactor.review.md`
 
+## QA Report
+
+- ref: `qa/report.md`
+
 ## Implementation
 
 - ref: `implementation/index.md`
@@ -122,17 +127,20 @@ refactor
 | CREATE | `poggn/active/dashboard-project-workspace-redesign/implementation/index.md` | 없음 |
 | CREATE | `poggn/active/dashboard-project-workspace-redesign/reviews/code.review.md` | 없음 |
 | CREATE | `poggn/active/dashboard-project-workspace-redesign/reviews/refactor.review.md` | 없음 |
+| CREATE | `poggn/active/dashboard-project-workspace-redesign/qa/report.md` | 없음 |
 | UPDATE | `poggn/active/dashboard-project-workspace-redesign/state/current.md` | 없음 |
 | UPDATE | `poggn/active/dashboard-project-workspace-redesign/state/history.ndjson` | 없음 |
 
 ## Verification
 
 - `pnpm --filter @pgg/dashboard build` | pass
+- `./.codex/sh/pgg-gate.sh pgg-qa dashboard-project-workspace-redesign` | pass
+- `git diff --check` | pass
 - current-project verification contract가 없으므로 `manual verification required`
 
 ## Last Expert Score
 
-- phase: refactor
+- phase: qa
 - score: 95
 - blocking issues: 없음
 
@@ -144,4 +152,4 @@ refactor
 
 ## Next Action
 
-`pgg-qa`
+`archive`
