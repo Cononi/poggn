@@ -1,0 +1,32 @@
+{
+  "topic": "dashboard-project-workspace-redesign",
+  "version": "0.12.0",
+  "targetVersion": "0.12.0",
+  "changeType": "feat",
+  "versionBump": "minor",
+  "commitTitle": "feat: dashboard project workspace",
+  "commitSha": "d0ff7e13d69d2858c558f47939fb2b63afc66639",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/0.12.0-dashboard-project-workspace",
+  "workingBranch": "ai/feat/0.12.0-dashboard-project-workspace",
+  "releaseBranch": "release/0.12.0-dashboard-project-workspace",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-23T07:35:37Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/0.12.0-dashboard-project-workspace'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "not_attempted",
+  "branchRecoveryReason": null,
+  "branchRecoveryFrom": null,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/dashboard-project-workspace-redesign",
+    "versionFile": "poggn/archive/dashboard-project-workspace-redesign/version.json"
+  }
+}

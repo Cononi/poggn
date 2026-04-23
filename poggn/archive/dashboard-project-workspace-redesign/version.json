@@ -1,0 +1,14 @@
+{
+  "topic": "dashboard-project-workspace-redesign",
+  "changeType": "feat",
+  "versionBump": "minor",
+  "version": "0.12.0",
+  "targetVersion": "0.12.0",
+  "previousVersion": "0.11.1",
+  "shortName": "dashboard-project-workspace",
+  "workingBranch": "ai/feat/0.12.0-dashboard-project-workspace",
+  "releaseBranch": "release/0.12.0-dashboard-project-workspace",
+  "projectScope": "current-project",
+  "archivedAt": "2026-04-23T07:35:31Z",
+  "history": "poggn/version-history.ndjson"
+}
