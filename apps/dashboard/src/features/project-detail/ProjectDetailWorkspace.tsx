@@ -5,9 +5,6 @@ import {
   Box,
   Button,
   ButtonBase,
-  Card,
-  CardActionArea,
-  CardContent,
   Chip,
   Divider,
   Paper,
@@ -18,6 +15,7 @@ import {
   TableCell,
   TableContainer,
   TableHead,
+  TablePagination,
   TableRow,
   Tabs,
   TextField,
@@ -32,8 +30,7 @@ import { Background, Controls, MiniMap, ReactFlow } from "@xyflow/react";
 import {
   resolveDashboardFlowStatusLabel,
   resolveDashboardHealthLabel,
-  resolveDashboardStageLabel,
-  resolveDashboardTopicBucketLabel
+  resolveDashboardStageLabel
 } from "../../shared/locale/dashboardLocale";
 import type {
   ArtifactDocumentEntry,
@@ -48,6 +45,7 @@ import {
   buildTopicFileArtifactEntry,
   buildTopicFileTree,
   buildTopicKey,
+  buildTopicLanes,
   buildWorkflowModel,
   collectAncestorFolders,
   createTopicArtifactSelection,
@@ -57,6 +55,7 @@ import {
   type TopicFileTreeNode
 } from "../../shared/utils/dashboard";
 import { ArtifactDocumentContent } from "../../shared/ui/ArtifactDocumentContent";
+import { TopicLifecycleBoard } from "../topic-board/TopicLifecycleBoard";
 
 type ProjectDetailWorkspaceProps = {
   project: ProjectSnapshot | null;
@@ -68,6 +67,7 @@ type ProjectDetailWorkspaceProps = {
   activeSection: DashboardDetailSection;
   workflowViewMode: DashboardWorkflowViewMode;
   detailSelection: ArtifactSelection | null;
+  fileSelection: ArtifactSelection | null;
   dictionary: DashboardLocale;
   isLiveMode: boolean;
   fileMutationPending: boolean;
@@ -78,6 +78,7 @@ type ProjectDetailWorkspaceProps = {
   onOpenDetailDialog: () => void;
   onWorkflowNodeClick: (selection: ArtifactSelection) => void;
   onWorkflowViewModeChange: (value: DashboardWorkflowViewMode) => void;
+  onSelectFile: (entry: ArtifactDocumentEntry) => void;
   onSaveSelection: (content: string) => void;
   onDeleteSelection: () => void;
 };
@@ -116,6 +117,14 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
         .sort((left, right) => left.positionX - right.positionX || left.positionY - right.positionY),
     [workflowModel]
   );
+  const activeLanes = useMemo(
+    () => buildTopicLanes(props.activeTopics, "active", props.dictionary),
+    [props.activeTopics, props.dictionary]
+  );
+  const archiveLanes = useMemo(
+    () => buildTopicLanes(props.archivedTopics, "archive", props.dictionary),
+    [props.archivedTopics, props.dictionary]
+  );
   const reportTopics = useMemo(
     () =>
       visibleTopics.filter((topic) =>
@@ -125,27 +134,17 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
       ).sort((left, right) => (right.updatedAt ?? right.archivedAt ?? "").localeCompare(left.updatedAt ?? left.archivedAt ?? "")),
     [visibleTopics]
   );
-  const historySections = useMemo(
-    () => [
-      {
-        id: "active",
-        title: props.dictionary.activeBoard,
-        topics: props.activeTopics
-          .slice()
-          .sort((left, right) => (right.updatedAt ?? "").localeCompare(left.updatedAt ?? ""))
-      },
-      {
-        id: "archive",
-        title: props.dictionary.archiveBoard,
-        topics: props.archivedTopics
-          .slice()
-          .sort((left, right) => (right.archivedAt ?? right.updatedAt ?? "").localeCompare(left.archivedAt ?? left.updatedAt ?? ""))
-      }
-    ],
-    [props.activeTopics, props.archivedTopics, props.dictionary.activeBoard, props.dictionary.archiveBoard]
-  );
   const selectedTopicFiles = props.selectedTopic?.files ?? [];
-  const fileTree = useMemo(() => buildTopicFileTree(selectedTopicFiles), [selectedTopicFiles]);
+  const [fileFilter, setFileFilter] = useState("");
+  const filteredTopicFiles = useMemo(() => {
+    const query = fileFilter.trim().toLowerCase();
+    if (!query) {
+      return selectedTopicFiles;
+    }
+
+    return selectedTopicFiles.filter((file) => file.relativePath.toLowerCase().includes(query));
+  }, [fileFilter, selectedTopicFiles]);
+  const fileTree = useMemo(() => buildTopicFileTree(filteredTopicFiles), [filteredTopicFiles]);
   const currentWorkflowItem = useMemo(
     () => timelineItems.find((item) => item.status === "current") ?? null,
     [timelineItems]
@@ -153,6 +152,8 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
   const [editorValue, setEditorValue] = useState("");
   const [editingPath, setEditingPath] = useState<string | null>(null);
   const [expandedFolders, setExpandedFolders] = useState<string[]>([]);
+  const [reportPage, setReportPage] = useState(0);
+  const [reportRowsPerPage, setReportRowsPerPage] = useState(10);
 
   useEffect(() => {
     if (!props.detailSelection?.detail) {
@@ -176,15 +177,23 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
     });
   }, [props.detailSelection?.relativePath]);
 
+  useEffect(() => {
+    setReportPage(0);
+  }, [reportRowsPerPage, reportTopics.length]);
+
   if (!props.project) {
     return <Alert severity="info">{props.dictionary.empty}</Alert>;
   }
 
   const selectedFileActive =
-    props.detailSelection?.topicKey === (props.selectedTopic ? buildTopicKey(props.selectedTopic) : null) &&
-    props.detailSelection?.relativePath
-      ? selectedTopicFiles.find((file) => file.relativePath === props.detailSelection?.relativePath) ?? null
+    props.fileSelection?.topicKey === (props.selectedTopic ? buildTopicKey(props.selectedTopic) : null) &&
+    props.fileSelection?.relativePath
+      ? selectedTopicFiles.find((file) => file.relativePath === props.fileSelection?.relativePath) ?? null
       : null;
+  const reportRows = useMemo(
+    () => reportTopics.slice(reportPage * reportRowsPerPage, reportPage * reportRowsPerPage + reportRowsPerPage),
+    [reportPage, reportRowsPerPage, reportTopics]
+  );
   const openTopicPreview = (topic: TopicSummary) => {
     const entry = getPreferredArtifactEntry(topic, [
       "state/current.md",
@@ -485,44 +494,20 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
 
       {props.activeSection === "history" ? (
         <Stack spacing={3}>
-          {historySections.map((section) => (
-            <Paper key={section.id} sx={{ p: 2.25, borderRadius: 1 }}>
-              <Stack spacing={1.5}>
-                <Box>
-                  <Typography variant="h6">{section.title}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {props.dictionary.historyHint}
-                  </Typography>
-                </Box>
-
-                {section.topics.length === 0 ? (
-                  <Alert severity="info">{props.dictionary.noTopics}</Alert>
-                ) : (
-                  <Box
-                    sx={{
-                      display: "grid",
-                      gap: 1.25,
-                      gridTemplateColumns: {
-                        xs: "1fr",
-                        md: "repeat(2, minmax(0, 1fr))",
-                        xl: "repeat(3, minmax(0, 1fr))"
-                      }
-                    }}
-                  >
-                    {section.topics.map((topic) => (
-                      <HistoryTopicCard
-                        key={buildTopicKey(topic)}
-                        topic={topic}
-                        dictionary={props.dictionary}
-                        language={language}
-                        onOpen={() => openTopicPreview(topic)}
-                      />
-                    ))}
-                  </Box>
-                )}
-              </Stack>
-            </Paper>
-          ))}
+          <TopicLifecycleBoard
+            board="active"
+            lanes={activeLanes}
+            dictionary={props.dictionary}
+            language={language}
+            onOpenTopic={openTopicPreview}
+          />
+          <TopicLifecycleBoard
+            board="archive"
+            lanes={archiveLanes}
+            dictionary={props.dictionary}
+            language={language}
+            onOpenTopic={openTopicPreview}
+          />
         </Stack>
       ) : null}
 
@@ -552,7 +537,7 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {reportTopics.map((topic) => {
+                    {reportRows.map((topic) => {
                       const qaReport = topic.files.find((file) => file.relativePath === "qa/report.md") ?? null;
                       const reviewFiles = topic.files.filter((file) => file.relativePath.startsWith("reviews/"));
                       const preferredEntry = qaReport
@@ -589,6 +574,20 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
                 </Table>
               </TableContainer>
             )}
+            {reportTopics.length > 0 ? (
+              <TablePagination
+                component="div"
+                count={reportTopics.length}
+                page={reportPage}
+                onPageChange={(_event, page) => setReportPage(page)}
+                rowsPerPage={reportRowsPerPage}
+                onRowsPerPageChange={(event) => {
+                  setReportRowsPerPage(Number(event.target.value));
+                  setReportPage(0);
+                }}
+                rowsPerPageOptions={[5, 10, 20, 50]}
+              />
+            ) : null}
           </Stack>
         </Paper>
       ) : null}
@@ -614,32 +613,31 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
             nodes={fileTree}
             selectedRelativePath={selectedFileActive?.relativePath ?? null}
             expandedFolders={expandedFolders}
+            filterValue={fileFilter}
             dictionary={props.dictionary}
             language={language}
+            onFilterChange={setFileFilter}
             onToggleFolder={toggleFolder}
-            onSelectFile={(file) => props.onSelectArtifact(buildTopicFileArtifactEntry(file))}
+            onSelectFile={(file) => props.onSelectFile(buildTopicFileArtifactEntry(file))}
           />
 
           <Paper sx={{ p: 2, borderRadius: 1, minHeight: 640 }}>
-            {props.detailSelection ? (
+            {props.fileSelection ? (
               <Stack spacing={1.5}>
                 <Stack direction={{ xs: "column", md: "row" }} spacing={1} sx={{ justifyContent: "space-between" }}>
                   <Box>
-                    <Typography variant="h6">{props.detailSelection.title}</Typography>
+                    <Typography variant="h6">{props.fileSelection.title}</Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {props.detailSelection.sourcePath ?? props.dictionary.detailUnavailable}
+                      {props.fileSelection.sourcePath ?? props.dictionary.detailUnavailable}
                     </Typography>
                   </Box>
                   <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
-                    <Button variant="outlined" onClick={props.onOpenDetailDialog} disabled={!props.detailSelection.detail}>
-                      {props.dictionary.openViewer}
-                    </Button>
                     <Button
                       variant="outlined"
-                      disabled={!props.isLiveMode || !props.detailSelection.editable || !props.detailSelection.detail}
+                      disabled={!props.isLiveMode || !props.fileSelection.editable || !props.fileSelection.detail}
                       onClick={() => {
-                        setEditingPath(props.detailSelection?.relativePath ?? null);
-                        setEditorValue(props.detailSelection?.detail?.content ?? "");
+                        setEditingPath(props.fileSelection?.relativePath ?? null);
+                        setEditorValue(props.fileSelection?.detail?.content ?? "");
                       }}
                     >
                       {props.dictionary.editFile}
@@ -647,7 +645,7 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
                     <Button
                       color="error"
                       variant="outlined"
-                      disabled={!props.isLiveMode || !props.detailSelection.editable || props.fileMutationPending}
+                      disabled={!props.isLiveMode || !props.fileSelection.editable || props.fileMutationPending}
                       onClick={() => {
                         if (window.confirm(props.dictionary.deleteFileConfirm)) {
                           props.onDeleteSelection();
@@ -659,7 +657,7 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
                   </Stack>
                 </Stack>
 
-                {editingPath && props.detailSelection.detail ? (
+                {editingPath && props.fileSelection.detail ? (
                   <Stack spacing={1.25}>
                     <TextField
                       multiline
@@ -686,15 +684,15 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
                         disabled={props.fileMutationPending}
                         onClick={() => {
                           setEditingPath(null);
-                          setEditorValue(props.detailSelection?.detail?.content ?? "");
+                          setEditorValue(props.fileSelection?.detail?.content ?? "");
                         }}
                       >
                         {props.dictionary.cancel}
                       </Button>
                     </Stack>
                   </Stack>
-                ) : props.detailSelection.detail ? (
-                  <ArtifactDocumentContent detail={props.detailSelection.detail} maxHeight="72vh" />
+                ) : props.fileSelection.detail ? (
+                  <ArtifactDocumentContent detail={props.fileSelection.detail} maxHeight="72vh" />
                 ) : (
                   <Alert severity="info">
                     {props.isLiveMode ? props.dictionary.detailUnavailable : props.dictionary.readOnlyMode}
@@ -702,7 +700,7 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
                 )}
               </Stack>
             ) : (
-              <Alert severity="info">{props.dictionary.artifactUnavailable}</Alert>
+              <Alert severity="info">{props.dictionary.selectFileFromTree}</Alert>
             )}
           </Paper>
         </Box>
@@ -792,6 +790,13 @@ function TopicSidebarPanel(props: {
 }) {
   const activeTopics = props.topics.filter((topic) => topic.bucket === "active");
   const archivedTopics = props.topics.filter((topic) => topic.bucket === "archive");
+  const [activeVisibleCount, setActiveVisibleCount] = useState(10);
+  const [archiveVisibleCount, setArchiveVisibleCount] = useState(10);
+
+  useEffect(() => {
+    setActiveVisibleCount(10);
+    setArchiveVisibleCount(10);
+  }, [props.topicFilter, activeTopics.length, archivedTopics.length]);
 
   return (
     <Paper sx={{ p: 1.5, borderRadius: 1 }}>
@@ -807,16 +812,22 @@ function TopicSidebarPanel(props: {
         <TopicSidebarSection
           title={props.dictionary.activeBoard}
           topics={activeTopics}
+          visibleCount={activeVisibleCount}
           selectedTopicKey={props.selectedTopicKey}
           dictionary={props.dictionary}
           onSelectTopic={props.onSelectTopic}
+          onShowMore={() => setActiveVisibleCount((current) => current + 10)}
+          onCollapse={() => setActiveVisibleCount(10)}
         />
         <TopicSidebarSection
           title={props.dictionary.archiveBoard}
           topics={archivedTopics}
+          visibleCount={archiveVisibleCount}
           selectedTopicKey={props.selectedTopicKey}
           dictionary={props.dictionary}
           onSelectTopic={props.onSelectTopic}
+          onShowMore={() => setArchiveVisibleCount((current) => current + 10)}
+          onCollapse={() => setArchiveVisibleCount(10)}
         />
       </Stack>
     </Paper>
@@ -826,10 +837,17 @@ function TopicSidebarPanel(props: {
 function TopicSidebarSection(props: {
   title: string;
   topics: TopicSummary[];
+  visibleCount: number;
   selectedTopicKey: string | null;
   dictionary: DashboardLocale;
   onSelectTopic: (topicKey: string) => void;
+  onShowMore: () => void;
+  onCollapse: () => void;
 }) {
+  const visibleTopics = props.topics.slice(0, props.visibleCount);
+  const canShowMore = props.topics.length > props.visibleCount;
+  const canCollapse = props.topics.length > 10 && props.visibleCount > 10;
+
   return (
     <Stack spacing={0.75}>
       <Stack direction="row" spacing={1} sx={{ alignItems: "center", justifyContent: "space-between" }}>
@@ -841,7 +859,7 @@ function TopicSidebarSection(props: {
           {props.dictionary.noTopics}
         </Typography>
       ) : (
-        props.topics.map((topic) => {
+        visibleTopics.map((topic) => {
           const topicKey = buildTopicKey(topic);
           const selected = props.selectedTopicKey === topicKey;
 
@@ -874,63 +892,17 @@ function TopicSidebarSection(props: {
           );
         })
       )}
+      {canShowMore ? (
+        <Button size="small" onClick={props.onShowMore}>
+          {props.dictionary.showMore}
+        </Button>
+      ) : null}
+      {canCollapse ? (
+        <Button size="small" onClick={props.onCollapse}>
+          {props.dictionary.showLess}
+        </Button>
+      ) : null}
     </Stack>
-  );
-}
-
-function HistoryTopicCard(props: {
-  topic: TopicSummary;
-  dictionary: DashboardLocale;
-  language: "ko" | "en";
-  onOpen: () => void;
-}) {
-  const updatedLabel = props.topic.updatedAt
-    ? formatDate(props.topic.updatedAt, props.language)
-    : props.topic.archivedAt
-      ? formatDate(props.topic.archivedAt, props.language)
-      : props.dictionary.unknown;
-
-  return (
-    <Card variant="outlined" sx={{ borderRadius: 1 }}>
-      <CardActionArea onClick={props.onOpen}>
-        <CardContent sx={{ p: 1.5 }}>
-          <Stack spacing={1}>
-            <Stack direction="row" spacing={1} sx={{ justifyContent: "space-between", alignItems: "flex-start" }}>
-              <Typography variant="subtitle2" sx={{ pr: 1 }}>
-                {props.topic.name}
-              </Typography>
-              <Chip
-                size="small"
-                color={props.topic.bucket === "archive" ? "default" : "primary"}
-                label={resolveDashboardTopicBucketLabel(props.topic.bucket, props.dictionary)}
-              />
-            </Stack>
-            <Stack direction="row" spacing={0.75} useFlexGap sx={{ flexWrap: "wrap" }}>
-              <Chip size="small" label={resolveDashboardStageLabel(props.topic.stage, props.dictionary)} />
-              {props.topic.version ? <Chip size="small" variant="outlined" label={props.topic.version} /> : null}
-              {typeof props.topic.score === "number" ? (
-                <Chip size="small" color="success" label={`${props.dictionary.scoreLabel} ${props.topic.score}`} />
-              ) : null}
-            </Stack>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{
-                display: "-webkit-box",
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: "vertical",
-                overflow: "hidden"
-              }}
-            >
-              {props.topic.nextAction ?? props.topic.goal ?? props.dictionary.historyHint}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {updatedLabel}
-            </Typography>
-          </Stack>
-        </CardContent>
-      </CardActionArea>
-    </Card>
   );
 }
 
@@ -938,8 +910,10 @@ function FileTreePanel(props: {
   nodes: TopicFileTreeNode[];
   selectedRelativePath: string | null;
   expandedFolders: string[];
+  filterValue: string;
   dictionary: DashboardLocale;
   language: "ko" | "en";
+  onFilterChange: (value: string) => void;
   onToggleFolder: (folderPath: string) => void;
   onSelectFile: (file: NonNullable<TopicFileTreeNode["file"]>) => void;
 }) {
@@ -950,9 +924,17 @@ function FileTreePanel(props: {
         <Typography variant="body2" color="text.secondary">
           {props.dictionary.fileEditorHint}
         </Typography>
+        <TextField
+          size="small"
+          value={props.filterValue}
+          onChange={(event) => props.onFilterChange(event.target.value)}
+          placeholder={props.dictionary.fileSearchPlaceholder}
+        />
         <Divider />
         {props.nodes.length === 0 ? (
-          <Alert severity="info">{props.dictionary.noFilesForTopic}</Alert>
+          <Alert severity="info">
+            {props.filterValue.trim() ? props.dictionary.noFilesForFilter : props.dictionary.noFilesForTopic}
+          </Alert>
         ) : (
           <Stack spacing={0.35}>
             {props.nodes.map((node) => (

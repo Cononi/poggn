@@ -1,6 +1,0 @@
-{"ts":"2026-04-23T07:38:51Z","stage":"proposal","event":"topic-created"}
-{"ts":"2026-04-23T07:52:00Z","stage":"proposal","event":"proposal-reviewed","score":96}
-{"ts":"2026-04-23T07:52:00Z","stage":"plan","event":"plan-authored","score":96}
-{"ts":"2026-04-23T08:25:51Z","stage":"implementation","event":"implementation-authored","score":95}
-{"ts":"2026-04-23T08:25:51Z","stage":"implementation","event":"verification-recorded","command":"pnpm --filter @pgg/dashboard build","result":"pass"}
-{"ts":"2026-04-23T08:31:54Z","stage":"implementation","event":"stage-commit","archiveType":"feat","commitTitle":"feat: dashboard workspace refinement","summary":"dashboard workspace refinement","why":"jira-style board, workflow topic tabs, file tree, report/history reading contract를 한 구현으로 정리했다","footer":"Refs: dashboard-workspace-refinement"}

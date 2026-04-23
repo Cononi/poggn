@@ -1,30 +1,30 @@
 # STATE-CONTRACT
 
-`state/current.md`는 다음 단계에 전달하는 최소 컨텍스트다.
+`state/current.md` is the minimum handoff context for the next stage.
 
-## 필수 규칙
+## Required Rules
 
-- topic마다 `state/current.md`와 `state/history.ndjson`를 유지한다.
-- topic 생성 시점의 pre-existing dirty worktree path가 있으면 `state/dirty-worktree-baseline.txt`에 최소 1줄 1경로로 기록한다.
-- 다음 단계에는 전체 문서 대신 `state/current.md`를 우선 전달한다.
-- teams handoff가 필요하면 먼저 `.codex/sh/pgg-state-pack.sh <topic|topic_dir>`로 최소 컨텍스트를 만든다.
-- `pgg teams`가 `off`여도 handoff 형식은 같은 최소 컨텍스트 계약을 유지한다.
-- pgg가 생성·관리하는 `.codex/sh/*.sh` helper만 trusted handoff/automation script로 본다.
-- `archive_type`, `version_bump`, `target_version`, branch naming, `project_scope`, archive 후의 version 정보는 최소 컨텍스트에 유지한다.
-- proposal 단계에서는 사용자 입력 질문 기록 섹션의 위치 또는 ref와 `version_bump`, `target_version` 선택 결과를 최소 컨텍스트에 유지한다.
-- `Audit Applicability` 섹션의 상태와 짧은 근거를 최소 컨텍스트에 유지한다.
-- `pgg git=on`이면 `Git Publish Message` 섹션 또는 그 ref를 최소 컨텍스트에 유지한다.
-- `pgg-state-pack.sh` 출력은 최소한 `archive_type`, `version_bump`, `target_version`, `short_name`, branch naming, `Git Publish Message` 정보를 key/value 형태로 드러내야 한다.
-- 변경 파일은 `Changed Files` 섹션에 CRUD와 diff 경로로 기록한다.
-- 마지막 전문가 점수와 blocking issue를 유지한다.
-- `state/current.md`에는 review 전문을 복사하지 말고 결정, 점수, blocking issue만 요약한다.
+- Keep `state/current.md` and `state/history.ndjson` for every topic.
+- When pre-existing dirty worktree paths exist at topic creation time, record them in `state/dirty-worktree-baseline.txt` as one repo-relative path per line.
+- Pass `state/current.md` before full documents to the next stage.
+- When teams handoff is needed, build the minimum payload with `.codex/sh/pgg-state-pack.sh <topic|topic_dir>` first.
+- Keep the same minimal handoff format even when `pgg teams` is `off`.
+- Treat only pgg-generated and managed `.codex/sh/*.sh` helpers as trusted handoff and automation scripts.
+- Preserve `archive_type`, `version_bump`, `target_version`, branch naming, `project_scope`, and archive version data in the minimum handoff.
+- Preserve the user-question record section or reference plus the `version_bump` and `target_version` decision outcome from the proposal stage in the minimum handoff.
+- Preserve the `Audit Applicability` section with status and rationale in the minimum handoff.
+- Preserve the `Git Publish Message` section or its reference in the minimum handoff when `pgg git=on`.
+- `.codex/sh/pgg-state-pack.sh` output must expose at least `archive_type`, `version_bump`, `target_version`, `short_name`, branch naming, and `Git Publish Message` data as key/value handoff fields.
+- Record CRUD and diff paths in the `Changed Files` section.
+- Preserve the last expert score and blocking issues.
+- Keep full review text out of `state/current.md`; summarize only decisions, score, and blockers.
 
 ## Git Publish Message Contract
 
-- `pgg git=on`이면 `state/current.md` 또는 `qa/report.md` 중 적어도 하나에 아래 섹션을 유지한다.
-- 제목은 `<archive_type>: <short subject>` 형식을 따르며 50자 이하, 명령형 금지, 마침표 금지, 제목만 봐도 의도를 이해할 수 있어야 한다.
-- 본문 source인 `why`는 commit body의 Why 설명을 담당한다.
-- `footer`가 비어 있으면 helper는 `Refs: <topic>` fallback을 사용한다.
+- When `pgg git=on`, keep the section below in at least one of `state/current.md` or `qa/report.md`.
+- Subjects must follow `<archive_type>: <short subject>`, stay at 50 characters or fewer, remain non-imperative, stay period-free, and be understandable on their own.
+- `why` is the source for the Why-focused commit body.
+- When `footer` is empty, the helper falls back to `Refs: <topic>`.
 
 ```md
 ## Git Publish Message

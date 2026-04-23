@@ -98,6 +98,7 @@ export default function DashboardApp() {
   const [pendingDeleteProjectId, setPendingDeleteProjectId] = useState<string | null>(null);
   const [dangerousDeleteRoot, setDangerousDeleteRoot] = useState(false);
   const [detailSelection, setDetailSelection] = useState<ArtifactSelection | null>(null);
+  const [fileSelection, setFileSelection] = useState<ArtifactSelection | null>(null);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [sidebarDrawerOpen, setSidebarDrawerOpen] = useState(false);
 
@@ -143,6 +144,13 @@ export default function DashboardApp() {
         ? allProjectTopics.find((topic) => buildTopicKey(topic) === detailSelection.topicKey) ?? null
         : null,
     [allProjectTopics, detailSelection]
+  );
+  const fileTopic = useMemo(
+    () =>
+      fileSelection
+        ? allProjectTopics.find((topic) => buildTopicKey(topic) === fileSelection.topicKey) ?? null
+        : null,
+    [allProjectTopics, fileSelection]
   );
   const insightsSummary = useMemo(
     () => buildInsightsSummary(selectedProject, snapshot?.recentActivity ?? [], dictionary),
@@ -206,6 +214,21 @@ export default function DashboardApp() {
 
     setDetailSelection(nextSelection);
   }, [detailSelection, selectedTopic]);
+
+  useEffect(() => {
+    if (!fileSelection || !selectedTopic) {
+      return;
+    }
+
+    const selectedTopicKey = buildTopicKey(selectedTopic);
+    const fileStillVisible =
+      fileSelection.topicKey === selectedTopicKey &&
+      selectedTopic.files.some((file) => file.relativePath === fileSelection.relativePath);
+
+    if (!fileStillVisible) {
+      setFileSelection(null);
+    }
+  }, [fileSelection, selectedTopic]);
 
   useEffect(() => {
     if (snapshot?.generatedAt) {
@@ -279,6 +302,59 @@ export default function DashboardApp() {
     );
   }, [detailFileQuery.error, dictionary.dashboardError]);
 
+  const fileDetailQuery = useQuery({
+    queryKey: [
+      "dashboard-topic-browser-file-detail",
+      selectedProject?.id ?? null,
+      fileTopic?.bucket ?? null,
+      fileTopic?.name ?? null,
+      fileSelection?.relativePath ?? null
+    ],
+    queryFn: async () => {
+      if (!selectedProject?.id || !fileTopic || !fileSelection?.relativePath) {
+        throw new Error(dictionary.detailUnavailable);
+      }
+
+      return fetchTopicFileDetail(
+        selectedProject.id,
+        fileTopic.bucket,
+        fileTopic.name,
+        fileSelection.relativePath
+      );
+    },
+    enabled: Boolean(selectedProject?.id && fileTopic && fileSelection?.relativePath && !fileSelection.detail)
+  });
+
+  useEffect(() => {
+    if (!fileDetailQuery.data) {
+      return;
+    }
+
+    setFileSelection((current) => {
+      if (
+        !current ||
+        current.relativePath !== fileSelection?.relativePath ||
+        current.topicKey !== fileSelection?.topicKey
+      ) {
+        return current;
+      }
+
+      return {
+        ...current,
+        title: fileDetailQuery.data.title,
+        detail: fileDetailQuery.data
+      };
+    });
+  }, [fileDetailQuery.data, fileSelection?.relativePath, fileSelection?.topicKey]);
+
+  useEffect(() => {
+    if (!fileDetailQuery.error) {
+      return;
+    }
+
+    setFeedback(fileDetailQuery.error instanceof Error ? fileDetailQuery.error.message : dictionary.dashboardError);
+  }, [fileDetailQuery.error, dictionary.dashboardError]);
+
   const updateSnapshotCache = (nextSnapshot: DashboardSnapshot) => {
     queryClient.setQueryData<DashboardQueryResult>(["dashboard-snapshot"], (current) => ({
       snapshot: nextSnapshot,
@@ -308,22 +384,22 @@ export default function DashboardApp() {
 
   const saveFileMutation = useMutation({
     mutationFn: async (content: string) => {
-      if (!selectedProject?.id || !detailTopic || !detailSelection?.relativePath) {
+      if (!selectedProject?.id || !fileTopic || !fileSelection?.relativePath) {
         throw new Error(dictionary.detailUnavailable);
       }
 
       return saveTopicFileDetail(
         selectedProject.id,
-        detailTopic.bucket,
-        detailTopic.name,
-        detailSelection.relativePath,
+        fileTopic.bucket,
+        fileTopic.name,
+        fileSelection.relativePath,
         content
       );
     },
     onSuccess: ({ snapshot: nextSnapshot, detail }) => {
       setFeedback(null);
       updateSnapshotCache(nextSnapshot);
-      setDetailSelection((current) =>
+      setFileSelection((current) =>
         current
           ? {
               ...current,
@@ -340,32 +416,21 @@ export default function DashboardApp() {
 
   const deleteFileMutation = useMutation({
     mutationFn: async () => {
-      if (!selectedProject?.id || !detailTopic || !detailSelection?.relativePath) {
+      if (!selectedProject?.id || !fileTopic || !fileSelection?.relativePath) {
         throw new Error(dictionary.detailUnavailable);
       }
 
       return removeTopicFile(
         selectedProject.id,
-        detailTopic.bucket,
-        detailTopic.name,
-        detailSelection.relativePath
+        fileTopic.bucket,
+        fileTopic.name,
+        fileSelection.relativePath
       );
     },
     onSuccess: ({ snapshot: nextSnapshot }) => {
       setFeedback(null);
       updateSnapshotCache(nextSnapshot);
-
-      const nextCurrentProject = resolveCurrentProject(nextSnapshot);
-      const nextSelectedProject = resolveSelectedProject(nextSnapshot, selectedProjectId, nextCurrentProject);
-      const nextTopics = nextSelectedProject
-        ? [...nextSelectedProject.activeTopics, ...nextSelectedProject.archivedTopics]
-        : [];
-      const nextTopic =
-        detailSelection?.topicKey
-          ? nextTopics.find((topic) => buildTopicKey(topic) === detailSelection.topicKey) ?? null
-          : resolveSelectedTopic(nextTopics, selectedTopicKey);
-
-      setDetailSelection(getDefaultArtifactSelection(nextTopic));
+      setFileSelection(null);
       setDetailDialogOpen(false);
     },
     onError: (error) => {
@@ -555,6 +620,7 @@ export default function DashboardApp() {
           activeSection={activeDetailSection}
           workflowViewMode={workflowViewMode}
           detailSelection={detailSelection}
+          fileSelection={fileSelection}
           dictionary={dictionary}
           isLiveMode={isLiveMode}
           fileMutationPending={saveFileMutation.isPending || deleteFileMutation.isPending}
@@ -586,6 +652,17 @@ export default function DashboardApp() {
             setDetailDialogOpen(true);
           }}
           onWorkflowViewModeChange={setWorkflowViewMode}
+          onSelectFile={(entry) => {
+            const topicKey =
+              resolveTopicKeyFromSourcePath(entry.sourcePath) ??
+              (selectedTopic ? buildTopicKey(selectedTopic) : null);
+
+            if (!topicKey) {
+              return;
+            }
+
+            setFileSelection(createArtifactSelection(topicKey, entry));
+          }}
           onSaveSelection={(content) => saveFileMutation.mutate(content)}
           onDeleteSelection={() => deleteFileMutation.mutate()}
         />

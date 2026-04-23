@@ -1,26 +1,111 @@
+import { useEffect, useState } from "react";
 import { alpha, type Theme, useTheme } from "@mui/material/styles";
-import { Box, Card, CardActionArea, CardContent, Chip, Paper, Stack, Typography } from "@mui/material";
+import { Box, Button, Card, CardActionArea, CardContent, Chip, Paper, Stack, Typography } from "@mui/material";
 import type { DashboardLocale, TopicLane, TopicSummary } from "../../shared/model/dashboard";
-import {
-  resolveDashboardStageLabel,
-  resolveDashboardTopicBucketLabel
-} from "../../shared/locale/dashboardLocale";
-import { buildTopicArtifactEntries, buildTopicKey, formatDate } from "../../shared/utils/dashboard";
+import { resolveDashboardStageLabel } from "../../shared/locale/dashboardLocale";
+import { formatDate } from "../../shared/utils/dashboard";
 
 type TopicLifecycleBoardProps = {
   board: "active" | "archive";
   lanes: TopicLane[];
-  selectedTopicKey: string | null;
   dictionary: DashboardLocale;
   language: "ko" | "en";
-  onSelectTopic: (topicKey: string) => void;
-  onPreviewArtifact: (topic: TopicSummary) => void;
+  onOpenTopic: (topic: TopicSummary) => void;
 };
 
 export function TopicLifecycleBoard(props: TopicLifecycleBoardProps) {
   const theme = useTheme();
   const boardTitle =
     props.board === "active" ? props.dictionary.activeBoard : props.dictionary.archiveBoard;
+  const [visibleCounts, setVisibleCounts] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    setVisibleCounts({});
+  }, [props.board, props.lanes]);
+
+  const renderLane = (lane: TopicLane) => {
+    const visibleCount = visibleCounts[lane.id] ?? 6;
+    const visibleTopics = lane.topics.slice(0, visibleCount);
+    const canShowMore = lane.topics.length > visibleCount;
+    const canCollapse = lane.topics.length > 6 && visibleCount > 6;
+
+    return (
+      <Paper
+        key={lane.id}
+        variant="outlined"
+        sx={{
+          p: 1.25,
+          borderRadius: 1,
+          minHeight: 320,
+          backgroundColor: alpha(theme.palette.background.paper, 0.9)
+        }}
+      >
+        <Stack spacing={0.75} sx={{ mb: 1.5, pb: 1.25, borderBottom: "1px solid rgba(9, 30, 66, 0.08)" }}>
+          <Stack direction="row" spacing={1} sx={{ alignItems: "center", justifyContent: "space-between" }}>
+            <Typography variant="subtitle1">{lane.label}</Typography>
+            <Chip size="small" variant="outlined" label={lane.topics.length} />
+          </Stack>
+          <Typography variant="caption" color="text.secondary">
+            {lane.helper}
+          </Typography>
+        </Stack>
+
+        <Stack spacing={1.25}>
+          {lane.topics.length === 0 ? (
+            <Paper
+              variant="outlined"
+              sx={{
+                p: 2,
+                borderRadius: 1,
+                borderStyle: "dashed",
+                textAlign: "center",
+                color: "text.secondary"
+              }}
+            >
+              {props.dictionary.noTopics}
+            </Paper>
+          ) : null}
+
+          {visibleTopics.map((topic) => (
+            <TopicCard
+              key={`${topic.bucket}:${topic.name}`}
+              topic={topic}
+              board={props.board}
+              dictionary={props.dictionary}
+              language={props.language}
+              onOpen={() => props.onOpenTopic(topic)}
+            />
+          ))}
+          {canShowMore ? (
+            <Button
+              size="small"
+              onClick={() =>
+                setVisibleCounts((current) => ({
+                  ...current,
+                  [lane.id]: (current[lane.id] ?? 6) + 6
+                }))
+              }
+            >
+              {props.dictionary.showMore}
+            </Button>
+          ) : null}
+          {canCollapse ? (
+            <Button
+              size="small"
+              onClick={() =>
+                setVisibleCounts((current) => ({
+                  ...current,
+                  [lane.id]: 6
+                }))
+              }
+            >
+              {props.dictionary.showLess}
+            </Button>
+          ) : null}
+        </Stack>
+      </Paper>
+    );
+  };
 
   return (
     <Paper
@@ -57,57 +142,7 @@ export function TopicLifecycleBoard(props: TopicLifecycleBoardProps) {
           pb: 1
         }}
       >
-        {props.lanes.map((lane) => (
-          <Paper
-            key={lane.id}
-            variant="outlined"
-            sx={{
-              p: 1.25,
-              borderRadius: 1,
-              minHeight: 320,
-              backgroundColor: alpha(theme.palette.background.paper, 0.9)
-            }}
-          >
-            <Stack spacing={0.75} sx={{ mb: 1.5, pb: 1.25, borderBottom: "1px solid rgba(9, 30, 66, 0.08)" }}>
-              <Stack direction="row" spacing={1} sx={{ alignItems: "center", justifyContent: "space-between" }}>
-                <Typography variant="subtitle1">{lane.label}</Typography>
-                <Chip size="small" variant="outlined" label={lane.topics.length} />
-              </Stack>
-              <Typography variant="caption" color="text.secondary">
-                {lane.helper}
-              </Typography>
-            </Stack>
-
-            <Stack spacing={1.25}>
-              {lane.topics.length === 0 ? (
-                <Paper
-                  variant="outlined"
-                  sx={{
-                    p: 2,
-                    borderRadius: 1,
-                    borderStyle: "dashed",
-                    textAlign: "center",
-                    color: "text.secondary"
-                  }}
-                >
-                  {props.dictionary.noTopics}
-                </Paper>
-              ) : null}
-
-              {lane.topics.map((topic) => (
-                <TopicCard
-                  key={buildTopicKey(topic)}
-                  topic={topic}
-                  isSelected={props.selectedTopicKey === buildTopicKey(topic)}
-                  dictionary={props.dictionary}
-                  language={props.language}
-                  onSelect={() => props.onSelectTopic(buildTopicKey(topic))}
-                  onPreviewArtifact={() => props.onPreviewArtifact(topic)}
-                />
-              ))}
-            </Stack>
-          </Paper>
-        ))}
+        {props.lanes.map(renderLane)}
       </Box>
     </Paper>
   );
@@ -115,14 +150,12 @@ export function TopicLifecycleBoard(props: TopicLifecycleBoardProps) {
 
 function TopicCard(props: {
   topic: TopicSummary;
-  isSelected: boolean;
+  board: "active" | "archive";
   dictionary: DashboardLocale;
   language: "ko" | "en";
-  onSelect: () => void;
-  onPreviewArtifact: () => void;
+  onOpen: () => void;
 }) {
   const theme = useTheme();
-  const artifactEntries = buildTopicArtifactEntries(props.topic);
   const accent = getTopicAccent(props.topic, theme);
   const updatedLabel = props.topic.updatedAt
     ? formatDate(props.topic.updatedAt, props.language)
@@ -134,23 +167,24 @@ function TopicCard(props: {
     <Card
       sx={{
         borderRadius: 1,
-        borderColor: props.isSelected ? alpha(accent, 0.48) : alpha(theme.palette.text.primary, 0.12),
+        borderColor: alpha(accent, 0.28),
         borderStyle: "solid",
         borderWidth: 1,
         background: `linear-gradient(180deg, ${alpha(accent, 0.1)}, ${alpha(theme.palette.background.paper, 0.96)})`
       }}
     >
-      <CardActionArea onClick={props.onSelect}>
-        <CardContent>
-          <Stack spacing={1.15}>
+      <CardActionArea onClick={props.onOpen}>
+        <CardContent sx={{ p: 1.35 }}>
+          <Stack spacing={0.9}>
             <Stack direction="row" spacing={1} sx={{ justifyContent: "space-between", alignItems: "flex-start" }}>
               <Stack spacing={0.5} sx={{ minWidth: 0 }}>
                 <Typography
-                  variant="subtitle2"
+                  variant="body2"
                   sx={{
+                    fontWeight: 700,
                     lineHeight: 1.3,
                     display: "-webkit-box",
-                    WebkitLineClamp: 2,
+                    WebkitLineClamp: 1,
                     WebkitBoxOrient: "vertical",
                     overflow: "hidden"
                   }}
@@ -162,36 +196,28 @@ function TopicCard(props: {
                   color="text.secondary"
                   sx={{
                     display: "-webkit-box",
-                    WebkitLineClamp: 2,
+                    WebkitLineClamp: 1,
                     WebkitBoxOrient: "vertical",
                     overflow: "hidden"
                   }}
                 >
-                  {props.topic.goal ?? "-"}
+                  {props.topic.nextAction ?? props.topic.goal ?? "-"}
                 </Typography>
               </Stack>
               <Chip
                 size="small"
-                color={props.topic.bucket === "archive" ? "default" : "primary"}
-                label={resolveDashboardTopicBucketLabel(props.topic.bucket, props.dictionary)}
+                color={props.board === "archive" ? "default" : "primary"}
+                label={
+                  props.board === "archive"
+                    ? props.topic.archiveType ?? props.dictionary.archive
+                    : resolveDashboardStageLabel(props.topic.stage, props.dictionary)
+                }
               />
             </Stack>
 
             <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
-              {props.topic.stage ? (
-                <Chip size="small" label={resolveDashboardStageLabel(props.topic.stage, props.dictionary)} />
-              ) : null}
-              {props.topic.archiveType ? (
-                <Chip size="small" label={props.topic.archiveType} />
-              ) : null}
-              {props.topic.versionBump ? (
-                <Chip size="small" label={props.topic.versionBump} />
-              ) : null}
               {props.topic.version ? (
-                <Chip size="small" label={props.topic.version} />
-              ) : null}
-              {props.topic.publishResultType ? (
-                <Chip size="small" variant="outlined" label={props.topic.publishResultType} />
+                <Chip size="small" variant="outlined" label={props.topic.version} />
               ) : null}
               {typeof props.topic.score === "number" ? (
                 <Chip
@@ -202,46 +228,16 @@ function TopicCard(props: {
               ) : null}
             </Stack>
 
-            <MetricLine label={props.dictionary.topicNext} value={props.topic.nextAction ?? "-"} />
-            <MetricLine label={props.dictionary.updated} value={updatedLabel} />
-
-            {props.topic.bucket === "archive" && props.topic.releaseBranch ? (
-              <MetricLine label={props.dictionary.releaseBranch} value={props.topic.releaseBranch} />
+            {props.topic.versionBump ? (
+              <MetricLine label={props.dictionary.versionBump} value={props.topic.versionBump} />
             ) : null}
-
-            <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
-              <Chip
-                size="small"
-                variant="outlined"
-                label={props.topic.artifactCompleteness}
-              />
-              <Chip size="small" variant="outlined" label={`L ${props.topic.artifactSummary.lifecycleDocs.count}`} />
-              <Chip size="small" variant="outlined" label={`R ${props.topic.artifactSummary.reviewDocs.count}`} />
-              <Chip size="small" variant="outlined" label={`I ${props.topic.artifactSummary.implementationDocs.count}`} />
-              <Chip size="small" variant="outlined" label={`Q ${props.topic.artifactSummary.qaDocs.count}`} />
-            </Stack>
+            <MetricLine label={props.dictionary.updated} value={updatedLabel} />
 
             {props.topic.blockingIssues && props.topic.blockingIssues !== "없음" ? (
               <Typography variant="caption" color="warning.dark">
                 {props.dictionary.topicBlock}: {props.topic.blockingIssues}
               </Typography>
             ) : null}
-
-            <Stack direction="row" spacing={1} sx={{ justifyContent: "space-between", alignItems: "center" }}>
-              <Typography variant="caption" color="text.secondary">
-                {artifactEntries.length} {props.dictionary.artifactDocuments}
-              </Typography>
-              <Chip
-                size="small"
-                color="primary"
-                variant="outlined"
-                label={props.dictionary.openViewer}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  props.onPreviewArtifact();
-                }}
-              />
-            </Stack>
           </Stack>
         </CardContent>
       </CardActionArea>

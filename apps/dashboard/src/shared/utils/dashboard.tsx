@@ -135,7 +135,9 @@ export function buildTopicLanes(
                   ? dictionary.filterBlocked
                   : dictionary.filterQa,
       helper: dictionary.topicNext,
-      topics: laneMap.get(lane) ?? []
+      topics: (laneMap.get(lane) ?? []).sort((left, right) =>
+        (right.updatedAt ?? "").localeCompare(left.updatedAt ?? "")
+      )
     }));
   }
 

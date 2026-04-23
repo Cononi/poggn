@@ -3,10 +3,10 @@
   "projectName": "poggn",
   "rootDir": "/config/workspace/poggn-ai",
   "provider": "codex",
-  "language": "ko",
+  "language": "en",
   "autoMode": "on",
   "installedVersion": "0.1.0",
-  "updatedAt": "2026-04-23T05:49:36.228Z",
+  "updatedAt": "2026-04-23T08:44:22.705Z",
   "dashboard": {
     "title": "POGGN",
     "titleIconSvg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 48 48\"><defs><linearGradient id=\"pgg-dashboard-icon\" x1=\"10%\" y1=\"10%\" x2=\"90%\" y2=\"90%\"><stop offset=\"0%\" stop-color=\"#2467d6\" /><stop offset=\"55%\" stop-color=\"#4f92ff\" /><stop offset=\"100%\" stop-color=\"#f59e0b\" /></linearGradient></defs><rect x=\"6\" y=\"6\" width=\"36\" height=\"36\" rx=\"14\" fill=\"#0f172a\" /><path d=\"M24 11l5.2 7.9 9.3 2.7-5.9 7.3.2 9.9-8.8-3.4-8.8 3.4.2-9.9-5.9-7.3 9.3-2.7L24 11z\" fill=\"url(#pgg-dashboard-icon)\" /><circle cx=\"24\" cy=\"24\" r=\"4.8\" fill=\"#f8fafc\" fill-opacity=\"0.9\" /></svg>",
@@ -16,77 +16,77 @@
   "managedFiles": [
     {
       "path": "AGENTS.md",
-      "checksum": "6e83f004b950b2527e38550796bd40573f4d5a00e7573ab1cf6e543babc91712",
+      "checksum": "e240b170d07ec9abbd3acd3b3686d943f5055f81e760967ea42a66696c6bd1ae",
       "executable": false
     },
     {
       "path": ".codex/add/WOKR-FLOW.md",
-      "checksum": "90baaafedc3393eea2602d3f35cb7f7a90cbabb43cf6a6589c317b8ffbc65e3b",
+      "checksum": "882c77aa6968c5de5229653a03b45939ea39307e883380d879054a9149f731e3",
       "executable": false
     },
     {
       "path": ".codex/add/STATE-CONTRACT.md",
-      "checksum": "2cc94fde29daa732a97ec458d4c77bc0f3daef1808d55c426c341d574200137c",
+      "checksum": "eccc08ef182952e6ab305ee7df459dd4928fd23b275713484f3d499b2928fe67",
       "executable": false
     },
     {
       "path": ".codex/add/EXPERT-ROUTING.md",
-      "checksum": "74e48bbc2fb931ea139f24874044b9395a1303b178681fde1aec99e3fc301b76",
+      "checksum": "ae37411cb1997d82fb60e37270a6474a3190abff3480966f691c9f2a34276588",
       "executable": false
     },
     {
       "path": ".codex/add/IMPLEMENTATION.md",
-      "checksum": "842531d420438914c49c9ae4b1c392ab02876fe505918dd3edf1318c6d0b62fd",
+      "checksum": "1e77ce9d1e370ae35ff4cf3ecdbc1f2c9763c2073c7159f1e1207d159485fdca",
       "executable": false
     },
     {
       "path": ".codex/add/REVIEW-RUBRIC.md",
-      "checksum": "19e6db183f71c17088ea0388a9c6a77f3a0d626eef8b89a1a973671688a0150b",
+      "checksum": "3d5ca6aac7a5d2c0f67fd6ce6ab02513446d97e7e91b5f57c36b40105efb627e",
       "executable": false
     },
     {
       "path": ".codex/add/SHELL-RULES.md",
-      "checksum": "61f57a92ec32093b6e5e1b08884c9c4c8273ee30633093e38962eed25ad03430",
+      "checksum": "d91d017c636edd78d27584fa215a7e55683630393fd057c3e77eccdb471c16d5",
       "executable": false
     },
     {
       "path": ".codex/skills/pgg-add/SKILL.md",
-      "checksum": "9c2ea34fb5ade76b076f3c68f6147717447852be3789fb0839553c60e4af11af",
+      "checksum": "77c4f34a2561b5b3572f23cc13c636fad974885615bdce8037d6123e883626af",
       "executable": false
     },
     {
       "path": ".codex/skills/pgg-plan/SKILL.md",
-      "checksum": "944f8c4394c048ddefd76d703bf215b383580d372682f778acb0366f4c573abd",
+      "checksum": "86bbde3fb048b7a95dfa19ace418be16ca9c81795da6712057ebfa130d050ccb",
       "executable": false
     },
     {
       "path": ".codex/skills/pgg-code/SKILL.md",
-      "checksum": "3d5c311d6d191f63bf2a2ced38b98b186cd168b402b67bcc60e52f15df65564c",
+      "checksum": "f9e9e925117e747577c3923eea4aa783bcec38105173147fa4a919c434d5b8f5",
       "executable": false
     },
     {
       "path": ".codex/skills/pgg-refactor/SKILL.md",
-      "checksum": "b7027ef95d2d768234bc21662cd8f4a99a3107d44f68a870129027f601a6eb7d",
+      "checksum": "92379ca1cdad6c250cfadd0be443aa3b582f1c8e4bd598d4893cea6abf07de85",
       "executable": false
     },
     {
       "path": ".codex/skills/pgg-qa/SKILL.md",
-      "checksum": "dc0e1c885f9752d6b185fdc5381087f8431752ad741492b21a88bf3af17561e2",
+      "checksum": "4b55075da7bf35496ce209716ea32b7716a9205593b571c840450ea1d4533e0f",
       "executable": false
     },
     {
       "path": ".codex/skills/pgg-token/SKILL.md",
-      "checksum": "8e329b32f8886c7bcf7d4367c7ae82814d5e68b80053c3bb460e2c086bd20fce",
+      "checksum": "cbf581d6beac151cf410f15bd606fbe29d97ebc2b7cb44c2d0e13df478c83c61",
       "executable": false
     },
     {
       "path": ".codex/skills/pgg-performance/SKILL.md",
-      "checksum": "b33279af6dc5930a20c3790df3ca3484e0f16e86acee311608f554974b1eb786",
+      "checksum": "824a2b983d12ad350d6c3164094f78407edff6c45956b17f2d36fea2d4b65e6b",
       "executable": false
     },
     {
       "path": ".codex/skills/pgg-status/SKILL.md",
-      "checksum": "d67054349628e03b4fd2face832d50f1647f0835ccac4ee67942a8e2451aa50d",
+      "checksum": "3abee787868f4a5965ef7f89fecf9c8c8db35daa39172f472fc8aa588567bee4",
       "executable": false
     },
     {
