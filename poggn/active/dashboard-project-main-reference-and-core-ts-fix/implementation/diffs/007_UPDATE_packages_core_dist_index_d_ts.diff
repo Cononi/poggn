@@ -1,0 +1,46 @@
+diff --git a/packages/core/dist/index.d.ts b/packages/core/dist/index.d.ts
+index 5b4db9f..a0bd9f9 100644
+--- a/packages/core/dist/index.d.ts
++++ b/packages/core/dist/index.d.ts
+@@ -122,6 +122,8 @@ export interface TopicSummary {
+     artifactSummary: TopicArtifactSummary;
+     artifactCompleteness: "complete" | "partial";
+     health: "ok" | "partial";
++    userQuestionRecord: string[];
++    files: TopicFileEntry[];
+ }
+ export interface DashboardRecentActivityEntry {
+     id: string;
+@@ -151,6 +153,14 @@ export interface TopicArtifactSummary {
+     releaseDocs: TopicArtifactGroupSummary;
+     workflowDocs: TopicArtifactGroupSummary;
+ }
++export interface TopicFileEntry {
++    relativePath: string;
++    sourcePath: string;
++    kind: "markdown" | "diff" | "text";
++    updatedAt: string | null;
++    size: number | null;
++    editable: boolean;
++}
+ export type TopicProgressStatus = "ready" | "in_progress" | "blocked" | "archive_ready";
+ export type TopicNextWorkflow = "pgg-add" | "pgg-plan" | "pgg-code" | "pgg-refactor" | "pgg-token" | "pgg-performance" | "pgg-qa" | "none";
+ export interface TopicStatusSummary {
+@@ -212,6 +222,8 @@ export interface ProjectSnapshot {
+     workingBranchPrefix: string;
+     releaseBranchPrefix: string;
+     installedVersion: string | null;
++    pggVersion: string | null;
++    projectVersion: string | null;
+     dashboardTitle: string;
+     dashboardTitleIconSvg: string;
+     refreshIntervalMs: number;
+@@ -298,5 +310,8 @@ export declare function deleteRegisteredProject(projectId: string, options?: {
+ export declare function analyzeProject(rootDir: string, registered?: boolean): Promise<ProjectSnapshot>;
+ export declare function analyzeProjectStatus(rootDir: string): Promise<ProjectStatusSnapshot>;
+ export declare function buildDashboardSnapshot(currentRootDir: string): Promise<DashboardSnapshot>;
++export declare function readTopicFileDetail(rootDir: string, bucket: "active" | "archive", topic: string, relativePath: string): Promise<WorkflowDetailPayload>;
++export declare function updateTopicFile(rootDir: string, bucket: "active" | "archive", topic: string, relativePath: string, content: string): Promise<WorkflowDetailPayload>;
++export declare function deleteTopicFile(rootDir: string, bucket: "active" | "archive", topic: string, relativePath: string): Promise<void>;
+ export declare function findWorkspaceRoot(startDir: string): string | null;
+ export declare function writeDashboardSnapshotFile(filePath: string, snapshot: DashboardSnapshot): Promise<void>;

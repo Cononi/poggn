@@ -1,0 +1,72 @@
+{
+  "topic": "dashboard-project-main-reference-and-core-ts-fix",
+  "nodes": [
+    {
+      "id": "proposal",
+      "type": "doc",
+      "position": { "x": 0, "y": 0 },
+      "data": {
+        "label": "proposal.md",
+        "path": "proposal.md",
+        "stage": "proposal"
+      }
+    },
+    {
+      "id": "plan",
+      "type": "doc",
+      "position": { "x": 220, "y": 0 },
+      "data": {
+        "label": "plan.md",
+        "path": "plan.md",
+        "stage": "plan"
+      }
+    },
+    {
+      "id": "task",
+      "type": "task",
+      "position": { "x": 440, "y": 0 },
+      "data": {
+        "label": "task.md",
+        "path": "task.md",
+        "stage": "task"
+      }
+    },
+    {
+      "id": "implementation",
+      "type": "doc",
+      "position": { "x": 660, "y": 0 },
+      "data": {
+        "label": "implementation/index.md",
+        "path": "implementation/index.md",
+        "stage": "implementation"
+      }
+    },
+    {
+      "id": "code-review",
+      "type": "review",
+      "position": { "x": 880, "y": 0 },
+      "data": {
+        "label": "reviews/code.review.md",
+        "path": "reviews/code.review.md",
+        "stage": "implementation"
+      }
+    },
+    {
+      "id": "refactor-review",
+      "type": "review",
+      "position": { "x": 1100, "y": 0 },
+      "data": {
+        "label": "reviews/refactor.review.md",
+        "path": "reviews/refactor.review.md",
+        "stage": "refactor"
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e-proposal-plan", "source": "proposal", "target": "plan" },
+    { "id": "e-plan-task", "source": "plan", "target": "task" },
+    { "id": "e-task-implementation", "source": "task", "target": "implementation" },
+    { "id": "e-implementation-review", "source": "implementation", "target": "code-review" },
+    { "id": "e-code-review-refactor-review", "source": "code-review", "target": "refactor-review" }
+  ]
+}

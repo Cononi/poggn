@@ -1320,6 +1320,10 @@ function parseMarkdownSectionByKeyword(markdown: string, keyword: string): strin
 
   for (let index = 0; index < sections.length; index += 1) {
     const section = sections[index];
+    if (!section) {
+      continue;
+    }
+
     const title = section[1]?.trim().toLowerCase() ?? "";
     if (!title.includes(normalizedKeyword)) {
       continue;

@@ -166,6 +166,28 @@ async function readTextIfExists(filePath) {
         return null;
     }
 }
+async function readProjectVersion(rootDir) {
+    const candidatePaths = [
+        path.join(rootDir, "package.json"),
+        path.join(rootDir, "apps", "dashboard", "package.json")
+    ];
+    for (const candidatePath of candidatePaths) {
+        const raw = await readTextIfExists(candidatePath);
+        if (!raw) {
+            continue;
+        }
+        try {
+            const parsed = JSON.parse(raw);
+            if (typeof parsed.version === "string" && parsed.version.trim()) {
+                return parsed.version;
+            }
+        }
+        catch {
+            continue;
+        }
+    }
+    return null;
+}
 async function writeTextFile(filePath, content) {
     await ensureParentDir(filePath);
     await writeFile(filePath, content, "utf8");
@@ -765,6 +787,40 @@ function parseMarkdownSection(markdown, title) {
     }
     return match[1].trim();
 }
+function parseMarkdownSectionByKeyword(markdown, keyword) {
+    const normalizedKeyword = keyword.trim().toLowerCase();
+    const sections = [...markdown.matchAll(/^##\s+(.+)$/gm)];
+    for (let index = 0; index < sections.length; index += 1) {
+        const section = sections[index];
+        if (!section) {
+            continue;
+        }
+        const title = section[1]?.trim().toLowerCase() ?? "";
+        if (!title.includes(normalizedKeyword)) {
+            continue;
+        }
+        const start = (section.index ?? 0) + section[0].length;
+        const end = sections[index + 1]?.index ?? markdown.length;
+        return markdown.slice(start, end).trim();
+    }
+    return null;
+}
+function parseUserQuestionRecord(markdown) {
+    if (!markdown) {
+        return [];
+    }
+    const section = parseMarkdownSectionByKeyword(markdown, "사용자 입력 질문 기록") ??
+        parseMarkdownSectionByKeyword(markdown, "user question record");
+    if (!section) {
+        return [];
+    }
+    return section
+        .split("\n")
+        .map((line) => line.trim())
+        .filter((line) => line.startsWith("- "))
+        .map((line) => line.slice(2).replace(/^`|`$/g, "").trim())
+        .filter(Boolean);
+}
 function parseKeyValue(markdown, key) {
     const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const pattern = new RegExp(`^[ \\t]*${escaped}:\\s*"?([^"\\n]+)"?`, "m");
@@ -1188,6 +1244,32 @@ async function readTopicArtifactSummary(topicDir) {
         workflowDocs: await summarizeArtifactGroup(topicDir, ["workflow.reactflow.json"], { required: true })
     };
 }
+function resolveTopicFileKind(absolutePath) {
+    const extension = path.extname(absolutePath).toLowerCase();
+    if (extension === ".diff") {
+        return "diff";
+    }
+    if (extension === ".md") {
+        return "markdown";
+    }
+    return "text";
+}
+async function listTopicFiles(rootDir, topicDir, bucket, topic) {
+    const files = await collectMatchingFiles(topicDir, () => true);
+    const entries = await Promise.all(files.map(async (absolutePath) => {
+        const fileStat = await stat(absolutePath).catch(() => null);
+        const relativePath = toRelativePath(topicDir, absolutePath);
+        return {
+            relativePath,
+            sourcePath: `poggn/${bucket}/${topic}/${relativePath}`,
+            kind: resolveTopicFileKind(absolutePath),
+            updatedAt: fileStat?.mtime.toISOString() ?? null,
+            size: fileStat?.size ?? null,
+            editable: true
+        };
+    }));
+    return entries.sort((left, right) => left.relativePath.localeCompare(right.relativePath));
+}
 function deriveTopicUpdatedAt(artifactSummary, archivedAt) {
     return ([
         artifactSummary.lifecycleDocs.latestUpdatedAt,
@@ -1217,6 +1299,8 @@ async function listTopicSummaries(rootDir, bucket) {
         const release = await readTopicVersion(topicDir);
         const publish = await readTopicPublishMetadata(topicDir);
         const artifactSummary = await readTopicArtifactSummary(topicDir);
+        const userQuestionRecord = parseUserQuestionRecord(proposalMarkdown);
+        const files = await listTopicFiles(rootDir, topicDir, bucket, entry.name);
         const updatedAt = deriveTopicUpdatedAt(artifactSummary, release.archivedAt);
         const stage = stateMarkdown ? parseMarkdownSection(stateMarkdown, "Current Stage") : parseKeyValue(proposalMarkdown ?? "", "stage");
         const goal = stateMarkdown ? parseMarkdownSection(stateMarkdown, "Goal") : null;
@@ -1256,7 +1340,9 @@ async function listTopicSummaries(rootDir, bucket) {
                 artifactSummary.workflowDocs.missingRequired
                 ? "partial"
                 : "complete",
-            health: stateMarkdown && workflow ? "ok" : "partial"
+            health: stateMarkdown && workflow ? "ok" : "partial",
+            userQuestionRecord,
+            files
         });
     }
     return result;
@@ -1350,6 +1436,8 @@ export async function analyzeProject(rootDir, registered = false) {
             workingBranchPrefix: "ai",
             releaseBranchPrefix: "release",
             installedVersion: null,
+            pggVersion: null,
+            projectVersion: null,
             dashboardTitle: `${path.basename(rootDir)} dashboard`,
             dashboardTitleIconSvg: getDefaultDashboardTitleIconSvg(),
             refreshIntervalMs: 10_000,
@@ -1371,6 +1459,7 @@ export async function analyzeProject(rootDir, registered = false) {
         };
     }
     const manifest = await loadProjectManifest(rootDir);
+    const projectVersion = await readProjectVersion(rootDir);
     const activeTopics = await listTopicSummaries(rootDir, "active");
     const archivedTopics = await listTopicSummaries(rootDir, "archive");
     const verification = resolveProjectVerification(rootDir, manifest?.verification);
@@ -1391,6 +1480,8 @@ export async function analyzeProject(rootDir, registered = false) {
         workingBranchPrefix: manifest?.git.workingBranchPrefix ?? "ai",
         releaseBranchPrefix: manifest?.git.releaseBranchPrefix ?? "release",
         installedVersion: manifest?.installedVersion ?? null,
+        pggVersion: manifest?.installedVersion ?? null,
+        projectVersion,
         dashboardTitle: manifest?.dashboard.title ?? `${path.basename(rootDir)} dashboard`,
         dashboardTitleIconSvg: manifest?.dashboard.titleIconSvg ?? getDefaultDashboardTitleIconSvg(),
         refreshIntervalMs: manifest?.dashboard.refreshIntervalMs ?? 10_000,
@@ -1483,6 +1574,70 @@ export async function buildDashboardSnapshot(currentRootDir) {
         recentActivity,
         projects: projectsWithCategories
     };
+}
+function resolveTopicDir(rootDir, bucket, topic) {
+    return path.join(rootDir, "poggn", bucket, topic);
+}
+function normalizeTopicRelativeFilePath(relativePath) {
+    const trimmed = relativePath.trim();
+    if (!trimmed) {
+        throw new Error("A topic-relative file path is required.");
+    }
+    if (path.isAbsolute(trimmed)) {
+        throw new Error("Absolute paths are not allowed.");
+    }
+    const normalized = path.posix.normalize(trimmed.replace(/\\/g, "/"));
+    if (!normalized || normalized === "." || normalized.startsWith("../") || normalized.includes("/../")) {
+        throw new Error("The file path must stay inside the topic directory.");
+    }
+    return normalized;
+}
+function resolveTopicFilePath(rootDir, bucket, topic, relativePath) {
+    const topicDir = path.resolve(resolveTopicDir(rootDir, bucket, topic));
+    const normalizedRelativePath = normalizeTopicRelativeFilePath(relativePath);
+    const absolutePath = path.resolve(topicDir, normalizedRelativePath);
+    if (!absolutePath.startsWith(`${topicDir}${path.sep}`) && absolutePath !== topicDir) {
+        throw new Error("The file path must stay inside the topic directory.");
+    }
+    return {
+        absolutePath,
+        normalizedRelativePath
+    };
+}
+export async function readTopicFileDetail(rootDir, bucket, topic, relativePath) {
+    const { absolutePath, normalizedRelativePath } = resolveTopicFilePath(rootDir, bucket, topic, relativePath);
+    const content = await readTextIfExists(absolutePath);
+    if (content === null) {
+        throw new Error(`Topic file '${normalizedRelativePath}' was not found.`);
+    }
+    const fileStat = await stat(absolutePath).catch(() => null);
+    const kind = resolveTopicFileKind(absolutePath);
+    const contentType = kind === "diff" ? "text/x-diff" : kind === "markdown" ? "text/markdown" : "text/plain";
+    return {
+        kind,
+        title: path.basename(absolutePath),
+        sourcePath: toRelativePath(rootDir, absolutePath),
+        content,
+        contentType,
+        updatedAt: fileStat?.mtime.toISOString() ?? null
+    };
+}
+export async function updateTopicFile(rootDir, bucket, topic, relativePath, content) {
+    const { absolutePath, normalizedRelativePath } = resolveTopicFilePath(rootDir, bucket, topic, relativePath);
+    const current = await readTextIfExists(absolutePath);
+    if (current === null) {
+        throw new Error(`Topic file '${normalizedRelativePath}' was not found.`);
+    }
+    await writeTextFile(absolutePath, content);
+    return readTopicFileDetail(rootDir, bucket, topic, normalizedRelativePath);
+}
+export async function deleteTopicFile(rootDir, bucket, topic, relativePath) {
+    const { absolutePath, normalizedRelativePath } = resolveTopicFilePath(rootDir, bucket, topic, relativePath);
+    const current = await readTextIfExists(absolutePath);
+    if (current === null) {
+        throw new Error(`Topic file '${normalizedRelativePath}' was not found.`);
+    }
+    await rm(absolutePath, { force: true });
 }
 export function findWorkspaceRoot(startDir) {
     let cursor = path.resolve(startDir);
