@@ -8,3 +8,5 @@
 {"ts":"2026-04-23T22:25:24Z","stage":"qa","event":"qa-reported","decision":"fail","reason":"reviews/refactor.review.md is missing","next":"pgg-refactor"}
 {"ts":"2026-04-23T22:25:24Z","stage":"refactor","event":"refactor-reviewed","score":95,"next":"pgg-qa"}
 {"ts":"2026-04-23T22:40:14Z","stage":"refactor","event":"stage-commit","archiveType":"fix","commitTitle":"fix: project workspace cleanup","summary":"project workspace cleanup","why":"selector version fallback and main workspace metric wiring need to be deduplicated so QA can review a simpler project surface without changing the approved UI behavior.","footer":"Refs: dashboard-project-main-selector-version-sync"}
+{"ts":"2026-04-23T22:53:06Z","stage":"qa","event":"qa-reviewed","score":96,"decision":"pass","next":"archive"}
+{"ts":"2026-04-23T23:03:35Z","stage":"qa","event":"stage-commit","archiveType":"fix","commitTitle":"fix: qa completion","summary":"qa completion","why":"QA artifacts and final verification updates need a completion commit before archive publish.","footer":"Refs: dashboard-project-main-selector-version-sync"}

@@ -6,7 +6,7 @@ dashboard-project-main-selector-version-sync
 
 ## Current Stage
 
-refactor
+qa
 
 ## Goal
 
@@ -91,22 +91,31 @@ refactor
 
 ## Last Expert Score
 
-- score: 95
+- score: 96
 - blocking issues: none
+
+## QA Result
+
+- `pnpm build` pass
+- `pgg-code gate` pass
+- `pgg-refactor gate` pass
+- `pgg-qa gate` pass
+- current-project verification contract는 없어 `manual verification required`로 기록했다
 
 ## Open Items
 
-- status: refactor review와 helper cleanup이 완료되어 QA 재실행 준비가 됐다.
+- status: pass
 
 ## Next Workflow
 
-- `pgg-qa`
-- reason: refactor review artifact와 구조 정리가 완료돼 QA gate를 다시 실행할 수 있다.
+- `archive`
+- reason: QA report와 qa gate가 모두 pass 상태라 archive helper를 실행할 수 있다.
 
 ## Verification
 
 - project verification: `manual verification required`
 - workspace check: `pnpm --filter @pgg/dashboard build` pass
+- workspace build: `pnpm build` pass
 - implementation gate: `bash ./.codex/sh/pgg-gate.sh pgg-code dashboard-project-main-selector-version-sync` pass
 - refactor entry gate: `bash ./.codex/sh/pgg-gate.sh pgg-refactor dashboard-project-main-selector-version-sync` pass
 - qa retry gate: `bash ./.codex/sh/pgg-gate.sh pgg-qa dashboard-project-main-selector-version-sync` pass

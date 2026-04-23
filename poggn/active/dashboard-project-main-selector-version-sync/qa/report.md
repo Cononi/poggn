@@ -2,13 +2,13 @@
 pgg:
   topic: "dashboard-project-main-selector-version-sync"
   stage: "qa"
-  status: "blocked"
+  status: "done"
   skill: "pgg-qa"
-  score: 88
-  updated_at: "2026-04-23T22:25:24Z"
+  score: 96
+  updated_at: "2026-04-23T22:53:06Z"
 state:
   summary: "project main parity, selector affordance, path visibility, archive-based version sync 변경에 대한 QA 결과를 기록한다."
-  next: "return to pgg-refactor"
+  next: "archive complete"
 ---
 
 # QA Report
@@ -34,9 +34,9 @@ state:
 - `bash ./.codex/sh/pgg-gate.sh pgg-code dashboard-project-main-selector-version-sync`
   - pass. implementation stage artifacts가 gate 기준을 충족했다.
 - `bash ./.codex/sh/pgg-gate.sh pgg-refactor dashboard-project-main-selector-version-sync`
-  - pass. 현재 topic이 refactor stage로 진입할 최소 implementation artifacts는 충족했다.
+  - pass. refactor review까지 포함한 stage artifacts가 gate 기준을 충족했다.
 - `bash ./.codex/sh/pgg-gate.sh pgg-qa dashboard-project-main-selector-version-sync`
-  - fail. `reviews/refactor.review.md is missing`로 QA gate가 막혔다.
+  - pass. QA report, refactor review, required artifacts가 모두 gate 기준을 충족했다.
 - current-project verification contract
   - `manual verification required`. `.pgg/project.json` 기준 `verification.mode=manual`, `manualReason=verification contract not declared`다.
 - git preflight
@@ -46,8 +46,8 @@ state:
 
 - build: `pnpm build`
 - implementation gate: `{"gate":"pass","stage":"pgg-code"}`
-- refactor entry gate: `{"gate":"pass","stage":"pgg-refactor"}`
-- qa gate: `{"gate":"fail","stage":"pgg-qa","reason":"reviews/refactor.review.md is missing"}`
+- refactor gate: `{"gate":"pass","stage":"pgg-refactor"}`
+- qa gate: `{"gate":"pass","stage":"pgg-qa"}`
 - verification status: `.pgg/project.json`의 `verification.mode=manual`, `manualReason=verification contract not declared`
 - git branch: `git branch --show-current` => `ai/fix/0.15.1-dashboard-sync`
 - git remote: `git remote get-url origin` => `https://github.com/Cononi/PoggnDocs.git`
@@ -56,13 +56,13 @@ state:
 
 | Expert | Score | Core Judgment | Evidence Checked | Blocking Issue |
 |---|---:|---|---|---|
-| QA/테스트 엔지니어 | 88 | build와 implementation evidence는 안정적이지만 required refactor review artifact가 없어 QA pass를 줄 수 없다. | `pnpm build`, `pgg-code/pgg-refactor/pgg-qa gate`, `state/current.md`를 확인했다. | `reviews/refactor.review.md` 누락 |
-| 코드 리뷰어 | 87 | version source, selector affordance, project main surface 변경 자체는 범위에 맞지만 refactor 단계 기록이 없어 최종 workflow completeness가 부족하다. | `reviews/code.review.md`, `implementation/index.md`, `state/history.ndjson`, QA gate 결과를 확인했다. | `reviews/refactor.review.md` 누락 |
-| SRE / 운영 엔지니어 | 90 | branch/remote와 manual verification 상태는 정상이지만 QA gate fail 상태에서 archive helper를 실행하면 workflow contract를 깨게 된다. | `.pgg/project.json`, `git branch --show-current`, `git remote get-url origin`, QA gate 결과를 확인했다. | `reviews/refactor.review.md` 누락 |
+| QA/테스트 엔지니어 | 96 | main parity, selector affordance, archive-based version sync 변경이 workspace build와 gate evidence 기준으로 안정적으로 통과했다. | `pnpm build`, `pgg-code/refactor/qa gate`, `qa/report.md` 갱신 근거를 확인했다. | 없음 |
+| 코드 리뷰어 | 96 | selector version helper 추출과 main workspace metric cleanup 이후에도 범위 내 동작이 유지되고 workflow artifact completeness도 충족됐다. | `reviews/code.review.md`, `reviews/refactor.review.md`, implementation diff 목록, gate 결과를 확인했다. | 없음 |
+| SRE / 운영 엔지니어 | 95 | manual verification 상태와 git remote/branch preflight가 정상이고 QA gate도 pass라 archive helper 실행 전제가 충족된다. | `.pgg/project.json`, `git branch --show-current`, `git remote get-url origin`, QA gate 결과를 확인했다. | 없음 |
 
 ## Decision
 
-- fail
+- pass
 
 ## Git Publish Message
 
@@ -72,6 +72,6 @@ state:
 
 ## Notes
 
-- minimum rollback stage는 `pgg-refactor`다. `reviews/refactor.review.md`와 refactor stage 기록을 만든 뒤 `pgg-qa`를 다시 실행해야 한다.
-- QA gate가 fail이므로 `.codex/sh/pgg-archive.sh dashboard-project-main-selector-version-sync`는 실행하지 않았다.
+- 이전 QA fail 원인이던 `reviews/refactor.review.md` 누락은 refactor 단계에서 해소됐고, QA gate가 pass로 복귀했다.
 - UI 상호작용의 실제 화면 검증은 current-project verification contract가 없어 계속 `manual verification required`로 남는다.
+- dashboard bundle chunk size warning은 남아 있지만 이번 topic의 blocking QA issue로 보지는 않는다.

@@ -13,7 +13,8 @@
     { "id": "implementation", "type": "doc", "label": "implementation/index.md", "stage": "implementation", "status": "reviewed" },
     { "id": "code-review", "type": "review", "label": "code.review.md", "stage": "implementation", "status": "reviewed" },
     { "id": "refactor-review", "type": "review", "label": "refactor.review.md", "stage": "refactor", "status": "reviewed" },
-    { "id": "qa-report", "type": "doc", "label": "qa/report.md", "stage": "qa", "status": "next" }
+    { "id": "qa-report", "type": "doc", "label": "qa/report.md", "stage": "qa", "status": "done" },
+    { "id": "archive", "type": "pending", "label": "archive", "stage": "archive", "status": "next" }
   ],
   "edges": [
     { "source": "proposal", "target": "proposal-review", "label": "reviewed" },
@@ -29,6 +30,7 @@
     { "source": "task-review", "target": "implementation", "label": "implemented" },
     { "source": "implementation", "target": "code-review", "label": "reviewed" },
     { "source": "code-review", "target": "refactor-review", "label": "refactored" },
-    { "source": "refactor-review", "target": "qa-report", "label": "next" }
+    { "source": "refactor-review", "target": "qa-report", "label": "validated" },
+    { "source": "qa-report", "target": "archive", "label": "next" }
   ]
 }
