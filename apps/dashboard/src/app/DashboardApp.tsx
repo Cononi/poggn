@@ -801,13 +801,10 @@ export default function DashboardApp() {
               activeDetailSection={activeDetailSection}
               activeSettingsView={activeSettingsView}
               project={boardContextProject}
-              categories={categories}
-              projects={snapshot.projects}
               dictionary={dictionary}
               onSelectSidebarItem={setActiveSidebarItem}
               onSelectDetailSection={openManagementSection}
               onSelectSettingsView={openSettingsPanel}
-              onAddProject={() => setProjectDialogOpen(true)}
               onOpenProjectSelector={openProjectSelector}
             />
           </Box>
@@ -861,8 +858,6 @@ export default function DashboardApp() {
           activeDetailSection={activeDetailSection}
           activeSettingsView={activeSettingsView}
           project={boardContextProject}
-          categories={categories}
-          projects={snapshot.projects}
           dictionary={dictionary}
           onSelectSidebarItem={(item) => {
             setActiveSidebarItem(item);
@@ -873,10 +868,6 @@ export default function DashboardApp() {
             setSidebarDrawerOpen(false);
           }}
           onSelectSettingsView={openSettingsPanel}
-          onAddProject={() => {
-            setProjectDialogOpen(true);
-            setSidebarDrawerOpen(false);
-          }}
           onOpenProjectSelector={() => {
             setProjectSelectorOpen(true);
             setSidebarDrawerOpen(false);

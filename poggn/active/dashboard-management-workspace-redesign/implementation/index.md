@@ -26,9 +26,13 @@ state:
 | 005 | UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | `implementation/diffs/005_UPDATE_apps_dashboard_src_shared_locale_dashboardLocale_ts.diff` | `T1`, `T4`, `T5` | report/files workspace control bar와 metadata footer에 필요한 ko/en copy를 추가했다 |
 | 006 | UPDATE | `apps/dashboard/src/shared/model/dashboard.ts` | `implementation/diffs/006_UPDATE_apps_dashboard_src_shared_model_dashboard_ts.diff` | `T1` | detail section contract를 `main/workflow/history/report/files` 기준으로 재정의했다 |
 | 007 | UPDATE | `apps/dashboard/src/shared/store/dashboardStore.ts` | `implementation/diffs/007_UPDATE_apps_dashboard_src_shared_store_dashboardStore_ts.diff` | `T1` | persisted UI state가 legacy `project-info`를 `main`으로 호환 매핑하도록 정리했다 |
+| 008 | UPDATE | `apps/dashboard/src/app/DashboardApp.tsx` | `implementation/diffs/008_UPDATE_apps_dashboard_src_app_DashboardApp_tsx.refactor.diff` | `refactor` | management-only sidebar가 된 뒤 더 이상 쓰지 않는 sidebar props를 제거해 shell wiring 책임을 줄였다 |
+| 009 | UPDATE | `apps/dashboard/src/app/DashboardShellChrome.tsx` | `implementation/diffs/009_UPDATE_apps_dashboard_src_app_DashboardShellChrome_tsx.refactor.diff` | `refactor` | `ProjectContextSidebar` prop contract를 실제 책임에 맞게 축소해 unused path를 제거했다 |
+| 010 | UPDATE | `apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx` | `implementation/diffs/010_UPDATE_apps_dashboard_src_features_project-detail_ProjectDetailWorkspace_tsx.refactor.diff` | `refactor` | workspace header와 report filter/export helper를 분리해 section 내부 조건 분기를 줄이고 가독성을 높였다 |
 
 ## Notes
 
 - `pnpm build`가 통과했다.
 - verification contract는 선언되지 않아 `manual verification required` 상태를 유지한다.
 - unrelated dirty worktree로 보이는 `add-img/*.png` 변경은 topic baseline에 기록해 stage-local commit에서 제외했다.
+- refactor 단계에서 management-only sidebar 이후 남은 불필요 prop 연결과 workspace/report helper 중복을 정리했다.

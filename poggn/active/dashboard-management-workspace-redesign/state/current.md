@@ -6,11 +6,11 @@ dashboard-management-workspace-redesign
 
 ## Current Stage
 
-implementation
+refactor
 
 ## Goal
 
-workspace selector metadata와 `MANAGEMENT` 기반 `main/workflow/history/report/files` 화면을 구현하고 implementation 기록을 남긴다.
+management workspace 구현 뒤 남은 불필요 prop 연결과 helper 중복을 제거하고 refactor 기록을 남긴다.
 
 ## Document Refs
 
@@ -22,6 +22,7 @@ workspace selector metadata와 `MANAGEMENT` 기반 `main/workflow/history/report
 - task review: `poggn/active/dashboard-management-workspace-redesign/reviews/task.review.md`
 - implementation index: `poggn/active/dashboard-management-workspace-redesign/implementation/index.md`
 - code review: `poggn/active/dashboard-management-workspace-redesign/reviews/code.review.md`
+- refactor review: `poggn/active/dashboard-management-workspace-redesign/reviews/refactor.review.md`
 - spec:
   - `poggn/active/dashboard-management-workspace-redesign/spec/ui/project-selector-version-and-sync.md`
   - `poggn/active/dashboard-management-workspace-redesign/spec/ui/management-navigation-shell.md`
@@ -76,6 +77,7 @@ workspace selector metadata와 `MANAGEMENT` 기반 `main/workflow/history/report
 - CREATE `poggn/active/dashboard-management-workspace-redesign/spec/ui/management-files-workspace.md`
 - CREATE `poggn/active/dashboard-management-workspace-redesign/implementation/index.md`
 - CREATE `poggn/active/dashboard-management-workspace-redesign/reviews/code.review.md`
+- CREATE `poggn/active/dashboard-management-workspace-redesign/reviews/refactor.review.md`
 - CREATE `poggn/active/dashboard-management-workspace-redesign/reviews/plan.review.md`
 - CREATE `poggn/active/dashboard-management-workspace-redesign/reviews/task.review.md`
 - CREATE `poggn/active/dashboard-management-workspace-redesign/state/current.md`
@@ -97,12 +99,12 @@ workspace selector metadata와 `MANAGEMENT` 기반 `main/workflow/history/report
 
 ## Open Items
 
-- status: implementation completed
+- status: refactor completed
 
 ## Next Workflow
 
-- `pgg-refactor`
-- reason: implementation과 code review를 마쳤으므로 legacy 정리와 구조 보강을 위한 refactor 단계로 진행할 수 있다.
+- `pgg-qa`
+- reason: refactor review와 build 검증까지 마쳐 QA 단계로 넘길 수 있다.
 
 ## Verification
 

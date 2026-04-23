@@ -65,13 +65,10 @@ type ProjectContextSidebarProps = {
   activeDetailSection: DashboardDetailSection;
   activeSettingsView: DashboardSettingsView;
   project: ProjectSnapshot | null;
-  categories: ProjectCategory[];
-  projects: ProjectSnapshot[];
   dictionary: DashboardLocale;
   onSelectSidebarItem: (item: DashboardSidebarItem) => void;
   onSelectDetailSection: (section: DashboardDetailSection) => void;
   onSelectSettingsView: (view: DashboardSettingsView) => void;
-  onAddProject: () => void;
   onOpenProjectSelector: () => void;
 };
 

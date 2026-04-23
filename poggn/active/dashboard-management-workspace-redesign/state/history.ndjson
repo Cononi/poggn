@@ -3,4 +3,6 @@
 {"ts":"2026-04-23T15:52:26Z","stage":"plan","event":"plan-reviewed","score":96,"next":"pgg-code"}
 {"ts":"2026-04-23T15:52:26Z","stage":"task","event":"task-reviewed","score":96,"next":"pgg-code"}
 {"ts":"2026-04-23T16:03:56Z","stage":"implementation","event":"implementation-reviewed","score":96,"next":"pgg-refactor"}
+{"ts":"2026-04-23T16:08:16Z","stage":"refactor","event":"refactor-reviewed","score":96,"next":"pgg-qa"}
 {"ts":"2026-04-23T16:05:16Z","stage":"implementation","event":"stage-commit","archiveType":"feat","commitTitle":"feat: management workspace shell","summary":"management workspace shell","why":"Selector metadata와 management workspace 5개 화면을 현재 project state 위에 일관되게 재구성해야 시안 기준 탐색 흐름이 맞춰진다.","footer":"Refs: dashboard-management-workspace-redesign","branchRecovery":"recovered","branchRecoveryReason":"Governed checkout recovered the stage helper onto 'ai/feat/0.15.0-management-workspace' from 'release/0.14.0-dashboard-project-selector'.","branchRecoveryFrom":"release/0.14.0-dashboard-project-selector"}
+{"ts":"2026-04-23T16:10:02Z","stage":"refactor","event":"stage-commit","archiveType":"feat","commitTitle":"feat: management workspace cleanup","summary":"management workspace cleanup","why":"Management 전용 sidebar와 workspace helper 책임을 정리해야 구현 뒤 남은 dead wiring과 중복 분기가 줄어들고 후속 QA가 쉬워진다.","footer":"Refs: dashboard-management-workspace-redesign"}

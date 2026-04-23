@@ -1,0 +1,18 @@
+diff --git a/apps/dashboard/src/app/DashboardShellChrome.tsx b/apps/dashboard/src/app/DashboardShellChrome.tsx
+index 2a1b840..c37a9eb 100644
+--- a/apps/dashboard/src/app/DashboardShellChrome.tsx
++++ b/apps/dashboard/src/app/DashboardShellChrome.tsx
+@@ -65,13 +65,10 @@ type ProjectContextSidebarProps = {
+   activeDetailSection: DashboardDetailSection;
+   activeSettingsView: DashboardSettingsView;
+   project: ProjectSnapshot | null;
+-  categories: ProjectCategory[];
+-  projects: ProjectSnapshot[];
+   dictionary: DashboardLocale;
+   onSelectSidebarItem: (item: DashboardSidebarItem) => void;
+   onSelectDetailSection: (section: DashboardDetailSection) => void;
+   onSelectSettingsView: (view: DashboardSettingsView) => void;
+-  onAddProject: () => void;
+   onOpenProjectSelector: () => void;
+ };
+ 
