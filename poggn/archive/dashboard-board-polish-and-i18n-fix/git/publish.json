@@ -1,0 +1,32 @@
+{
+  "topic": "dashboard-board-polish-and-i18n-fix",
+  "version": "0.11.1",
+  "targetVersion": "0.11.1",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "commitTitle": "fix: dashboard board polish",
+  "commitSha": "980e0a101965931934c6016500343163bac35129",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/0.11.1-dashboard-board-polish",
+  "workingBranch": "ai/fix/0.11.1-dashboard-board-polish",
+  "releaseBranch": "release/0.11.1-dashboard-board-polish",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-23T05:02:50Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/0.11.1-dashboard-board-polish'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "not_attempted",
+  "branchRecoveryReason": null,
+  "branchRecoveryFrom": null,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/dashboard-board-polish-and-i18n-fix",
+    "versionFile": "poggn/archive/dashboard-board-polish-and-i18n-fix/version.json"
+  }
+}
