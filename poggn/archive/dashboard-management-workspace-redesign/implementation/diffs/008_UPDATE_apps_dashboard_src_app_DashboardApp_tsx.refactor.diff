@@ -1,0 +1,38 @@
+diff --git a/apps/dashboard/src/app/DashboardApp.tsx b/apps/dashboard/src/app/DashboardApp.tsx
+index 5aa1460..fb45a16 100644
+--- a/apps/dashboard/src/app/DashboardApp.tsx
++++ b/apps/dashboard/src/app/DashboardApp.tsx
+@@ -801,13 +801,10 @@ export default function DashboardApp() {
+               activeDetailSection={activeDetailSection}
+               activeSettingsView={activeSettingsView}
+               project={boardContextProject}
+-              categories={categories}
+-              projects={snapshot.projects}
+               dictionary={dictionary}
+               onSelectSidebarItem={setActiveSidebarItem}
+               onSelectDetailSection={openManagementSection}
+               onSelectSettingsView={openSettingsPanel}
+-              onAddProject={() => setProjectDialogOpen(true)}
+               onOpenProjectSelector={openProjectSelector}
+             />
+           </Box>
+@@ -861,8 +858,6 @@ export default function DashboardApp() {
+           activeDetailSection={activeDetailSection}
+           activeSettingsView={activeSettingsView}
+           project={boardContextProject}
+-          categories={categories}
+-          projects={snapshot.projects}
+           dictionary={dictionary}
+           onSelectSidebarItem={(item) => {
+             setActiveSidebarItem(item);
+@@ -873,10 +868,6 @@ export default function DashboardApp() {
+             setSidebarDrawerOpen(false);
+           }}
+           onSelectSettingsView={openSettingsPanel}
+-          onAddProject={() => {
+-            setProjectDialogOpen(true);
+-            setSidebarDrawerOpen(false);
+-          }}
+           onOpenProjectSelector={() => {
+             setProjectSelectorOpen(true);
+             setSidebarDrawerOpen(false);

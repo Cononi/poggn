@@ -1,0 +1,211 @@
+diff --git a/apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx b/apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx
+index 3bee837..48a89e3 100644
+--- a/apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx
++++ b/apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx
+@@ -884,7 +884,11 @@ function WorkspaceHeader(props: {
+           </Stack>
+         </Stack>
+ 
+-        <Typography variant="body2" color="text.secondary">
++        <Typography
++          variant="body2"
++          color="text.secondary"
++          sx={{ wordBreak: "break-word", overflowWrap: "anywhere", fontFamily: '"IBM Plex Mono", "SFMono-Regular", monospace' }}
++        >
+           {props.project.rootDir}
+         </Typography>
+       </Stack>
+@@ -893,20 +897,35 @@ function WorkspaceHeader(props: {
+ }
+ 
+ function ProjectInfoSection(props: { project: ProjectSnapshot; dictionary: DashboardLocale }) {
++  const language = props.project.language;
++  const latestActivityLabel = props.project.latestActivityAt
++    ? formatDate(props.project.latestActivityAt, language)
++    : props.dictionary.unknown;
++  const latestStageLabel = resolveDashboardStageLabel(props.project.latestTopicStage, props.dictionary);
++  const fileSurfaceLabel = `AGENTS ${props.project.hasAgents ? props.dictionary.yes : props.dictionary.no} / .codex ${props.project.hasCodex ? props.dictionary.yes : props.dictionary.no} / poggn ${props.project.hasPoggn ? props.dictionary.yes : props.dictionary.no}`;
++  const healthLabel = props.project.missingRoot ? props.dictionary.partial : props.dictionary.ok;
++  const verificationLabel = props.project.verificationReason ?? props.dictionary.verificationRequired;
++
+   return (
+-    <Box
+-      sx={{
+-        display: "grid",
+-        gap: 3,
+-        gridTemplateColumns: { xs: "1fr", xl: "minmax(320px, 360px) minmax(0, 1fr)" }
+-      }}
+-    >
+-      <Stack spacing={3}>
+-        <Paper sx={{ p: 2.25, borderRadius: 1 }}>
+-          <Typography variant="h6" sx={{ mb: 2 }}>
+-            {props.dictionary.overview}
+-          </Typography>
+-          <Box sx={{ display: "grid", gap: 1.5, gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
++    <Stack spacing={3}>
++      <Paper sx={{ p: 2.25, borderRadius: 1 }}>
++        <Stack spacing={1.8}>
++          <Box>
++            <Typography variant="h6">{props.dictionary.overview}</Typography>
++            <Typography variant="body2" color="text.secondary">
++              {props.dictionary.workspaceHint}
++            </Typography>
++          </Box>
++          <Box
++            sx={{
++              display: "grid",
++              gap: 1.5,
++              gridTemplateColumns: {
++                xs: "repeat(2, minmax(0, 1fr))",
++                xl: "repeat(4, minmax(0, 1fr))"
++              }
++            }}
++          >
+             <MetricCard
+               label={props.dictionary.active}
+               value={String(props.project.activeTopics.length)}
+@@ -925,55 +944,82 @@ function ProjectInfoSection(props: { project: ProjectSnapshot; dictionary: Dashb
+             />
+             <MetricCard
+               label={props.dictionary.health}
+-              value={props.project.missingRoot ? props.dictionary.partial : props.dictionary.ok}
++              value={healthLabel}
+               icon={<FavoriteRounded fontSize="small" />}
+             />
+           </Box>
+-        </Paper>
++        </Stack>
++      </Paper>
+ 
++      <Box
++        sx={{
++          display: "grid",
++          gap: 3,
++          gridTemplateColumns: { xs: "1fr", xl: "minmax(0, 1.15fr) minmax(320px, 0.85fr)" }
++        }}
++      >
+         <Paper sx={{ p: 2.25, borderRadius: 1 }}>
+-          <Typography variant="h6" sx={{ mb: 2 }}>
+-            {props.dictionary.currentProject}
+-          </Typography>
+-          <Stack spacing={1.25}>
+-            <MetricRow label={props.dictionary.path} value={props.project.rootDir} />
+-            <MetricRow label={props.dictionary.provider} value={props.project.provider} />
+-            <MetricRow label={props.dictionary.language} value={props.project.language} />
+-            <MetricRow label={props.dictionary.autoMode} value={props.project.autoMode} />
+-            <MetricRow label={props.dictionary.teamsMode} value={props.project.teamsMode} />
+-            <MetricRow label={props.dictionary.gitMode} value={props.project.gitMode} />
+-            <MetricRow label={props.dictionary.pggVersion} value={props.project.pggVersion ?? props.dictionary.unknown} />
+-            <MetricRow label={props.dictionary.projectVersion} value={props.project.projectVersion ?? props.dictionary.unknown} />
+-            <MetricRow label={props.dictionary.verification} value={props.project.verificationStatus} />
+-            <MetricRow
+-              label={props.dictionary.verificationReason}
+-              value={props.project.verificationReason ?? props.dictionary.verificationRequired}
+-            />
+-            <MetricRow label={props.dictionary.verificationCommands} value={String(props.project.verificationCommandCount)} />
++          <Stack spacing={1.8}>
++            <Box>
++              <Typography variant="h6">{props.dictionary.projectInfoSection}</Typography>
++              <Typography variant="body2" color="text.secondary">
++                {props.dictionary.historyHint}
++              </Typography>
++            </Box>
++
++            <Box
++              sx={{
++                display: "grid",
++                gap: 1.5,
++                gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" }
++              }}
++            >
++              <MetricSurface label={props.dictionary.latestActivity} value={latestActivityLabel} />
++              <MetricSurface label={props.dictionary.topic} value={props.project.latestTopicName ?? props.dictionary.unknown} />
++              <MetricSurface label={props.dictionary.topicStage} value={latestStageLabel} />
++              <MetricSurface label={props.dictionary.files} value={fileSurfaceLabel} />
++              <MetricSurface label={props.dictionary.workingBranch} value={props.project.workingBranchPrefix} />
++              <MetricSurface label={props.dictionary.releaseBranch} value={props.project.releaseBranchPrefix} />
++            </Box>
+           </Stack>
+         </Paper>
+-      </Stack>
+ 
+-      <Paper sx={{ p: 2.25, borderRadius: 1 }}>
+-        <Typography variant="h6" sx={{ mb: 2 }}>
+-          {props.dictionary.projectInfoSection}
+-        </Typography>
+-        <Stack spacing={1.25}>
+-          <MetricRow label={props.dictionary.latestActivity} value={props.project.latestActivityAt ?? props.dictionary.unknown} />
+-          <MetricRow label={props.dictionary.topic} value={props.project.latestTopicName ?? props.dictionary.unknown} />
+-          <MetricRow
+-            label={props.dictionary.topicStage}
+-            value={resolveDashboardStageLabel(props.project.latestTopicStage, props.dictionary)}
+-          />
+-          <MetricRow
+-            label={props.dictionary.files}
+-            value={`AGENTS ${props.project.hasAgents ? props.dictionary.yes : props.dictionary.no} / .codex ${props.project.hasCodex ? props.dictionary.yes : props.dictionary.no} / poggn ${props.project.hasPoggn ? props.dictionary.yes : props.dictionary.no}`}
+-          />
+-          <MetricRow label={props.dictionary.workingBranch} value={props.project.workingBranchPrefix} />
+-          <MetricRow label={props.dictionary.releaseBranch} value={props.project.releaseBranchPrefix} />
+-        </Stack>
+-      </Paper>
+-    </Box>
++        <Paper sx={{ p: 2.25, borderRadius: 1 }}>
++          <Stack spacing={1.8}>
++            <Box>
++              <Typography variant="h6">{props.dictionary.currentProject}</Typography>
++              <Typography variant="body2" color="text.secondary">
++                {props.dictionary.workspace}
++              </Typography>
++            </Box>
++
++            <Paper
++              variant="outlined"
++              sx={{
++                p: 1.5,
++                borderRadius: 1,
++                bgcolor: alpha("#0f172a", 0.04)
++              }}
++            >
++              <MetricRow label={props.dictionary.path} value={props.project.rootDir} />
++            </Paper>
++
++            <Stack spacing={1.25}>
++              <MetricRow label={props.dictionary.provider} value={props.project.provider} />
++              <MetricRow label={props.dictionary.language} value={props.project.language} />
++              <MetricRow label={props.dictionary.autoMode} value={props.project.autoMode} />
++              <MetricRow label={props.dictionary.teamsMode} value={props.project.teamsMode} />
++              <MetricRow label={props.dictionary.gitMode} value={props.project.gitMode} />
++              <MetricRow label={props.dictionary.pggVersion} value={props.project.pggVersion ?? props.dictionary.unknown} />
++              <MetricRow label={props.dictionary.projectVersion} value={props.project.projectVersion ?? props.dictionary.unknown} />
++              <MetricRow label={props.dictionary.verification} value={props.project.verificationStatus} />
++              <MetricRow label={props.dictionary.verificationReason} value={verificationLabel} />
++              <MetricRow label={props.dictionary.verificationCommands} value={String(props.project.verificationCommandCount)} />
++            </Stack>
++          </Stack>
++        </Paper>
++      </Box>
++    </Stack>
+   );
+ }
+ 
+@@ -1304,3 +1350,20 @@ function FileMetaItem(props: { label: string; value: string }) {
+     </Box>
+   );
+ }
++
++function MetricSurface(props: { label: string; value: string }) {
++  const theme = useTheme();
++
++  return (
++    <Paper
++      variant="outlined"
++      sx={{
++        p: 1.4,
++        borderRadius: 1,
++        bgcolor: alpha(theme.palette.background.paper, 0.76)
++      }}
++    >
++      <MetricRow label={props.label} value={props.value} />
++    </Paper>
++  );
++}

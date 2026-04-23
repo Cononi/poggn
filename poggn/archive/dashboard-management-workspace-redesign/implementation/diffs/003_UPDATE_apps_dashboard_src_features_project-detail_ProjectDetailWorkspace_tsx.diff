@@ -1,0 +1,429 @@
+diff --git a/apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx b/apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx
+index b2b34bc..69e2bd8 100644
+--- a/apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx
++++ b/apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx
+@@ -1,4 +1,4 @@
+-import { useEffect, useMemo, useState } from "react";
++import { useDeferredValue, useEffect, useMemo, useState, type ReactNode } from "react";
+ import { alpha, useTheme } from "@mui/material/styles";
+ import {
+   Alert,
+@@ -7,6 +7,8 @@ import {
+   ButtonBase,
+   Chip,
+   Divider,
++  IconButton,
++  InputAdornment,
+   Paper,
+   Stack,
+   Tab,
+@@ -21,11 +23,22 @@ import {
+   TextField,
+   Typography
+ } from "@mui/material";
++import ArchiveRounded from "@mui/icons-material/ArchiveRounded";
++import ArrowBackRounded from "@mui/icons-material/ArrowBackRounded";
++import BoltRounded from "@mui/icons-material/BoltRounded";
++import CheckCircleRounded from "@mui/icons-material/CheckCircleRounded";
+ import ChevronRightRounded from "@mui/icons-material/ChevronRightRounded";
++import DownloadRounded from "@mui/icons-material/DownloadRounded";
+ import DescriptionRounded from "@mui/icons-material/DescriptionRounded";
+ import DifferenceRounded from "@mui/icons-material/DifferenceRounded";
+ import ExpandMoreRounded from "@mui/icons-material/ExpandMoreRounded";
++import FavoriteRounded from "@mui/icons-material/FavoriteRounded";
++import FilterListRounded from "@mui/icons-material/FilterListRounded";
+ import FolderRounded from "@mui/icons-material/FolderRounded";
++import GridViewRounded from "@mui/icons-material/GridViewRounded";
++import SearchRounded from "@mui/icons-material/SearchRounded";
++import SellRounded from "@mui/icons-material/SellRounded";
++import ViewListRounded from "@mui/icons-material/ViewListRounded";
+ import { Background, Controls, MiniMap, ReactFlow } from "@xyflow/react";
+ import {
+   resolveDashboardFlowStatusLabel,
+@@ -154,6 +167,32 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
+   const [expandedFolders, setExpandedFolders] = useState<string[]>([]);
+   const [reportPage, setReportPage] = useState(0);
+   const [reportRowsPerPage, setReportRowsPerPage] = useState(10);
++  const [reportQuery, setReportQuery] = useState("");
++  const [reportFilter, setReportFilter] = useState<"all" | "qa" | "review">("all");
++  const deferredReportQuery = useDeferredValue(reportQuery);
++  const filteredReportTopics = useMemo(() => {
++    const query = deferredReportQuery.trim().toLowerCase();
++    return reportTopics.filter((topic) => {
++      const hasQaReport = topic.files.some((file) => file.relativePath === "qa/report.md");
++      const hasReview = topic.files.some((file) => file.relativePath.startsWith("reviews/"));
++
++      if (reportFilter === "qa" && !hasQaReport) {
++        return false;
++      }
++
++      if (reportFilter === "review" && !hasReview) {
++        return false;
++      }
++
++      if (!query) {
++        return true;
++      }
++
++      return `${topic.name} ${topic.goal ?? ""} ${topic.nextAction ?? ""} ${topic.stage ?? ""}`
++        .toLowerCase()
++        .includes(query);
++    });
++  }, [deferredReportQuery, reportFilter, reportTopics]);
+ 
+   useEffect(() => {
+     if (!props.detailSelection?.detail) {
+@@ -179,11 +218,7 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
+ 
+   useEffect(() => {
+     setReportPage(0);
+-  }, [reportRowsPerPage, reportTopics.length]);
+-
+-  if (!props.project) {
+-    return <Alert severity="info">{props.dictionary.empty}</Alert>;
+-  }
++  }, [filteredReportTopics.length, reportRowsPerPage]);
+ 
+   const selectedFileActive =
+     props.fileSelection?.topicKey === (props.selectedTopic ? buildTopicKey(props.selectedTopic) : null) &&
+@@ -191,9 +226,19 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
+       ? selectedTopicFiles.find((file) => file.relativePath === props.fileSelection?.relativePath) ?? null
+       : null;
+   const reportRows = useMemo(
+-    () => reportTopics.slice(reportPage * reportRowsPerPage, reportPage * reportRowsPerPage + reportRowsPerPage),
+-    [reportPage, reportRowsPerPage, reportTopics]
++    () =>
++      filteredReportTopics.slice(
++        reportPage * reportRowsPerPage,
++        reportPage * reportRowsPerPage + reportRowsPerPage
++      ),
++    [filteredReportTopics, reportPage, reportRowsPerPage]
+   );
++  const currentReportFilterLabel =
++    reportFilter === "qa"
++      ? props.dictionary.reportFilterQaOnly
++      : reportFilter === "review"
++        ? props.dictionary.reportFilterReviewOnly
++        : props.dictionary.reportFilterAll;
+   const openTopicPreview = (topic: TopicSummary) => {
+     const entry = getPreferredArtifactEntry(topic, [
+       "state/current.md",
+@@ -235,6 +280,43 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
+         : [...current, folderPath]
+     );
+   };
++  const cycleReportFilter = () => {
++    setReportFilter((current) =>
++      current === "all" ? "qa" : current === "qa" ? "review" : "all"
++    );
++  };
++  const exportReportTable = () => {
++    const lines = [
++      ["topic", "stage", "score", "qaReport", "expertReviews", "updated"].join(","),
++      ...filteredReportTopics.map((topic) => {
++        const qaReport = topic.files.some((file) => file.relativePath === "qa/report.md");
++        const reviewFiles = topic.files.filter((file) => file.relativePath.startsWith("reviews/"));
++        const updatedLabel = topic.updatedAt ?? topic.archivedAt ?? "";
++        return [
++          topic.name,
++          topic.stage ?? "",
++          typeof topic.score === "number" ? String(topic.score) : "",
++          qaReport ? "ok" : "missing",
++          String(reviewFiles.length),
++          updatedLabel
++        ]
++          .map((value) => `"${String(value).replace(/"/g, '""')}"`)
++          .join(",");
++      })
++    ].join("\n");
++
++    const blob = new Blob([lines], { type: "text/csv;charset=utf-8" });
++    const url = window.URL.createObjectURL(blob);
++    const anchor = document.createElement("a");
++    anchor.href = url;
++    anchor.download = `${props.project?.name ?? "project"}-reports.csv`;
++    anchor.click();
++    window.URL.revokeObjectURL(url);
++  };
++
++  if (!props.project) {
++    return <Alert severity="info">{props.dictionary.empty}</Alert>;
++  }
+ 
+   return (
+     <Stack spacing={3}>
+@@ -263,7 +345,7 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
+               </Typography>
+             </Box>
+             <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap", alignSelf: "flex-start" }}>
+-              <Button variant="contained" size="small" onClick={props.onBack}>
++              <Button variant="contained" size="small" startIcon={<ArrowBackRounded />} onClick={props.onBack}>
+                 {props.dictionary.backToBoard}
+               </Button>
+               <Chip label={`${props.dictionary.provider}: ${props.project.provider}`} />
+@@ -271,6 +353,7 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
+               <Chip label={`${props.dictionary.pggVersion}: ${props.project.pggVersion ?? props.dictionary.unknown}`} />
+               <Chip label={`${props.dictionary.projectVersion}: ${props.project.projectVersion ?? props.dictionary.unknown}`} />
+               <Chip
++                icon={<CheckCircleRounded />}
+                 color={props.project.missingRoot ? "warning" : "success"}
+                 label={props.project.missingRoot ? props.dictionary.missing : props.dictionary.ok}
+               />
+@@ -283,7 +366,7 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
+         </Stack>
+       </Paper>
+ 
+-      {props.activeSection === "project-info" ? (
++      {props.activeSection === "main" ? (
+         <ProjectInfoSection project={props.project} dictionary={props.dictionary} />
+       ) : null}
+ 
+@@ -500,6 +583,11 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
+             dictionary={props.dictionary}
+             language={language}
+             onOpenTopic={openTopicPreview}
++            actions={
++              <Button variant="outlined" size="small">
++                {props.dictionary.viewAll}
++              </Button>
++            }
+           />
+           <TopicLifecycleBoard
+             board="archive"
+@@ -507,6 +595,19 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
+             dictionary={props.dictionary}
+             language={language}
+             onOpenTopic={openTopicPreview}
++            actions={
++              <Stack direction="row" spacing={1}>
++                <Button variant="outlined" size="small">
++                  {props.dictionary.viewAll}
++                </Button>
++                <IconButton size="small">
++                  <GridViewRounded fontSize="small" />
++                </IconButton>
++                <IconButton size="small">
++                  <ViewListRounded fontSize="small" />
++                </IconButton>
++              </Stack>
++            }
+           />
+         </Stack>
+       ) : null}
+@@ -514,14 +615,38 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
+       {props.activeSection === "report" ? (
+         <Paper sx={{ p: 2.25, borderRadius: 1 }}>
+           <Stack spacing={1.5}>
+-            <Box>
++            <Stack direction={{ xs: "column", lg: "row" }} spacing={1.5} sx={{ justifyContent: "space-between" }}>
++              <Box>
+               <Typography variant="h6">{props.dictionary.reportsTitle}</Typography>
+               <Typography variant="body2" color="text.secondary">
+                 {props.dictionary.reportsHint}
+               </Typography>
+-            </Box>
++              </Box>
++              <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap", alignSelf: "flex-start" }}>
++                <Button variant="outlined" startIcon={<FilterListRounded />} onClick={cycleReportFilter}>
++                  {props.dictionary.filterAction}: {currentReportFilterLabel}
++                </Button>
++                <TextField
++                  size="small"
++                  value={reportQuery}
++                  onChange={(event) => setReportQuery(event.target.value)}
++                  placeholder={props.dictionary.searchReportsPlaceholder}
++                  InputProps={{
++                    startAdornment: (
++                      <InputAdornment position="start">
++                        <SearchRounded fontSize="small" />
++                      </InputAdornment>
++                    )
++                  }}
++                  sx={{ minWidth: { xs: "100%", sm: 220 } }}
++                />
++                <Button variant="outlined" startIcon={<DownloadRounded />} onClick={exportReportTable}>
++                  {props.dictionary.exportAction}
++                </Button>
++              </Stack>
++            </Stack>
+ 
+-            {reportTopics.length === 0 ? (
++            {filteredReportTopics.length === 0 ? (
+               <Alert severity="info">{props.dictionary.noRecentActivity}</Alert>
+             ) : (
+               <TableContainer>
+@@ -574,10 +699,10 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
+                 </Table>
+               </TableContainer>
+             )}
+-            {reportTopics.length > 0 ? (
++            {filteredReportTopics.length > 0 ? (
+               <TablePagination
+                 component="div"
+-                count={reportTopics.length}
++                count={filteredReportTopics.length}
+                 page={reportPage}
+                 onPageChange={(_event, page) => setReportPage(page)}
+                 rowsPerPage={reportRowsPerPage}
+@@ -692,7 +817,39 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
+                     </Stack>
+                   </Stack>
+                 ) : props.fileSelection.detail ? (
+-                  <ArtifactDocumentContent detail={props.fileSelection.detail} maxHeight="72vh" />
++                  <>
++                    <ArtifactDocumentContent detail={props.fileSelection.detail} maxHeight="68vh" />
++                    <Divider />
++                    <Box
++                      sx={{
++                        display: "grid",
++                        gap: 1.25,
++                        gridTemplateColumns: { xs: "repeat(2, minmax(0, 1fr))", md: "repeat(4, minmax(0, 1fr))" }
++                      }}
++                    >
++                      <FileMetaItem label={props.dictionary.previewType} value={props.fileSelection.detail.kind} />
++                      <FileMetaItem
++                        label={props.dictionary.previewSize}
++                        value={selectedFileActive?.size ? `${selectedFileActive.size}` : "—"}
++                      />
++                      <FileMetaItem
++                        label={props.dictionary.updated}
++                        value={
++                          selectedFileActive?.updatedAt
++                            ? formatDate(selectedFileActive.updatedAt, language)
++                            : props.dictionary.unknown
++                        }
++                      />
++                      <FileMetaItem
++                        label={props.dictionary.previewMode}
++                        value={
++                          props.isLiveMode && props.fileSelection.editable
++                            ? props.dictionary.editableLabel
++                            : props.dictionary.readOnlyLabel
++                        }
++                      />
++                    </Box>
++                  </>
+                 ) : (
+                   <Alert severity="info">
+                     {props.isLiveMode ? props.dictionary.detailUnavailable : props.dictionary.readOnlyMode}
+@@ -724,12 +881,26 @@ function ProjectInfoSection(props: { project: ProjectSnapshot; dictionary: Dashb
+             {props.dictionary.overview}
+           </Typography>
+           <Box sx={{ display: "grid", gap: 1.5, gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
+-            <MetricCard label={props.dictionary.active} value={String(props.project.activeTopics.length)} accent />
+-            <MetricCard label={props.dictionary.archive} value={String(props.project.archivedTopics.length)} />
+-            <MetricCard label={props.dictionary.projectVersion} value={props.project.projectVersion ?? props.dictionary.unknown} />
++            <MetricCard
++              label={props.dictionary.active}
++              value={String(props.project.activeTopics.length)}
++              accent
++              icon={<BoltRounded fontSize="small" />}
++            />
++            <MetricCard
++              label={props.dictionary.archive}
++              value={String(props.project.archivedTopics.length)}
++              icon={<ArchiveRounded fontSize="small" />}
++            />
++            <MetricCard
++              label={props.dictionary.projectVersion}
++              value={props.project.projectVersion ?? props.dictionary.unknown}
++              icon={<SellRounded fontSize="small" />}
++            />
+             <MetricCard
+               label={props.dictionary.health}
+               value={props.project.missingRoot ? props.dictionary.partial : props.dictionary.ok}
++              icon={<FavoriteRounded fontSize="small" />}
+             />
+           </Box>
+         </Paper>
+@@ -801,7 +972,9 @@ function TopicSidebarPanel(props: {
+   return (
+     <Paper sx={{ p: 1.5, borderRadius: 1 }}>
+       <Stack spacing={1.25}>
+-        <Typography variant="h6">{props.dictionary.topic}</Typography>
++        <Typography variant="overline" color="text.secondary">
++          {props.dictionary.topic}
++        </Typography>
+         <TextField
+           size="small"
+           value={props.topicFilter}
+@@ -920,7 +1093,9 @@ function FileTreePanel(props: {
+   return (
+     <Paper sx={{ p: 1.5, borderRadius: 1 }}>
+       <Stack spacing={1}>
+-        <Typography variant="h6">{props.dictionary.files}</Typography>
++        <Typography variant="overline" color="text.secondary">
++          {props.dictionary.files}
++        </Typography>
+         <Typography variant="body2" color="text.secondary">
+           {props.dictionary.fileEditorHint}
+         </Typography>
+@@ -1036,7 +1211,7 @@ function FileTreeNodeRow(props: {
+   );
+ }
+ 
+-function MetricCard(props: { label: string; value: string; accent?: boolean }) {
++function MetricCard(props: { label: string; value: string; accent?: boolean; icon?: ReactNode }) {
+   const theme = useTheme();
+ 
+   return (
+@@ -1049,23 +1224,55 @@ function MetricCard(props: { label: string; value: string; accent?: boolean }) {
+           : alpha(theme.palette.background.paper, 0.76)
+       }}
+     >
++      <Stack direction="row" spacing={1} sx={{ justifyContent: "space-between", alignItems: "flex-start" }}>
++        <Box>
++          <Typography variant="caption" color="text.secondary">
++            {props.label}
++          </Typography>
++          <Typography variant="h5" sx={{ mt: 0.75 }}>
++            {props.value}
++          </Typography>
++        </Box>
++        {props.icon ? (
++          <Box
++            sx={{
++              width: 34,
++              height: 34,
++              borderRadius: 1,
++              display: "grid",
++              placeItems: "center",
++              color: props.accent ? "primary.light" : "text.secondary",
++              bgcolor: alpha(theme.palette.common.white, theme.palette.mode === "dark" ? 0.08 : 0.52)
++            }}
++          >
++            {props.icon}
++          </Box>
++        ) : null}
++      </Stack>
++    </Paper>
++  );
++}
++
++function MetricRow(props: { label: string; value: string }) {
++  return (
++    <Box>
+       <Typography variant="caption" color="text.secondary">
+         {props.label}
+       </Typography>
+-      <Typography variant="h5" sx={{ mt: 0.75 }}>
++      <Typography variant="body2" sx={{ wordBreak: "break-word" }}>
+         {props.value}
+       </Typography>
+-    </Paper>
++    </Box>
+   );
+ }
+ 
+-function MetricRow(props: { label: string; value: string }) {
++function FileMetaItem(props: { label: string; value: string }) {
+   return (
+     <Box>
+       <Typography variant="caption" color="text.secondary">
+         {props.label}
+       </Typography>
+-      <Typography variant="body2" sx={{ wordBreak: "break-word" }}>
++      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+         {props.value}
+       </Typography>
+     </Box>

@@ -1,0 +1,14 @@
+{
+  "topic": "dashboard-project-main-selector-version-sync",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "version": "0.15.1",
+  "targetVersion": "0.15.1",
+  "previousVersion": "0.15.0",
+  "shortName": "dashboard-sync",
+  "workingBranch": "ai/fix/0.15.1-dashboard-sync",
+  "releaseBranch": "release/0.15.1-dashboard-sync",
+  "projectScope": "current-project",
+  "archivedAt": "2026-04-23T23:03:36Z",
+  "history": "poggn/version-history.ndjson"
+}

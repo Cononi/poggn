@@ -1,0 +1,263 @@
+diff --git a/apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx b/apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx
+index 69e2bd8..3bee837 100644
+--- a/apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx
++++ b/apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx
+@@ -106,6 +106,63 @@ type TimelineItem = {
+   positionY: number;
+ };
+ 
++type ReportFilter = "all" | "qa" | "review";
++
++function filterReportTopics(topics: TopicSummary[], query: string, filter: ReportFilter): TopicSummary[] {
++  const normalizedQuery = query.trim().toLowerCase();
++  return topics.filter((topic) => {
++    const hasQaReport = topic.files.some((file) => file.relativePath === "qa/report.md");
++    const hasReview = topic.files.some((file) => file.relativePath.startsWith("reviews/"));
++
++    if (filter === "qa" && !hasQaReport) {
++      return false;
++    }
++
++    if (filter === "review" && !hasReview) {
++      return false;
++    }
++
++    if (!normalizedQuery) {
++      return true;
++    }
++
++    return `${topic.name} ${topic.goal ?? ""} ${topic.nextAction ?? ""} ${topic.stage ?? ""}`
++      .toLowerCase()
++      .includes(normalizedQuery);
++  });
++}
++
++function buildReportExportCsv(topics: TopicSummary[]): string {
++  return [
++    ["topic", "stage", "score", "qaReport", "expertReviews", "updated"].join(","),
++    ...topics.map((topic) => {
++      const qaReport = topic.files.some((file) => file.relativePath === "qa/report.md");
++      const reviewFiles = topic.files.filter((file) => file.relativePath.startsWith("reviews/"));
++      const updatedLabel = topic.updatedAt ?? topic.archivedAt ?? "";
++      return [
++        topic.name,
++        topic.stage ?? "",
++        typeof topic.score === "number" ? String(topic.score) : "",
++        qaReport ? "ok" : "missing",
++        String(reviewFiles.length),
++        updatedLabel
++      ]
++        .map((value) => `"${String(value).replace(/"/g, '""')}"`)
++        .join(",");
++    })
++  ].join("\n");
++}
++
++function resolveReportFilterLabel(filter: ReportFilter, dictionary: DashboardLocale): string {
++  if (filter === "qa") {
++    return dictionary.reportFilterQaOnly;
++  }
++  if (filter === "review") {
++    return dictionary.reportFilterReviewOnly;
++  }
++  return dictionary.reportFilterAll;
++}
++
+ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
+   const theme = useTheme();
+   const language = props.project?.language ?? "en";
+@@ -168,31 +225,12 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
+   const [reportPage, setReportPage] = useState(0);
+   const [reportRowsPerPage, setReportRowsPerPage] = useState(10);
+   const [reportQuery, setReportQuery] = useState("");
+-  const [reportFilter, setReportFilter] = useState<"all" | "qa" | "review">("all");
++  const [reportFilter, setReportFilter] = useState<ReportFilter>("all");
+   const deferredReportQuery = useDeferredValue(reportQuery);
+-  const filteredReportTopics = useMemo(() => {
+-    const query = deferredReportQuery.trim().toLowerCase();
+-    return reportTopics.filter((topic) => {
+-      const hasQaReport = topic.files.some((file) => file.relativePath === "qa/report.md");
+-      const hasReview = topic.files.some((file) => file.relativePath.startsWith("reviews/"));
+-
+-      if (reportFilter === "qa" && !hasQaReport) {
+-        return false;
+-      }
+-
+-      if (reportFilter === "review" && !hasReview) {
+-        return false;
+-      }
+-
+-      if (!query) {
+-        return true;
+-      }
+-
+-      return `${topic.name} ${topic.goal ?? ""} ${topic.nextAction ?? ""} ${topic.stage ?? ""}`
+-        .toLowerCase()
+-        .includes(query);
+-    });
+-  }, [deferredReportQuery, reportFilter, reportTopics]);
++  const filteredReportTopics = useMemo(
++    () => filterReportTopics(reportTopics, deferredReportQuery, reportFilter),
++    [deferredReportQuery, reportFilter, reportTopics]
++  );
+ 
+   useEffect(() => {
+     if (!props.detailSelection?.detail) {
+@@ -233,12 +271,7 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
+       ),
+     [filteredReportTopics, reportPage, reportRowsPerPage]
+   );
+-  const currentReportFilterLabel =
+-    reportFilter === "qa"
+-      ? props.dictionary.reportFilterQaOnly
+-      : reportFilter === "review"
+-        ? props.dictionary.reportFilterReviewOnly
+-        : props.dictionary.reportFilterAll;
++  const currentReportFilterLabel = resolveReportFilterLabel(reportFilter, props.dictionary);
+   const openTopicPreview = (topic: TopicSummary) => {
+     const entry = getPreferredArtifactEntry(topic, [
+       "state/current.md",
+@@ -286,26 +319,7 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
+     );
+   };
+   const exportReportTable = () => {
+-    const lines = [
+-      ["topic", "stage", "score", "qaReport", "expertReviews", "updated"].join(","),
+-      ...filteredReportTopics.map((topic) => {
+-        const qaReport = topic.files.some((file) => file.relativePath === "qa/report.md");
+-        const reviewFiles = topic.files.filter((file) => file.relativePath.startsWith("reviews/"));
+-        const updatedLabel = topic.updatedAt ?? topic.archivedAt ?? "";
+-        return [
+-          topic.name,
+-          topic.stage ?? "",
+-          typeof topic.score === "number" ? String(topic.score) : "",
+-          qaReport ? "ok" : "missing",
+-          String(reviewFiles.length),
+-          updatedLabel
+-        ]
+-          .map((value) => `"${String(value).replace(/"/g, '""')}"`)
+-          .join(",");
+-      })
+-    ].join("\n");
+-
+-    const blob = new Blob([lines], { type: "text/csv;charset=utf-8" });
++    const blob = new Blob([buildReportExportCsv(filteredReportTopics)], { type: "text/csv;charset=utf-8" });
+     const url = window.URL.createObjectURL(blob);
+     const anchor = document.createElement("a");
+     anchor.href = url;
+@@ -320,51 +334,7 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
+ 
+   return (
+     <Stack spacing={3}>
+-      <Paper sx={{ p: 2.5, borderRadius: 1, overflow: "hidden", position: "relative" }}>
+-        <Box
+-          sx={{
+-            position: "absolute",
+-            inset: 0,
+-            background:
+-              theme.palette.mode === "dark"
+-                ? "radial-gradient(circle at top left, rgba(251, 191, 36, 0.14), transparent 32%), linear-gradient(135deg, rgba(56, 189, 248, 0.12), transparent 56%)"
+-                : "radial-gradient(circle at top left, rgba(251, 191, 36, 0.18), transparent 28%), linear-gradient(135deg, rgba(56, 189, 248, 0.12), transparent 52%)"
+-          }}
+-        />
+-        <Stack spacing={2} sx={{ position: "relative" }}>
+-          <Stack direction={{ xs: "column", xl: "row" }} spacing={2} sx={{ justifyContent: "space-between" }}>
+-            <Box>
+-              <Typography variant="overline" color="primary.main">
+-                {props.dictionary.workspace}
+-              </Typography>
+-              <Typography variant="h4" sx={{ mb: 0.5 }}>
+-                {props.project.name}
+-              </Typography>
+-              <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 760 }}>
+-                {props.dictionary.workspaceHint}
+-              </Typography>
+-            </Box>
+-            <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap", alignSelf: "flex-start" }}>
+-              <Button variant="contained" size="small" startIcon={<ArrowBackRounded />} onClick={props.onBack}>
+-                {props.dictionary.backToBoard}
+-              </Button>
+-              <Chip label={`${props.dictionary.provider}: ${props.project.provider}`} />
+-              <Chip label={`${props.dictionary.language}: ${props.project.language}`} />
+-              <Chip label={`${props.dictionary.pggVersion}: ${props.project.pggVersion ?? props.dictionary.unknown}`} />
+-              <Chip label={`${props.dictionary.projectVersion}: ${props.project.projectVersion ?? props.dictionary.unknown}`} />
+-              <Chip
+-                icon={<CheckCircleRounded />}
+-                color={props.project.missingRoot ? "warning" : "success"}
+-                label={props.project.missingRoot ? props.dictionary.missing : props.dictionary.ok}
+-              />
+-            </Stack>
+-          </Stack>
+-
+-          <Typography variant="body2" color="text.secondary">
+-            {props.project.rootDir}
+-          </Typography>
+-        </Stack>
+-      </Paper>
++      <WorkspaceHeader project={props.project} dictionary={props.dictionary} onBack={props.onBack} />
+ 
+       {props.activeSection === "main" ? (
+         <ProjectInfoSection project={props.project} dictionary={props.dictionary} />
+@@ -866,6 +836,62 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
+   );
+ }
+ 
++function WorkspaceHeader(props: {
++  project: ProjectSnapshot;
++  dictionary: DashboardLocale;
++  onBack: () => void;
++}) {
++  const theme = useTheme();
++
++  return (
++    <Paper sx={{ p: 2.5, borderRadius: 1, overflow: "hidden", position: "relative" }}>
++      <Box
++        sx={{
++          position: "absolute",
++          inset: 0,
++          background:
++            theme.palette.mode === "dark"
++              ? "radial-gradient(circle at top left, rgba(251, 191, 36, 0.14), transparent 32%), linear-gradient(135deg, rgba(56, 189, 248, 0.12), transparent 56%)"
++              : "radial-gradient(circle at top left, rgba(251, 191, 36, 0.18), transparent 28%), linear-gradient(135deg, rgba(56, 189, 248, 0.12), transparent 52%)"
++        }}
++      />
++      <Stack spacing={2} sx={{ position: "relative" }}>
++        <Stack direction={{ xs: "column", xl: "row" }} spacing={2} sx={{ justifyContent: "space-between" }}>
++          <Box>
++            <Typography variant="overline" color="primary.main">
++              {props.dictionary.workspace}
++            </Typography>
++            <Typography variant="h4" sx={{ mb: 0.5 }}>
++              {props.project.name}
++            </Typography>
++            <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 760 }}>
++              {props.dictionary.workspaceHint}
++            </Typography>
++          </Box>
++          <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap", alignSelf: "flex-start" }}>
++            <Button variant="contained" size="small" startIcon={<ArrowBackRounded />} onClick={props.onBack}>
++              {props.dictionary.backToBoard}
++            </Button>
++            <Chip label={`${props.dictionary.provider}: ${props.project.provider}`} />
++            <Chip label={`${props.dictionary.language}: ${props.project.language}`} />
++            <Chip label={`${props.dictionary.pggVersion}: ${props.project.pggVersion ?? props.dictionary.unknown}`} />
++            <Chip label={`${props.dictionary.projectVersion}: ${props.project.projectVersion ?? props.dictionary.unknown}`} />
++            <Chip
++              icon={<CheckCircleRounded />}
++              color={props.project.missingRoot ? "warning" : "success"}
++              label={props.project.missingRoot ? props.dictionary.missing : props.dictionary.ok}
++            />
++          </Stack>
++        </Stack>
++
++        <Typography variant="body2" color="text.secondary">
++          {props.project.rootDir}
++        </Typography>
++      </Stack>
++    </Paper>
++  );
++}
++
+ function ProjectInfoSection(props: { project: ProjectSnapshot; dictionary: DashboardLocale }) {
+   return (
+     <Box

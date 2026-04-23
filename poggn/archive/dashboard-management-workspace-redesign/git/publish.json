@@ -1,0 +1,32 @@
+{
+  "topic": "dashboard-management-workspace-redesign",
+  "version": "0.15.0",
+  "targetVersion": "0.15.0",
+  "changeType": "feat",
+  "versionBump": "minor",
+  "commitTitle": "feat: management workspace",
+  "commitSha": "3845c038474460cf63b07100f77f17fe078e4564",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/0.15.0-management-workspace",
+  "workingBranch": "ai/feat/0.15.0-management-workspace",
+  "releaseBranch": "release/0.15.0-management-workspace",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-23T16:20:27Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/0.15.0-management-workspace'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "not_attempted",
+  "branchRecoveryReason": null,
+  "branchRecoveryFrom": null,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/dashboard-management-workspace-redesign",
+    "versionFile": "poggn/archive/dashboard-management-workspace-redesign/version.json"
+  }
+}

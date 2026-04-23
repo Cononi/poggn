@@ -1,11 +1,17 @@
-import type { ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import { alpha, useTheme } from "@mui/material/styles";
 import {
   Avatar,
+  Alert,
   Box,
   Button,
   ButtonBase,
   Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Divider,
   IconButton,
   InputAdornment,
   Paper,
@@ -14,11 +20,13 @@ import {
   Typography
 } from "@mui/material";
 import AddRounded from "@mui/icons-material/AddRounded";
+import AssessmentRounded from "@mui/icons-material/AssessmentRounded";
+import ChevronRightRounded from "@mui/icons-material/ChevronRightRounded";
 import FolderRounded from "@mui/icons-material/FolderRounded";
-import GridViewRounded from "@mui/icons-material/GridViewRounded";
-import KeyboardArrowDownRounded from "@mui/icons-material/KeyboardArrowDownRounded";
+import HomeRounded from "@mui/icons-material/HomeRounded";
+import HubRounded from "@mui/icons-material/HubRounded";
+import HistoryRounded from "@mui/icons-material/HistoryRounded";
 import MenuRounded from "@mui/icons-material/MenuRounded";
-import ScheduleRounded from "@mui/icons-material/ScheduleRounded";
 import SearchRounded from "@mui/icons-material/SearchRounded";
 import SettingsRounded from "@mui/icons-material/SettingsRounded";
 import type {
@@ -31,6 +39,7 @@ import type {
   ProjectSnapshot
 } from "../shared/model/dashboard";
 import { normalizeDashboardTitleIconSvg, toSvgDataUrl } from "../shared/utils/brand";
+import { buildProjectBoardSections } from "../features/project-list/projectBoard";
 
 type TopNavigationProps = {
   title: string;
@@ -57,13 +66,26 @@ type ProjectContextSidebarProps = {
   activeDetailSection: DashboardDetailSection;
   activeSettingsView: DashboardSettingsView;
   project: ProjectSnapshot | null;
-  categories: ProjectCategory[];
-  projects: ProjectSnapshot[];
   dictionary: DashboardLocale;
   onSelectSidebarItem: (item: DashboardSidebarItem) => void;
   onSelectDetailSection: (section: DashboardDetailSection) => void;
   onSelectSettingsView: (view: DashboardSettingsView) => void;
-  onAddProject: () => void;
+  onOpenProjectSelector: () => void;
+};
+
+type ProjectSelectorDialogProps = {
+  open: boolean;
+  project: ProjectSnapshot | null;
+  categories: ProjectCategory[];
+  projects: ProjectSnapshot[];
+  dictionary: DashboardLocale;
+  onClose: () => void;
+  onSelectProject: (projectId: string) => void;
+};
+
+type ProjectVersionMeta = {
+  pggVersion: string;
+  projectVersion: string;
 };
 
 export function TopNavigation(props: TopNavigationProps) {
@@ -188,17 +210,12 @@ export function TopNavigation(props: TopNavigationProps) {
 
 export function ProjectContextSidebar(props: ProjectContextSidebarProps) {
   const theme = useTheme();
-  const projectItems = [
-    { id: "board", label: props.dictionary.board, icon: <GridViewRounded fontSize="small" />, enabled: true },
-    { id: "category", label: props.dictionary.categoryMenu, icon: <FolderRounded fontSize="small" />, enabled: true },
-    { id: "timeline", label: props.dictionary.timelineView, icon: <ScheduleRounded fontSize="small" />, enabled: false }
-  ] as const;
   const detailItems = [
-    { id: "project-info", label: props.dictionary.projectInfoSection },
-    { id: "workflow", label: props.dictionary.workflowSection },
-    { id: "history", label: props.dictionary.historySection },
-    { id: "report", label: props.dictionary.reportSection },
-    { id: "files", label: props.dictionary.filesSection }
+    { id: "main", label: props.dictionary.main, icon: <HomeRounded fontSize="small" /> },
+    { id: "workflow", label: props.dictionary.workflowSection, icon: <HubRounded fontSize="small" /> },
+    { id: "history", label: props.dictionary.historySection, icon: <HistoryRounded fontSize="small" /> },
+    { id: "report", label: props.dictionary.reportSection, icon: <AssessmentRounded fontSize="small" /> },
+    { id: "files", label: props.dictionary.filesSection, icon: <FolderRounded fontSize="small" /> }
   ] as const;
   const settingsItems = [
     { id: "main", label: props.dictionary.main },
@@ -206,114 +223,28 @@ export function ProjectContextSidebar(props: ProjectContextSidebarProps) {
     { id: "git", label: props.dictionary.git },
     { id: "system", label: props.dictionary.system }
   ] as const;
-  const visibleCategories = props.categories
-    .filter((category) => category.visible)
-    .sort((left, right) => left.order - right.order);
-
   return (
     <Stack sx={{ minHeight: "100%", p: 2, justifyContent: "space-between" }}>
       <Stack spacing={2}>
-        {props.activeTopMenu === "projects" && !props.projectDetailOpen ? (
+        {props.activeTopMenu === "projects" ? (
           <>
             <SidebarSectionLabel label={props.dictionary.workspaceSectionTitle} />
             {props.project ? (
-              <Paper
-                sx={{
-                  p: 1.5,
-                  borderRadius: 1,
-                  bgcolor: alpha(theme.palette.background.default, 0.42)
-                }}
-              >
-                <Stack direction="row" spacing={1.2} sx={{ alignItems: "center" }}>
-                  <Avatar
-                    variant="rounded"
-                    sx={{
-                      width: 44,
-                      height: 44,
-                      bgcolor: alpha(theme.palette.primary.main, 0.22),
-                      color: "primary.light"
-                    }}
-                  >
-                    {props.project.name.slice(0, 1).toUpperCase()}
-                  </Avatar>
-                  <Box sx={{ minWidth: 0, flex: 1 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                      {props.project.name}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                      {props.dictionary.projectIdentityHint}
-                    </Typography>
-                  </Box>
-                  <KeyboardArrowDownRounded color="action" />
-                </Stack>
-              </Paper>
+              <ProjectSelectorTriggerCard
+                project={props.project}
+                dictionary={props.dictionary}
+                onClick={props.onOpenProjectSelector}
+              />
             ) : null}
 
             <SidebarSectionLabel label={props.dictionary.sidebarManagement} />
-            <Stack spacing={0.5}>
-              {projectItems.map((item) => (
-                <SidebarNavButton
-                  key={item.id}
-                  label={item.label}
-                  icon={item.icon}
-                  active={item.id !== "timeline" && props.activeSidebarItem === item.id}
-                  disabled={!item.enabled}
-                  onClick={() => {
-                    if (item.id === "timeline") {
-                      return;
-                    }
-                    props.onSelectSidebarItem(item.id);
-                  }}
-                />
-              ))}
-            </Stack>
-
-            <Stack spacing={1}>
-              <Stack direction="row" spacing={1} sx={{ justifyContent: "space-between", alignItems: "center" }}>
-                <SidebarSectionLabel label={props.dictionary.categoriesSectionTitle} />
-                <IconButton
-                  size="small"
-                  onClick={() => props.onSelectSidebarItem("category")}
-                  sx={{ color: "text.secondary" }}
-                >
-                  <AddRounded fontSize="small" />
-                </IconButton>
-              </Stack>
-
-              <Stack spacing={0.35}>
-                {visibleCategories.map((category) => (
-                  <CategorySidebarButton
-                    key={category.id}
-                    category={category}
-                    project={props.project}
-                    projectCount={countProjectsForCategory(category, props.projects)}
-                    onClick={() => props.onSelectSidebarItem("board")}
-                  />
-                ))}
-              </Stack>
-            </Stack>
-
-            <SidebarSectionLabel label={props.dictionary.quickActionsTitle} />
-            <Stack spacing={1}>
-              <SecondaryActionButton
-                label={props.dictionary.newProjectAction}
-                onClick={props.onAddProject}
-              />
-              <SecondaryActionButton
-                label={props.dictionary.newCategoryAction}
-                onClick={() => props.onSelectSidebarItem("category")}
-              />
-            </Stack>
-          </>
-        ) : props.activeTopMenu === "projects" ? (
-          <>
-            <SidebarSectionLabel label={props.dictionary.projectDetailSectionLabel} />
             <Stack spacing={0.5}>
               {detailItems.map((item) => (
                 <SidebarNavButton
                   key={item.id}
                   label={item.label}
-                  active={props.activeDetailSection === item.id}
+                  icon={item.icon}
+                  active={props.projectDetailOpen && props.activeDetailSection === item.id}
                   onClick={() => props.onSelectDetailSection(item.id)}
                 />
               ))}
@@ -369,11 +300,202 @@ export function DashboardStatePanel(props: { title: string; helper: string }) {
   );
 }
 
+export function ProjectSelectorDialog(props: ProjectSelectorDialogProps) {
+  const theme = useTheme();
+  const sections = useMemo(
+    () =>
+      buildProjectBoardSections(props.categories, props.projects).filter(
+        (section) => section.projects.length > 0
+      ),
+    [props.categories, props.projects]
+  );
+
+  return (
+    <Dialog open={props.open} onClose={props.onClose} fullWidth maxWidth="md">
+      <DialogTitle>{props.dictionary.projectSelectorTitle}</DialogTitle>
+      <DialogContent>
+        <Stack spacing={2} sx={{ pt: 1 }}>
+          <Typography variant="body2" color="text.secondary">
+            {props.dictionary.projectSelectorHint}
+          </Typography>
+
+          {sections.length === 0 ? (
+            <Alert severity="info">{props.dictionary.projectSelectorEmpty}</Alert>
+          ) : (
+            sections.map((section) => (
+              <Stack key={section.category.id} spacing={1}>
+                <Stack direction="row" spacing={1} sx={{ alignItems: "center", justifyContent: "space-between" }}>
+                  <Typography variant="overline" color="text.secondary">
+                    {section.category.name}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {section.projects.length}
+                  </Typography>
+                </Stack>
+
+                <Paper variant="outlined" sx={{ borderRadius: 1, overflow: "hidden" }}>
+                  <Stack divider={<Divider flexItem />}>
+                    {section.projects.map((project) => {
+                      const selected = project.id === props.project?.id;
+                      const versionMeta = resolveProjectVersionMeta(project, props.dictionary);
+
+                      return (
+                        <ButtonBase
+                          key={project.id}
+                          onClick={() => props.onSelectProject(project.id)}
+                          sx={{
+                            px: 1.5,
+                            py: 1.35,
+                            justifyContent: "flex-start",
+                            textAlign: "left",
+                            backgroundColor: selected ? alpha(theme.palette.primary.main, 0.12) : "transparent"
+                          }}
+                        >
+                          <Stack
+                            direction={{ xs: "column", sm: "row" }}
+                            spacing={1.2}
+                            sx={{ alignItems: { xs: "flex-start", sm: "center" }, width: "100%" }}
+                          >
+                            <Avatar
+                              variant="rounded"
+                              sx={{
+                                width: 40,
+                                height: 40,
+                                bgcolor: alpha(theme.palette.primary.main, 0.18),
+                                color: "primary.light",
+                                fontWeight: 700
+                              }}
+                            >
+                              {project.name.slice(0, 1).toUpperCase()}
+                            </Avatar>
+                            <Box sx={{ minWidth: 0, flex: 1 }}>
+                              <Stack
+                                direction="row"
+                                spacing={0.75}
+                                useFlexGap
+                                sx={{ alignItems: "center", flexWrap: "wrap", mb: 0.35 }}
+                              >
+                                <Typography variant="body1" sx={{ fontWeight: 700 }}>
+                                  {project.name}
+                                </Typography>
+                                {selected ? (
+                                  <Chip
+                                    size="small"
+                                    label={props.dictionary.current}
+                                    color="primary"
+                                    sx={{ height: 22 }}
+                                  />
+                                ) : null}
+                              </Stack>
+                              <ProjectPathText path={project.rootDir} />
+                            </Box>
+                            <Box sx={{ textAlign: { xs: "left", sm: "right" }, flexShrink: 0, width: { xs: "100%", sm: "auto" } }}>
+                              <Stack spacing={0.2} sx={{ alignItems: { xs: "flex-start", sm: "flex-end" } }}>
+                                <Typography variant="caption" color="text.secondary">
+                                  {props.dictionary.pggVersion}: {versionMeta.pggVersion}
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                  {props.dictionary.projectVersion}: {versionMeta.projectVersion}
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                  {project.activeTopics.length} {props.dictionary.active}
+                                </Typography>
+                              </Stack>
+                            </Box>
+                          </Stack>
+                        </ButtonBase>
+                      );
+                    })}
+                  </Stack>
+                </Paper>
+              </Stack>
+            ))
+          )}
+        </Stack>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={props.onClose}>{props.dictionary.cancel}</Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
 function SidebarSectionLabel(props: { label: string }) {
   return (
     <Typography variant="overline" color="text.secondary" sx={{ px: 0.25 }}>
       {props.label}
     </Typography>
+  );
+}
+
+function ProjectSelectorTriggerCard(props: {
+  project: ProjectSnapshot;
+  dictionary: DashboardLocale;
+  onClick: () => void;
+}) {
+  const theme = useTheme();
+  const versionMeta = resolveProjectVersionMeta(props.project, props.dictionary);
+
+  return (
+    <ButtonBase
+      onClick={props.onClick}
+      sx={{
+        width: "100%",
+        display: "block",
+        textAlign: "left",
+        borderRadius: 1
+      }}
+    >
+      <Paper
+        sx={{
+          p: 1.5,
+          borderRadius: 1,
+          bgcolor: alpha(theme.palette.background.default, 0.42),
+          border: `1px solid ${alpha(theme.palette.primary.main, 0.16)}`,
+          transition: "transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease",
+          boxShadow: `0 10px 24px ${alpha(theme.palette.common.black, theme.palette.mode === "dark" ? 0.18 : 0.06)}`,
+          "&:hover": {
+            transform: "translateY(-1px)",
+            borderColor: alpha(theme.palette.primary.main, 0.38),
+            boxShadow: `0 16px 30px ${alpha(theme.palette.primary.main, theme.palette.mode === "dark" ? 0.18 : 0.14)}`
+          }
+        }}
+      >
+        <Stack spacing={1.25}>
+          <Stack direction="row" spacing={1} sx={{ justifyContent: "space-between", alignItems: "center" }}>
+            <Typography variant="overline" color="primary.main" sx={{ fontWeight: 700, letterSpacing: "0.08em" }}>
+              {props.dictionary.changeProjectAction}
+            </Typography>
+            <ChevronRightRounded fontSize="small" sx={{ color: "text.secondary" }} />
+          </Stack>
+
+          <Stack direction="row" spacing={1.2} sx={{ alignItems: "flex-start" }}>
+            <Avatar
+              variant="rounded"
+              sx={{
+                width: 44,
+                height: 44,
+                bgcolor: alpha(theme.palette.primary.main, 0.22),
+                color: "primary.light"
+              }}
+            >
+              {props.project.name.slice(0, 1).toUpperCase()}
+            </Avatar>
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                {props.project.name}
+              </Typography>
+              <ProjectPathText path={props.project.rootDir} />
+            </Box>
+          </Stack>
+
+          <Stack spacing={0.55}>
+            <VersionMetaRow label={props.dictionary.pggVersion} value={versionMeta.pggVersion} />
+            <VersionMetaRow label={props.dictionary.projectVersion} value={versionMeta.projectVersion} />
+          </Stack>
+        </Stack>
+      </Paper>
+    </ButtonBase>
   );
 }
 
@@ -410,59 +532,6 @@ function SidebarNavButton(props: {
   );
 }
 
-function CategorySidebarButton(props: {
-  category: ProjectCategory;
-  project: ProjectSnapshot | null;
-  projectCount: number;
-  onClick: () => void;
-}) {
-  const theme = useTheme();
-  const selected =
-    !!props.project &&
-    (props.project.categoryIds.includes(props.category.id) ||
-      (props.category.isDefault && props.project.categoryIds.length === 0));
-
-  return (
-    <ButtonBase
-      onClick={props.onClick}
-      sx={{
-        width: "100%",
-        justifyContent: "space-between",
-        px: 1,
-        py: 0.9,
-        borderRadius: 1,
-        color: selected ? "common.white" : "text.secondary",
-        backgroundColor: selected ? alpha(theme.palette.primary.main, 0.14) : alpha(theme.palette.background.default, 0.18)
-      }}
-    >
-      <Stack direction="row" spacing={1} sx={{ alignItems: "center", minWidth: 0 }}>
-        <Box
-          sx={{
-            width: 10,
-            height: 10,
-            borderRadius: "50%",
-            bgcolor: selected ? theme.palette.primary.main : alpha(theme.palette.text.secondary, 0.52)
-          }}
-        />
-        <Typography variant="body2" sx={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-          {props.category.name}
-        </Typography>
-      </Stack>
-      <Typography variant="body2" color={selected ? "inherit" : "text.secondary"}>
-        {props.projectCount}
-      </Typography>
-    </ButtonBase>
-  );
-}
-
-function SecondaryActionButton(props: { label: string; onClick: () => void }) {
-  return (
-    <Button variant="outlined" startIcon={<AddRounded />} onClick={props.onClick} sx={{ justifyContent: "flex-start" }}>
-      {props.label}
-    </Button>
-  );
-}
-
 function BrandMark(props: { title: string; titleIconSvg: string }) {
   const iconSvg = normalizeDashboardTitleIconSvg(props.titleIconSvg);
   const iconHref = toSvgDataUrl(iconSvg);
@@ -481,10 +550,42 @@ function BrandMark(props: { title: string; titleIconSvg: string }) {
   );
 }
 
-function countProjectsForCategory(category: ProjectCategory, projects: ProjectSnapshot[]): number {
-  const ids = new Set(category.projectIds);
-  projects
-    .filter((project) => project.categoryIds.includes(category.id))
-    .forEach((project) => ids.add(project.id));
-  return ids.size;
+function VersionMetaRow(props: { label: string; value: string }) {
+  return (
+    <Stack direction="row" spacing={1} sx={{ justifyContent: "space-between", alignItems: "center" }}>
+      <Typography variant="caption" color="text.secondary">
+        {props.label}
+      </Typography>
+      <Typography variant="caption" sx={{ fontWeight: 700 }}>
+        {props.value}
+      </Typography>
+    </Stack>
+  );
+}
+
+function ProjectPathText(props: { path: string }) {
+  return (
+    <Typography
+      variant="caption"
+      color="text.secondary"
+      sx={{
+        display: "block",
+        mt: 0.25,
+        whiteSpace: "normal",
+        wordBreak: "break-word",
+        overflowWrap: "anywhere",
+        lineHeight: 1.5,
+        fontFamily: '"IBM Plex Mono", "SFMono-Regular", monospace'
+      }}
+    >
+      {props.path}
+    </Typography>
+  );
+}
+
+function resolveProjectVersionMeta(project: ProjectSnapshot, dictionary: DashboardLocale): ProjectVersionMeta {
+  return {
+    pggVersion: project.pggVersion ?? project.installedVersion ?? dictionary.unknown,
+    projectVersion: project.projectVersion ?? dictionary.unknown
+  };
 }

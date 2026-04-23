@@ -181,7 +181,7 @@ export type DashboardPrimaryMenu = "projects" | "settings";
 export type DashboardSidebarItem = "board" | "category";
 
 export type DashboardDetailSection =
-  | "project-info"
+  | "main"
   | "workflow"
   | "history"
   | "report"

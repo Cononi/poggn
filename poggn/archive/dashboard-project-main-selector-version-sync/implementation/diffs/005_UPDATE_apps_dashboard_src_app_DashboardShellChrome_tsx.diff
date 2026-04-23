@@ -1,0 +1,129 @@
+diff --git a/apps/dashboard/src/app/DashboardShellChrome.tsx b/apps/dashboard/src/app/DashboardShellChrome.tsx
+index c37a9eb..e2a9ded 100644
+--- a/apps/dashboard/src/app/DashboardShellChrome.tsx
++++ b/apps/dashboard/src/app/DashboardShellChrome.tsx
+@@ -21,6 +21,7 @@ import {
+ } from "@mui/material";
+ import AddRounded from "@mui/icons-material/AddRounded";
+ import AssessmentRounded from "@mui/icons-material/AssessmentRounded";
++import ChevronRightRounded from "@mui/icons-material/ChevronRightRounded";
+ import FolderRounded from "@mui/icons-material/FolderRounded";
+ import HomeRounded from "@mui/icons-material/HomeRounded";
+ import HubRounded from "@mui/icons-material/HubRounded";
+@@ -343,12 +344,14 @@ export function ProjectSelectorDialog(props: ProjectSelectorDialogProps) {
+                             py: 1.35,
+                             justifyContent: "flex-start",
+                             textAlign: "left",
+-                            backgroundColor: selected
+-                              ? alpha(theme.palette.primary.main, 0.12)
+-                              : "transparent"
++                            backgroundColor: selected ? alpha(theme.palette.primary.main, 0.12) : "transparent"
+                           }}
+                         >
+-                          <Stack direction="row" spacing={1.2} sx={{ alignItems: "center", width: "100%" }}>
++                          <Stack
++                            direction={{ xs: "column", sm: "row" }}
++                            spacing={1.2}
++                            sx={{ alignItems: { xs: "flex-start", sm: "center" }, width: "100%" }}
++                          >
+                             <Avatar
+                               variant="rounded"
+                               sx={{
+@@ -380,16 +383,10 @@ export function ProjectSelectorDialog(props: ProjectSelectorDialogProps) {
+                                   />
+                                 ) : null}
+                               </Stack>
+-                              <Typography
+-                                variant="caption"
+-                                color="text.secondary"
+-                                sx={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
+-                              >
+-                                {project.rootDir}
+-                              </Typography>
++                              <ProjectPathText path={project.rootDir} />
+                             </Box>
+-                            <Box sx={{ textAlign: "right", flexShrink: 0 }}>
+-                              <Stack spacing={0.2} sx={{ alignItems: "flex-end" }}>
++                            <Box sx={{ textAlign: { xs: "left", sm: "right" }, flexShrink: 0, width: { xs: "100%", sm: "auto" } }}>
++                              <Stack spacing={0.2} sx={{ alignItems: { xs: "flex-start", sm: "flex-end" } }}>
+                                 <Typography variant="caption" color="text.secondary">
+                                   {props.dictionary.pggVersion}: {pggVersion}
+                                 </Typography>
+@@ -451,11 +448,25 @@ function ProjectSelectorTriggerCard(props: {
+           p: 1.5,
+           borderRadius: 1,
+           bgcolor: alpha(theme.palette.background.default, 0.42),
+-          border: `1px solid ${alpha(theme.palette.primary.main, 0.16)}`
++          border: `1px solid ${alpha(theme.palette.primary.main, 0.16)}`,
++          transition: "transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease",
++          boxShadow: `0 10px 24px ${alpha(theme.palette.common.black, theme.palette.mode === "dark" ? 0.18 : 0.06)}`,
++          "&:hover": {
++            transform: "translateY(-1px)",
++            borderColor: alpha(theme.palette.primary.main, 0.38),
++            boxShadow: `0 16px 30px ${alpha(theme.palette.primary.main, theme.palette.mode === "dark" ? 0.18 : 0.14)}`
++          }
+         }}
+       >
+         <Stack spacing={1.25}>
+-          <Stack direction="row" spacing={1.2} sx={{ alignItems: "center" }}>
++          <Stack direction="row" spacing={1} sx={{ justifyContent: "space-between", alignItems: "center" }}>
++            <Typography variant="overline" color="primary.main" sx={{ fontWeight: 700, letterSpacing: "0.08em" }}>
++              {props.dictionary.changeProjectAction}
++            </Typography>
++            <ChevronRightRounded fontSize="small" sx={{ color: "text.secondary" }} />
++          </Stack>
++
++          <Stack direction="row" spacing={1.2} sx={{ alignItems: "flex-start" }}>
+             <Avatar
+               variant="rounded"
+               sx={{
+@@ -471,13 +482,7 @@ function ProjectSelectorTriggerCard(props: {
+               <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                 {props.project.name}
+               </Typography>
+-              <Typography
+-                variant="caption"
+-                color="text.secondary"
+-                sx={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
+-              >
+-                {props.project.rootDir}
+-              </Typography>
++              <ProjectPathText path={props.project.rootDir} />
+             </Box>
+           </Stack>
+ 
+@@ -485,10 +490,6 @@ function ProjectSelectorTriggerCard(props: {
+             <VersionMetaRow label={props.dictionary.pggVersion} value={pggVersion} />
+             <VersionMetaRow label={props.dictionary.projectVersion} value={projectVersion} />
+           </Stack>
+-
+-          <Typography variant="caption" color="primary.main" sx={{ fontWeight: 700, letterSpacing: "0.04em" }}>
+-            {props.dictionary.changeProjectAction}
+-          </Typography>
+         </Stack>
+       </Paper>
+     </ButtonBase>
+@@ -558,3 +559,23 @@ function VersionMetaRow(props: { label: string; value: string }) {
+     </Stack>
+   );
+ }
++
++function ProjectPathText(props: { path: string }) {
++  return (
++    <Typography
++      variant="caption"
++      color="text.secondary"
++      sx={{
++        display: "block",
++        mt: 0.25,
++        whiteSpace: "normal",
++        wordBreak: "break-word",
++        overflowWrap: "anywhere",
++        lineHeight: 1.5,
++        fontFamily: '"IBM Plex Mono", "SFMono-Regular", monospace'
++      }}
++    >
++      {props.path}
++    </Typography>
++  );
++}

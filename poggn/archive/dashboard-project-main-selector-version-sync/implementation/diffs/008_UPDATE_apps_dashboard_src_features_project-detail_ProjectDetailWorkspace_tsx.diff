@@ -1,0 +1,139 @@
+diff --git a/apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx b/apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx
+index 48a89e3..6d23ec2 100644
+--- a/apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx
++++ b/apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx
+@@ -108,6 +108,11 @@ type TimelineItem = {
+ 
+ type ReportFilter = "all" | "qa" | "review";
+ 
++type MetricEntry = {
++  label: string;
++  value: string;
++};
++
+ function filterReportTopics(topics: TopicSummary[], query: string, filter: ReportFilter): TopicSummary[] {
+   const normalizedQuery = query.trim().toLowerCase();
+   return topics.filter((topic) => {
+@@ -905,6 +910,49 @@ function ProjectInfoSection(props: { project: ProjectSnapshot; dictionary: Dashb
+   const fileSurfaceLabel = `AGENTS ${props.project.hasAgents ? props.dictionary.yes : props.dictionary.no} / .codex ${props.project.hasCodex ? props.dictionary.yes : props.dictionary.no} / poggn ${props.project.hasPoggn ? props.dictionary.yes : props.dictionary.no}`;
+   const healthLabel = props.project.missingRoot ? props.dictionary.partial : props.dictionary.ok;
+   const verificationLabel = props.project.verificationReason ?? props.dictionary.verificationRequired;
++  const overviewMetrics: Array<MetricEntry & { accent?: boolean; icon?: ReactNode }> = [
++    {
++      label: props.dictionary.active,
++      value: String(props.project.activeTopics.length),
++      accent: true,
++      icon: <BoltRounded fontSize="small" />
++    },
++    {
++      label: props.dictionary.archive,
++      value: String(props.project.archivedTopics.length),
++      icon: <ArchiveRounded fontSize="small" />
++    },
++    {
++      label: props.dictionary.projectVersion,
++      value: props.project.projectVersion ?? props.dictionary.unknown,
++      icon: <SellRounded fontSize="small" />
++    },
++    {
++      label: props.dictionary.health,
++      value: healthLabel,
++      icon: <FavoriteRounded fontSize="small" />
++    }
++  ];
++  const projectInfoMetrics: MetricEntry[] = [
++    { label: props.dictionary.latestActivity, value: latestActivityLabel },
++    { label: props.dictionary.topic, value: props.project.latestTopicName ?? props.dictionary.unknown },
++    { label: props.dictionary.topicStage, value: latestStageLabel },
++    { label: props.dictionary.files, value: fileSurfaceLabel },
++    { label: props.dictionary.workingBranch, value: props.project.workingBranchPrefix },
++    { label: props.dictionary.releaseBranch, value: props.project.releaseBranchPrefix }
++  ];
++  const currentProjectMetrics: MetricEntry[] = [
++    { label: props.dictionary.provider, value: props.project.provider },
++    { label: props.dictionary.language, value: props.project.language },
++    { label: props.dictionary.autoMode, value: props.project.autoMode },
++    { label: props.dictionary.teamsMode, value: props.project.teamsMode },
++    { label: props.dictionary.gitMode, value: props.project.gitMode },
++    { label: props.dictionary.pggVersion, value: props.project.pggVersion ?? props.dictionary.unknown },
++    { label: props.dictionary.projectVersion, value: props.project.projectVersion ?? props.dictionary.unknown },
++    { label: props.dictionary.verification, value: props.project.verificationStatus },
++    { label: props.dictionary.verificationReason, value: verificationLabel },
++    { label: props.dictionary.verificationCommands, value: String(props.project.verificationCommandCount) }
++  ];
+ 
+   return (
+     <Stack spacing={3}>
+@@ -926,27 +974,15 @@ function ProjectInfoSection(props: { project: ProjectSnapshot; dictionary: Dashb
+               }
+             }}
+           >
+-            <MetricCard
+-              label={props.dictionary.active}
+-              value={String(props.project.activeTopics.length)}
+-              accent
+-              icon={<BoltRounded fontSize="small" />}
+-            />
+-            <MetricCard
+-              label={props.dictionary.archive}
+-              value={String(props.project.archivedTopics.length)}
+-              icon={<ArchiveRounded fontSize="small" />}
+-            />
+-            <MetricCard
+-              label={props.dictionary.projectVersion}
+-              value={props.project.projectVersion ?? props.dictionary.unknown}
+-              icon={<SellRounded fontSize="small" />}
+-            />
+-            <MetricCard
+-              label={props.dictionary.health}
+-              value={healthLabel}
+-              icon={<FavoriteRounded fontSize="small" />}
+-            />
++            {overviewMetrics.map((metric) => (
++              <MetricCard
++                key={metric.label}
++                label={metric.label}
++                value={metric.value}
++                accent={metric.accent}
++                icon={metric.icon}
++              />
++            ))}
+           </Box>
+         </Stack>
+       </Paper>
+@@ -974,12 +1010,9 @@ function ProjectInfoSection(props: { project: ProjectSnapshot; dictionary: Dashb
+                 gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" }
+               }}
+             >
+-              <MetricSurface label={props.dictionary.latestActivity} value={latestActivityLabel} />
+-              <MetricSurface label={props.dictionary.topic} value={props.project.latestTopicName ?? props.dictionary.unknown} />
+-              <MetricSurface label={props.dictionary.topicStage} value={latestStageLabel} />
+-              <MetricSurface label={props.dictionary.files} value={fileSurfaceLabel} />
+-              <MetricSurface label={props.dictionary.workingBranch} value={props.project.workingBranchPrefix} />
+-              <MetricSurface label={props.dictionary.releaseBranch} value={props.project.releaseBranchPrefix} />
++              {projectInfoMetrics.map((metric) => (
++                <MetricSurface key={metric.label} label={metric.label} value={metric.value} />
++              ))}
+             </Box>
+           </Stack>
+         </Paper>
+@@ -1005,16 +1038,9 @@ function ProjectInfoSection(props: { project: ProjectSnapshot; dictionary: Dashb
+             </Paper>
+ 
+             <Stack spacing={1.25}>
+-              <MetricRow label={props.dictionary.provider} value={props.project.provider} />
+-              <MetricRow label={props.dictionary.language} value={props.project.language} />
+-              <MetricRow label={props.dictionary.autoMode} value={props.project.autoMode} />
+-              <MetricRow label={props.dictionary.teamsMode} value={props.project.teamsMode} />
+-              <MetricRow label={props.dictionary.gitMode} value={props.project.gitMode} />
+-              <MetricRow label={props.dictionary.pggVersion} value={props.project.pggVersion ?? props.dictionary.unknown} />
+-              <MetricRow label={props.dictionary.projectVersion} value={props.project.projectVersion ?? props.dictionary.unknown} />
+-              <MetricRow label={props.dictionary.verification} value={props.project.verificationStatus} />
+-              <MetricRow label={props.dictionary.verificationReason} value={verificationLabel} />
+-              <MetricRow label={props.dictionary.verificationCommands} value={String(props.project.verificationCommandCount)} />
++              {currentProjectMetrics.map((metric) => (
++                <MetricRow key={metric.label} label={metric.label} value={metric.value} />
++              ))}
+             </Stack>
+           </Stack>
+         </Paper>

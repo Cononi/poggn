@@ -7,6 +7,7 @@ import path from "node:path";
 import test from "node:test";
 
 import {
+  analyzeProject,
   initializeProject,
   updateProject,
   updateProjectGitBranchPrefixes
@@ -97,6 +98,93 @@ test("pgg update preserves the version history ledger and archive append stays i
     assert.equal(versionFile.targetVersion, "1.0.0");
     assert.equal(versionFile.workingBranch, "ai/fix/1.0.0-ledger-proof");
     assert.equal(versionFile.releaseBranch, "release/1.0.0-ledger-proof");
+  } finally {
+    if (previousPggHome === undefined) {
+      delete process.env.PGG_HOME;
+    } else {
+      process.env.PGG_HOME = previousPggHome;
+    }
+    await rm(rootDir, { recursive: true, force: true });
+  }
+});
+
+test("analyzeProject prefers the latest valid version-history entry for projectVersion", async () => {
+  const rootDir = await mkdtemp(path.join(os.tmpdir(), "pgg-project-version-ledger-"));
+  const previousPggHome = process.env.PGG_HOME;
+
+  try {
+    process.env.PGG_HOME = rootDir;
+    await initializeProject(rootDir, {
+      provider: "codex",
+      language: "en",
+      autoMode: "on",
+      teamsMode: "off"
+    });
+
+    await writeFile(
+      path.join(rootDir, "package.json"),
+      JSON.stringify({ name: "ledger-version-proof", version: "0.1.0" }, null, 2),
+      "utf8"
+    );
+    await writeFile(
+      path.join(rootDir, "poggn/version-history.ndjson"),
+      [
+        '{"topic":"first","version":"0.14.0"}',
+        'not-json',
+        '{"topic":"second"}',
+        '{"topic":"latest","version":"0.15.0","targetVersion":"0.15.0"}'
+      ].join("\n") + "\n",
+      "utf8"
+    );
+
+    const snapshot = await analyzeProject(rootDir, true);
+    assert.equal(snapshot.projectVersion, "0.15.0");
+  } finally {
+    if (previousPggHome === undefined) {
+      delete process.env.PGG_HOME;
+    } else {
+      process.env.PGG_HOME = previousPggHome;
+    }
+    await rm(rootDir, { recursive: true, force: true });
+  }
+});
+
+test("analyzeProject falls back to latest archive metadata when version ledger is unavailable", async () => {
+  const rootDir = await mkdtemp(path.join(os.tmpdir(), "pgg-project-version-archive-"));
+  const previousPggHome = process.env.PGG_HOME;
+
+  try {
+    process.env.PGG_HOME = rootDir;
+    await initializeProject(rootDir, {
+      provider: "codex",
+      language: "en",
+      autoMode: "on",
+      teamsMode: "off"
+    });
+
+    await writeFile(
+      path.join(rootDir, "package.json"),
+      JSON.stringify({ name: "archive-version-proof", version: "0.1.0" }, null, 2),
+      "utf8"
+    );
+
+    const earlierArchiveDir = path.join(rootDir, "poggn/archive/earlier-topic");
+    const laterArchiveDir = path.join(rootDir, "poggn/archive/later-topic");
+    await mkdir(earlierArchiveDir, { recursive: true });
+    await mkdir(laterArchiveDir, { recursive: true });
+    await writeFile(
+      path.join(earlierArchiveDir, "version.json"),
+      JSON.stringify({ version: "0.14.0", archivedAt: "2026-04-23T10:00:00Z" }, null, 2),
+      "utf8"
+    );
+    await writeFile(
+      path.join(laterArchiveDir, "version.json"),
+      JSON.stringify({ version: "0.15.0", archivedAt: "2026-04-23T16:20:21Z" }, null, 2),
+      "utf8"
+    );
+
+    const snapshot = await analyzeProject(rootDir, true);
+    assert.equal(snapshot.projectVersion, "0.15.0");
   } finally {
     if (previousPggHome === undefined) {
       delete process.env.PGG_HOME;

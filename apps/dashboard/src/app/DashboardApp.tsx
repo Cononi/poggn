@@ -35,6 +35,7 @@ import {
 import { dashboardLocale } from "../shared/locale/dashboardLocale";
 import type {
   ArtifactSelection,
+  DashboardDetailSection,
   DashboardQueryResult,
   DashboardSettingsView,
   DashboardSnapshot
@@ -48,7 +49,7 @@ import {
   resolveTopicKeyFromSourcePath,
   splitVisibleTopics
 } from "../shared/utils/dashboard";
-import { DashboardStatePanel, ProjectContextSidebar, TopNavigation } from "./DashboardShellChrome";
+import { DashboardStatePanel, ProjectContextSidebar, ProjectSelectorDialog, TopNavigation } from "./DashboardShellChrome";
 import {
   buildInsightsSummary,
   createMutationPayload,
@@ -102,6 +103,7 @@ export default function DashboardApp() {
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [sidebarDrawerOpen, setSidebarDrawerOpen] = useState(false);
   const [projectBoardFilter, setProjectBoardFilter] = useState("");
+  const [projectSelectorOpen, setProjectSelectorOpen] = useState(false);
 
   const snapshotQuery = useQuery({
     queryKey: ["dashboard-snapshot"],
@@ -114,9 +116,11 @@ export default function DashboardApp() {
   const currentProject = resolveCurrentProject(snapshot);
   const selectedProject = resolveSelectedProject(snapshot, selectedProjectId, currentProject);
   const latestActiveProject = resolveLatestActiveProject(snapshot, currentProject);
-  const dictionary = dashboardLocale[(selectedProject ?? currentProject)?.language ?? "en"];
-  const isLiveMode = snapshotSource === "live";
   const boardContextProject = selectedProject ?? currentProject;
+  const projectContextId = boardContextProject?.id ?? null;
+  const projectSurfaceProject = activeTopMenu === "projects" ? boardContextProject : currentProject;
+  const dictionary = dashboardLocale[projectSurfaceProject?.language ?? "en"];
+  const isLiveMode = snapshotSource === "live";
   const categories = useMemo(
     () => [...(snapshot?.categories ?? [])].sort((left, right) => left.order - right.order),
     [snapshot?.categories]
@@ -124,12 +128,12 @@ export default function DashboardApp() {
   const pendingDeleteProject =
     (snapshot?.projects ?? []).find((project) => project.id === pendingDeleteProjectId) ?? null;
   const allProjectTopics = useMemo(
-    () => (selectedProject ? [...selectedProject.activeTopics, ...selectedProject.archivedTopics] : []),
-    [selectedProject]
+    () => (boardContextProject ? [...boardContextProject.activeTopics, ...boardContextProject.archivedTopics] : []),
+    [boardContextProject]
   );
   const { activeTopics, archivedTopics } = useMemo(
-    () => splitVisibleTopics(selectedProject, deferredTopicFilter),
-    [deferredTopicFilter, selectedProject]
+    () => splitVisibleTopics(boardContextProject, deferredTopicFilter),
+    [boardContextProject, deferredTopicFilter]
   );
   const visibleTopics = useMemo(() => [...activeTopics, ...archivedTopics], [activeTopics, archivedTopics]);
   const nextVisibleTopicKey = useMemo(
@@ -155,8 +159,8 @@ export default function DashboardApp() {
     [allProjectTopics, fileSelection]
   );
   const insightsSummary = useMemo(
-    () => buildInsightsSummary(selectedProject, snapshot?.recentActivity ?? [], dictionary),
-    [dictionary, selectedProject, snapshot?.recentActivity]
+    () => buildInsightsSummary(boardContextProject, snapshot?.recentActivity ?? [], dictionary),
+    [boardContextProject, dictionary, snapshot?.recentActivity]
   );
   const isDeletingCurrentProject = pendingDeleteProject?.id === currentProject?.id;
 
@@ -172,10 +176,25 @@ export default function DashboardApp() {
   }, [selectedProjectId, setSelectedProjectId, snapshot]);
 
   useEffect(() => {
-    const dashboardTitle = currentProject?.dashboardTitle ?? dictionary.dashboardFallbackTitle;
+    if (!snapshot?.projects.length || !selectedProjectId) {
+      return;
+    }
+
+    const selectedProjectStillExists = snapshot.projects.some((project) => project.id === selectedProjectId);
+    if (selectedProjectStillExists) {
+      return;
+    }
+
+    startTransition(() => {
+      setSelectedProjectId(snapshot.currentProjectId ?? snapshot.projects[0]?.id ?? null);
+    });
+  }, [selectedProjectId, setSelectedProjectId, snapshot]);
+
+  useEffect(() => {
+    const dashboardTitle = projectSurfaceProject?.dashboardTitle ?? dictionary.dashboardFallbackTitle;
     document.title = dashboardTitle;
 
-    const iconSvg = normalizeDashboardTitleIconSvg(currentProject?.dashboardTitleIconSvg);
+    const iconSvg = normalizeDashboardTitleIconSvg(projectSurfaceProject?.dashboardTitleIconSvg);
     const iconHref = toSvgDataUrl(iconSvg);
     let link = document.querySelector("link[rel='icon']") as HTMLLinkElement | null;
     if (!link) {
@@ -184,7 +203,7 @@ export default function DashboardApp() {
       document.head.appendChild(link);
     }
     link.href = iconHref;
-  }, [currentProject?.dashboardTitle, currentProject?.dashboardTitleIconSvg, dictionary.dashboardFallbackTitle]);
+  }, [dictionary.dashboardFallbackTitle, projectSurfaceProject?.dashboardTitle, projectSurfaceProject?.dashboardTitleIconSvg]);
 
   useEffect(() => {
     if (!nextVisibleTopicKey) {
@@ -239,33 +258,33 @@ export default function DashboardApp() {
   }, [snapshot?.generatedAt]);
 
   useEffect(() => {
-    if (selectedProject?.id) {
+    if (boardContextProject?.id) {
       markDashboardInteraction("project-switch", "ready");
     }
-  }, [selectedProject?.id]);
+  }, [boardContextProject?.id]);
 
   const detailFileQuery = useQuery({
     queryKey: [
       "dashboard-topic-file-detail",
-      selectedProject?.id ?? null,
+      projectContextId,
       detailTopic?.bucket ?? null,
       detailTopic?.name ?? null,
       detailSelection?.relativePath ?? null
     ],
     queryFn: async () => {
-      if (!selectedProject?.id || !detailTopic || !detailSelection?.relativePath) {
+      if (!projectContextId || !detailTopic || !detailSelection?.relativePath) {
         throw new Error(dictionary.detailUnavailable);
       }
 
       return fetchTopicFileDetail(
-        selectedProject.id,
+        projectContextId,
         detailTopic.bucket,
         detailTopic.name,
         detailSelection.relativePath
       );
     },
     enabled: Boolean(
-      selectedProject?.id &&
+      projectContextId &&
         detailTopic &&
         detailSelection?.relativePath &&
         !detailSelection.detail
@@ -307,24 +326,24 @@ export default function DashboardApp() {
   const fileDetailQuery = useQuery({
     queryKey: [
       "dashboard-topic-browser-file-detail",
-      selectedProject?.id ?? null,
+      projectContextId,
       fileTopic?.bucket ?? null,
       fileTopic?.name ?? null,
       fileSelection?.relativePath ?? null
     ],
     queryFn: async () => {
-      if (!selectedProject?.id || !fileTopic || !fileSelection?.relativePath) {
+      if (!projectContextId || !fileTopic || !fileSelection?.relativePath) {
         throw new Error(dictionary.detailUnavailable);
       }
 
       return fetchTopicFileDetail(
-        selectedProject.id,
+        projectContextId,
         fileTopic.bucket,
         fileTopic.name,
         fileSelection.relativePath
       );
     },
-    enabled: Boolean(selectedProject?.id && fileTopic && fileSelection?.relativePath && !fileSelection.detail)
+    enabled: Boolean(projectContextId && fileTopic && fileSelection?.relativePath && !fileSelection.detail)
   });
 
   useEffect(() => {
@@ -386,12 +405,12 @@ export default function DashboardApp() {
 
   const saveFileMutation = useMutation({
     mutationFn: async (content: string) => {
-      if (!selectedProject?.id || !fileTopic || !fileSelection?.relativePath) {
+      if (!projectContextId || !fileTopic || !fileSelection?.relativePath) {
         throw new Error(dictionary.detailUnavailable);
       }
 
       return saveTopicFileDetail(
-        selectedProject.id,
+        projectContextId,
         fileTopic.bucket,
         fileTopic.name,
         fileSelection.relativePath,
@@ -418,12 +437,12 @@ export default function DashboardApp() {
 
   const deleteFileMutation = useMutation({
     mutationFn: async () => {
-      if (!selectedProject?.id || !fileTopic || !fileSelection?.relativePath) {
+      if (!projectContextId || !fileTopic || !fileSelection?.relativePath) {
         throw new Error(dictionary.detailUnavailable);
       }
 
       return removeTopicFile(
-        selectedProject.id,
+        projectContextId,
         fileTopic.bucket,
         fileTopic.name,
         fileSelection.relativePath
@@ -444,6 +463,14 @@ export default function DashboardApp() {
     snapshotMutation.mutate(payload);
   };
 
+  const resetProjectSurfaceSelection = () => {
+    setSelectedTopicKey(null);
+    setTopicFilter("");
+    setDetailSelection(null);
+    setFileSelection(null);
+    setDetailDialogOpen(false);
+  };
+
   const mutateCurrentProject = (
     section: "main" | "refresh" | "git" | "system",
     body: Record<string, unknown>
@@ -457,19 +484,38 @@ export default function DashboardApp() {
     );
   };
 
-  const openProjectContext = (projectId: string) => {
+  const focusProjectContext = (projectId: string) => {
+    const nextSection: DashboardDetailSection = projectDetailOpen ? activeDetailSection : "main";
+    const shouldResetSelection = selectedProjectId !== projectId;
     markDashboardInteraction("project-switch", "start");
     startTransition(() => {
       setSelectedProjectId(projectId);
       setActiveTopMenu("projects");
       setActiveSidebarItem("board");
       setProjectDetailOpen(true);
-      setActiveDetailSection("project-info");
-      setSelectedTopicKey(null);
-      setTopicFilter("");
+      setActiveDetailSection(nextSection);
+      if (shouldResetSelection) {
+        resetProjectSurfaceSelection();
+      }
+      setProjectSelectorOpen(false);
       if (isCompactShell) {
         setSidebarDrawerOpen(false);
       }
+    });
+  };
+
+  const openManagementSection = (section: DashboardDetailSection) => {
+    const projectId = boardContextProject?.id ?? selectedProjectId;
+    if (!projectId) {
+      return;
+    }
+
+    startTransition(() => {
+      setSelectedProjectId(projectId);
+      setActiveTopMenu("projects");
+      setActiveSidebarItem("board");
+      setProjectDetailOpen(true);
+      setActiveDetailSection(section);
     });
   };
 
@@ -478,6 +524,18 @@ export default function DashboardApp() {
     if (isCompactShell) {
       setSidebarDrawerOpen(false);
     }
+  };
+
+  const openProjectSelector = () => {
+    setProjectSelectorOpen(true);
+  };
+
+  const closeProjectSelector = () => {
+    setProjectSelectorOpen(false);
+  };
+
+  const handleSelectProjectFromSelector = (projectId: string) => {
+    focusProjectContext(projectId);
   };
 
   const handleTopicFilterChange = (value: string) => {
@@ -613,7 +671,7 @@ export default function DashboardApp() {
     if (projectDetailOpen) {
       return (
         <ProjectDetailWorkspace
-          project={selectedProject}
+          project={boardContextProject}
           selectedTopic={selectedTopic}
           activeTopics={activeTopics}
           archivedTopics={archivedTopics}
@@ -685,7 +743,7 @@ export default function DashboardApp() {
         onAddProject={() => setProjectDialogOpen(true)}
         onProjectFilterChange={setProjectBoardFilter}
         onToggleInsights={() => setInsightsRailOpen(!insightsRailOpen)}
-        onOpenProject={openProjectContext}
+        onOpenProject={focusProjectContext}
         onDeleteProject={(projectId) => {
           setPendingDeleteProjectId(projectId);
           setDangerousDeleteRoot(false);
@@ -705,8 +763,8 @@ export default function DashboardApp() {
   return (
     <Box sx={{ minHeight: "100vh", backgroundColor: "background.default" }}>
       <TopNavigation
-        title={currentProject?.dashboardTitle ?? dictionary.dashboardFallbackTitle}
-        titleIconSvg={currentProject?.dashboardTitleIconSvg ?? ""}
+        title={projectSurfaceProject?.dashboardTitle ?? dictionary.dashboardFallbackTitle}
+        titleIconSvg={projectSurfaceProject?.dashboardTitleIconSvg ?? ""}
         latestProject={latestActiveProject?.name ?? "-"}
         latestProjectVersion={latestActiveProject?.projectVersion ?? latestActiveProject?.pggVersion ?? null}
         dictionary={dictionary}
@@ -742,14 +800,12 @@ export default function DashboardApp() {
               projectDetailOpen={projectDetailOpen}
               activeDetailSection={activeDetailSection}
               activeSettingsView={activeSettingsView}
-              project={selectedProject}
-              categories={categories}
-              projects={snapshot.projects}
+              project={boardContextProject}
               dictionary={dictionary}
               onSelectSidebarItem={setActiveSidebarItem}
-              onSelectDetailSection={setActiveDetailSection}
+              onSelectDetailSection={openManagementSection}
               onSelectSettingsView={openSettingsPanel}
-              onAddProject={() => setProjectDialogOpen(true)}
+              onOpenProjectSelector={openProjectSelector}
             />
           </Box>
         ) : null}
@@ -801,25 +857,33 @@ export default function DashboardApp() {
           projectDetailOpen={projectDetailOpen}
           activeDetailSection={activeDetailSection}
           activeSettingsView={activeSettingsView}
-          project={selectedProject}
-          categories={categories}
-          projects={snapshot.projects}
+          project={boardContextProject}
           dictionary={dictionary}
           onSelectSidebarItem={(item) => {
             setActiveSidebarItem(item);
             setSidebarDrawerOpen(false);
           }}
           onSelectDetailSection={(section) => {
-            setActiveDetailSection(section);
+            openManagementSection(section);
             setSidebarDrawerOpen(false);
           }}
           onSelectSettingsView={openSettingsPanel}
-          onAddProject={() => {
-            setProjectDialogOpen(true);
+          onOpenProjectSelector={() => {
+            setProjectSelectorOpen(true);
             setSidebarDrawerOpen(false);
           }}
         />
       </Drawer>
+
+      <ProjectSelectorDialog
+        open={projectSelectorOpen}
+        project={boardContextProject}
+        categories={categories}
+        projects={snapshot.projects}
+        dictionary={dictionary}
+        onClose={closeProjectSelector}
+        onSelectProject={handleSelectProjectFromSelector}
+      />
 
       <Drawer
         anchor="right"
@@ -946,7 +1010,7 @@ export default function DashboardApp() {
         open={detailDialogOpen}
         detailSelection={detailSelection}
         dictionary={dictionary}
-        language={selectedProject?.language ?? "en"}
+        language={boardContextProject?.language ?? "en"}
         onClose={() => setDetailDialogOpen(false)}
       />
     </Box>

@@ -166,7 +166,91 @@ async function readTextIfExists(filePath) {
         return null;
     }
 }
-async function readProjectVersion(rootDir) {
+function readNonEmptyString(value) {
+    return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+function compareSemverVersions(left, right) {
+    const leftParts = left.split(".").map((part) => Number.parseInt(part, 10) || 0);
+    const rightParts = right.split(".").map((part) => Number.parseInt(part, 10) || 0);
+    const maxLength = Math.max(leftParts.length, rightParts.length);
+    for (let index = 0; index < maxLength; index += 1) {
+        const difference = (leftParts[index] ?? 0) - (rightParts[index] ?? 0);
+        if (difference !== 0) {
+            return difference;
+        }
+    }
+    return 0;
+}
+async function readLatestVersionHistoryEntry(rootDir) {
+    const ledgerPath = path.join(rootDir, "poggn/version-history.ndjson");
+    const raw = await readTextIfExists(ledgerPath);
+    if (!raw) {
+        return null;
+    }
+    const lines = raw
+        .split(/\n+/)
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .reverse();
+    for (const line of lines) {
+        try {
+            const parsed = JSON.parse(line);
+            const version = readNonEmptyString(parsed.version) ?? readNonEmptyString(parsed.targetVersion);
+            if (version) {
+                return version;
+            }
+        }
+        catch {
+            continue;
+        }
+    }
+    return null;
+}
+async function readLatestArchivedProjectVersion(rootDir) {
+    const archiveRoot = path.join(rootDir, "poggn/archive");
+    let topicNames;
+    try {
+        topicNames = await readdir(archiveRoot);
+    }
+    catch {
+        return null;
+    }
+    let latestVersion = null;
+    let latestArchivedAt = null;
+    for (const topicName of topicNames) {
+        const versionPath = path.join(archiveRoot, topicName, "version.json");
+        const raw = await readTextIfExists(versionPath);
+        if (!raw) {
+            continue;
+        }
+        try {
+            const parsed = JSON.parse(raw);
+            const candidateVersion = readNonEmptyString(parsed.version) ?? readNonEmptyString(parsed.targetVersion);
+            if (!candidateVersion) {
+                continue;
+            }
+            const candidateArchivedAt = readNonEmptyString(parsed.archivedAt);
+            if (!latestVersion) {
+                latestVersion = candidateVersion;
+                latestArchivedAt = candidateArchivedAt;
+                continue;
+            }
+            const hasNewerArchivedAt = candidateArchivedAt !== null &&
+                (latestArchivedAt === null || candidateArchivedAt.localeCompare(latestArchivedAt) > 0);
+            const hasComparableArchivedAt = candidateArchivedAt !== null || latestArchivedAt !== null;
+            const hasHigherSemver = compareSemverVersions(candidateVersion, latestVersion) > 0;
+            if (hasNewerArchivedAt || (!hasComparableArchivedAt && hasHigherSemver)) {
+                latestVersion = candidateVersion;
+                latestArchivedAt = candidateArchivedAt;
+            }
+        }
+        catch {
+            continue;
+        }
+    }
+    return latestVersion;
+}
+async function readProjectPackageVersion(rootDir) {
     const candidatePaths = [
         path.join(rootDir, "package.json"),
         path.join(rootDir, "apps", "dashboard", "package.json")
@@ -187,6 +271,11 @@ async function readProjectVersion(rootDir) {
         }
     }
     return null;
+}
+async function readProjectVersion(rootDir) {
+    return ((await readLatestVersionHistoryEntry(rootDir)) ??
+        (await readLatestArchivedProjectVersion(rootDir)) ??
+        (await readProjectPackageVersion(rootDir)));
 }
 async function writeTextFile(filePath, content) {
     await ensureParentDir(filePath);

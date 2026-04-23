@@ -1,0 +1,14 @@
+{
+  "topic": "dashboard-project-selector",
+  "changeType": "feat",
+  "versionBump": "minor",
+  "version": "0.14.0",
+  "targetVersion": "0.14.0",
+  "previousVersion": "0.13.1",
+  "shortName": "dashboard-project-selector",
+  "workingBranch": "ai/feat/0.14.0-dashboard-project-selector",
+  "releaseBranch": "release/0.14.0-dashboard-project-selector",
+  "projectScope": "current-project",
+  "archivedAt": "2026-04-23T15:44:03Z",
+  "history": "poggn/version-history.ndjson"
+}

@@ -1,0 +1,71 @@
+diff --git a/apps/dashboard/src/app/DashboardShellChrome.tsx b/apps/dashboard/src/app/DashboardShellChrome.tsx
+index e2a9ded..05bde9b 100644
+--- a/apps/dashboard/src/app/DashboardShellChrome.tsx
++++ b/apps/dashboard/src/app/DashboardShellChrome.tsx
+@@ -83,6 +83,11 @@ type ProjectSelectorDialogProps = {
+   onSelectProject: (projectId: string) => void;
+ };
+ 
++type ProjectVersionMeta = {
++  pggVersion: string;
++  projectVersion: string;
++};
++
+ export function TopNavigation(props: TopNavigationProps) {
+   const theme = useTheme();
+   const latestProjectSummary = `${props.latestProject} · ${
+@@ -332,8 +337,7 @@ export function ProjectSelectorDialog(props: ProjectSelectorDialogProps) {
+                   <Stack divider={<Divider flexItem />}>
+                     {section.projects.map((project) => {
+                       const selected = project.id === props.project?.id;
+-                      const projectVersion = project.projectVersion ?? props.dictionary.unknown;
+-                      const pggVersion = project.pggVersion ?? project.installedVersion ?? props.dictionary.unknown;
++                      const versionMeta = resolveProjectVersionMeta(project, props.dictionary);
+ 
+                       return (
+                         <ButtonBase
+@@ -388,10 +392,10 @@ export function ProjectSelectorDialog(props: ProjectSelectorDialogProps) {
+                             <Box sx={{ textAlign: { xs: "left", sm: "right" }, flexShrink: 0, width: { xs: "100%", sm: "auto" } }}>
+                               <Stack spacing={0.2} sx={{ alignItems: { xs: "flex-start", sm: "flex-end" } }}>
+                                 <Typography variant="caption" color="text.secondary">
+-                                  {props.dictionary.pggVersion}: {pggVersion}
++                                  {props.dictionary.pggVersion}: {versionMeta.pggVersion}
+                                 </Typography>
+                                 <Typography variant="caption" color="text.secondary">
+-                                  {props.dictionary.projectVersion}: {projectVersion}
++                                  {props.dictionary.projectVersion}: {versionMeta.projectVersion}
+                                 </Typography>
+                                 <Typography variant="caption" color="text.secondary">
+                                   {project.activeTopics.length} {props.dictionary.active}
+@@ -430,8 +434,7 @@ function ProjectSelectorTriggerCard(props: {
+   onClick: () => void;
+ }) {
+   const theme = useTheme();
+-  const pggVersion = props.project.pggVersion ?? props.project.installedVersion ?? props.dictionary.unknown;
+-  const projectVersion = props.project.projectVersion ?? props.dictionary.unknown;
++  const versionMeta = resolveProjectVersionMeta(props.project, props.dictionary);
+ 
+   return (
+     <ButtonBase
+@@ -487,8 +490,8 @@ function ProjectSelectorTriggerCard(props: {
+           </Stack>
+ 
+           <Stack spacing={0.55}>
+-            <VersionMetaRow label={props.dictionary.pggVersion} value={pggVersion} />
+-            <VersionMetaRow label={props.dictionary.projectVersion} value={projectVersion} />
++            <VersionMetaRow label={props.dictionary.pggVersion} value={versionMeta.pggVersion} />
++            <VersionMetaRow label={props.dictionary.projectVersion} value={versionMeta.projectVersion} />
+           </Stack>
+         </Stack>
+       </Paper>
+@@ -579,3 +582,10 @@ function ProjectPathText(props: { path: string }) {
+     </Typography>
+   );
+ }
++
++function resolveProjectVersionMeta(project: ProjectSnapshot, dictionary: DashboardLocale): ProjectVersionMeta {
++  return {
++    pggVersion: project.pggVersion ?? project.installedVersion ?? dictionary.unknown,
++    projectVersion: project.projectVersion ?? dictionary.unknown
++  };
++}

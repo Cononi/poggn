@@ -34,7 +34,7 @@ const defaultUiState: DashboardUiState = {
   activeTopMenu: "projects",
   activeSidebarItem: "board",
   projectDetailOpen: false,
-  activeDetailSection: "project-info",
+  activeDetailSection: "main",
   workflowViewMode: "flow",
   activeSettingsView: "main",
   selectedProjectId: null,
@@ -73,21 +73,27 @@ function readInitialUiState(): DashboardUiState {
     }
 
     const parsed = JSON.parse(raw) as Partial<DashboardUiState>;
+    const rawActiveDetailSection =
+      typeof (parsed as { activeDetailSection?: unknown }).activeDetailSection === "string"
+        ? ((parsed as { activeDetailSection?: string }).activeDetailSection ?? null)
+        : null;
     const activeSidebarItem =
       parsed.activeSidebarItem === "category" ? "category" : "board";
     const activeDetailSection =
-      parsed.activeDetailSection === "workflow" ||
-      parsed.activeDetailSection === "history" ||
-      parsed.activeDetailSection === "report" ||
-      parsed.activeDetailSection === "files"
-        ? parsed.activeDetailSection
-        : "project-info";
+      rawActiveDetailSection === "main" ||
+      rawActiveDetailSection === "project-info" ||
+      rawActiveDetailSection === "workflow" ||
+      rawActiveDetailSection === "history" ||
+      rawActiveDetailSection === "report" ||
+      rawActiveDetailSection === "files"
+        ? rawActiveDetailSection
+        : "main";
     const workflowViewMode = parsed.workflowViewMode === "timeline" ? "timeline" : "flow";
     return {
       ...defaultUiState,
       ...parsed,
       activeSidebarItem,
-      activeDetailSection,
+      activeDetailSection: activeDetailSection === "project-info" ? "main" : activeDetailSection,
       workflowViewMode,
       workspaceFilterState: {
         ...defaultWorkspaceFilterState,

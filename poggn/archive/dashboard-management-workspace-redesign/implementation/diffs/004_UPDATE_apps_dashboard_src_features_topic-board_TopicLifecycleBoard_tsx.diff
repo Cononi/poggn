@@ -1,0 +1,28 @@
+diff --git a/apps/dashboard/src/features/topic-board/TopicLifecycleBoard.tsx b/apps/dashboard/src/features/topic-board/TopicLifecycleBoard.tsx
+index b50d2c7..ac7e182 100644
+--- a/apps/dashboard/src/features/topic-board/TopicLifecycleBoard.tsx
++++ b/apps/dashboard/src/features/topic-board/TopicLifecycleBoard.tsx
+@@ -1,6 +1,6 @@
+ import { useEffect, useState } from "react";
+ import { alpha, type Theme, useTheme } from "@mui/material/styles";
+-import { Box, Button, Card, CardActionArea, CardContent, Chip, Paper, Stack, Typography } from "@mui/material";
++import { Box, Button, Card, CardActionArea, CardContent, Chip, Paper, Stack, Typography, type ReactNode } from "@mui/material";
+ import type { DashboardLocale, TopicLane, TopicSummary } from "../../shared/model/dashboard";
+ import { resolveDashboardStageLabel } from "../../shared/locale/dashboardLocale";
+ import { formatDate } from "../../shared/utils/dashboard";
+@@ -11,6 +11,7 @@ type TopicLifecycleBoardProps = {
+   dictionary: DashboardLocale;
+   language: "ko" | "en";
+   onOpenTopic: (topic: TopicSummary) => void;
++  actions?: ReactNode;
+ };
+ 
+ export function TopicLifecycleBoard(props: TopicLifecycleBoardProps) {
+@@ -130,6 +131,7 @@ export function TopicLifecycleBoard(props: TopicLifecycleBoardProps) {
+             {props.dictionary.lifecycleBoardHint}
+           </Typography>
+         </Box>
++        {props.actions ? <Box sx={{ alignSelf: "flex-start" }}>{props.actions}</Box> : null}
+       </Stack>
+ 
+       <Box

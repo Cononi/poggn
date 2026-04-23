@@ -1,0 +1,32 @@
+{
+  "topic": "dashboard-project-selector",
+  "version": "0.14.0",
+  "targetVersion": "0.14.0",
+  "changeType": "feat",
+  "versionBump": "minor",
+  "commitTitle": "feat: project selector modal",
+  "commitSha": "613faf25c1b0e390e25af2953b436d4e4cfe421f",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/0.14.0-dashboard-project-selector",
+  "workingBranch": "ai/feat/0.14.0-dashboard-project-selector",
+  "releaseBranch": "release/0.14.0-dashboard-project-selector",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-23T15:44:05Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/0.14.0-dashboard-project-selector'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "not_attempted",
+  "branchRecoveryReason": null,
+  "branchRecoveryFrom": null,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/dashboard-project-selector",
+    "versionFile": "poggn/archive/dashboard-project-selector/version.json"
+  }
+}

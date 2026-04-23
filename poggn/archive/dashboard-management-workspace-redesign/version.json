@@ -1,0 +1,14 @@
+{
+  "topic": "dashboard-management-workspace-redesign",
+  "changeType": "feat",
+  "versionBump": "minor",
+  "version": "0.15.0",
+  "targetVersion": "0.15.0",
+  "previousVersion": "0.14.0",
+  "shortName": "management-workspace",
+  "workingBranch": "ai/feat/0.15.0-management-workspace",
+  "releaseBranch": "release/0.15.0-management-workspace",
+  "projectScope": "current-project",
+  "archivedAt": "2026-04-23T16:20:21Z",
+  "history": "poggn/version-history.ndjson"
+}

@@ -1,0 +1,406 @@
+diff --git a/apps/dashboard/src/app/DashboardShellChrome.tsx b/apps/dashboard/src/app/DashboardShellChrome.tsx
+index 5dcb0b6..32c3cad 100644
+--- a/apps/dashboard/src/app/DashboardShellChrome.tsx
++++ b/apps/dashboard/src/app/DashboardShellChrome.tsx
+@@ -2,10 +2,16 @@ import type { ReactNode } from "react";
+ import { alpha, useTheme } from "@mui/material/styles";
+ import {
+   Avatar,
++  Alert,
+   Box,
+   Button,
+   ButtonBase,
+   Chip,
++  Dialog,
++  DialogActions,
++  DialogContent,
++  DialogTitle,
++  Divider,
+   IconButton,
+   InputAdornment,
+   Paper,
+@@ -16,7 +22,6 @@ import {
+ import AddRounded from "@mui/icons-material/AddRounded";
+ import FolderRounded from "@mui/icons-material/FolderRounded";
+ import GridViewRounded from "@mui/icons-material/GridViewRounded";
+-import KeyboardArrowDownRounded from "@mui/icons-material/KeyboardArrowDownRounded";
+ import MenuRounded from "@mui/icons-material/MenuRounded";
+ import ScheduleRounded from "@mui/icons-material/ScheduleRounded";
+ import SearchRounded from "@mui/icons-material/SearchRounded";
+@@ -31,6 +36,7 @@ import type {
+   ProjectSnapshot
+ } from "../shared/model/dashboard";
+ import { normalizeDashboardTitleIconSvg, toSvgDataUrl } from "../shared/utils/brand";
++import { buildProjectBoardSections } from "../features/project-list/projectBoard";
+ 
+ type TopNavigationProps = {
+   title: string;
+@@ -64,6 +70,17 @@ type ProjectContextSidebarProps = {
+   onSelectDetailSection: (section: DashboardDetailSection) => void;
+   onSelectSettingsView: (view: DashboardSettingsView) => void;
+   onAddProject: () => void;
++  onOpenProjectSelector: () => void;
++};
++
++type ProjectSelectorDialogProps = {
++  open: boolean;
++  project: ProjectSnapshot | null;
++  categories: ProjectCategory[];
++  projects: ProjectSnapshot[];
++  dictionary: DashboardLocale;
++  onClose: () => void;
++  onSelectProject: (projectId: string) => void;
+ };
+ 
+ export function TopNavigation(props: TopNavigationProps) {
+@@ -213,111 +230,134 @@ export function ProjectContextSidebar(props: ProjectContextSidebarProps) {
+   return (
+     <Stack sx={{ minHeight: "100%", p: 2, justifyContent: "space-between" }}>
+       <Stack spacing={2}>
+-        {props.activeTopMenu === "projects" && !props.projectDetailOpen ? (
++        {props.activeTopMenu === "projects" ? (
+           <>
+             <SidebarSectionLabel label={props.dictionary.workspaceSectionTitle} />
+             {props.project ? (
+-              <Paper
++              <ButtonBase
++                onClick={props.onOpenProjectSelector}
+                 sx={{
+-                  p: 1.5,
+-                  borderRadius: 1,
+-                  bgcolor: alpha(theme.palette.background.default, 0.42)
++                  width: "100%",
++                  display: "block",
++                  textAlign: "left",
++                  borderRadius: 1
+                 }}
+               >
+-                <Stack direction="row" spacing={1.2} sx={{ alignItems: "center" }}>
+-                  <Avatar
+-                    variant="rounded"
+-                    sx={{
+-                      width: 44,
+-                      height: 44,
+-                      bgcolor: alpha(theme.palette.primary.main, 0.22),
+-                      color: "primary.light"
+-                    }}
+-                  >
+-                    {props.project.name.slice(0, 1).toUpperCase()}
+-                  </Avatar>
+-                  <Box sx={{ minWidth: 0, flex: 1 }}>
+-                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+-                      {props.project.name}
+-                    </Typography>
+-                    <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+-                      {props.dictionary.projectIdentityHint}
++                <Paper
++                  sx={{
++                    p: 1.5,
++                    borderRadius: 1,
++                    bgcolor: alpha(theme.palette.background.default, 0.42),
++                    border: `1px solid ${alpha(theme.palette.primary.main, 0.16)}`
++                  }}
++                >
++                  <Stack spacing={1.1}>
++                    <Stack direction="row" spacing={1.2} sx={{ alignItems: "center" }}>
++                      <Avatar
++                        variant="rounded"
++                        sx={{
++                          width: 44,
++                          height: 44,
++                          bgcolor: alpha(theme.palette.primary.main, 0.22),
++                          color: "primary.light"
++                        }}
++                      >
++                        {props.project.name.slice(0, 1).toUpperCase()}
++                      </Avatar>
++                      <Box sx={{ minWidth: 0, flex: 1 }}>
++                        <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
++                          {props.project.name}
++                        </Typography>
++                        <Typography
++                          variant="body2"
++                          color="text.secondary"
++                          sx={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
++                        >
++                          {props.dictionary.projectIdentityHint}
++                        </Typography>
++                      </Box>
++                    </Stack>
++                    <Typography variant="caption" color="primary.main" sx={{ fontWeight: 700 }}>
++                      {props.dictionary.changeProjectAction}
+                     </Typography>
+-                  </Box>
+-                  <KeyboardArrowDownRounded color="action" />
+-                </Stack>
+-              </Paper>
++                  </Stack>
++                </Paper>
++              </ButtonBase>
+             ) : null}
+ 
+-            <SidebarSectionLabel label={props.dictionary.sidebarManagement} />
+-            <Stack spacing={0.5}>
+-              {projectItems.map((item) => (
+-                <SidebarNavButton
+-                  key={item.id}
+-                  label={item.label}
+-                  icon={item.icon}
+-                  active={item.id !== "timeline" && props.activeSidebarItem === item.id}
+-                  disabled={!item.enabled}
+-                  onClick={() => {
+-                    if (item.id === "timeline") {
+-                      return;
+-                    }
+-                    props.onSelectSidebarItem(item.id);
+-                  }}
+-                />
+-              ))}
+-            </Stack>
++            {!props.projectDetailOpen ? (
++              <>
++                <SidebarSectionLabel label={props.dictionary.sidebarManagement} />
++                <Stack spacing={0.5}>
++                  {projectItems.map((item) => (
++                    <SidebarNavButton
++                      key={item.id}
++                      label={item.label}
++                      icon={item.icon}
++                      active={item.id !== "timeline" && props.activeSidebarItem === item.id}
++                      disabled={!item.enabled}
++                      onClick={() => {
++                        if (item.id === "timeline") {
++                          return;
++                        }
++                        props.onSelectSidebarItem(item.id);
++                      }}
++                    />
++                  ))}
++                </Stack>
+ 
+-            <Stack spacing={1}>
+-              <Stack direction="row" spacing={1} sx={{ justifyContent: "space-between", alignItems: "center" }}>
+-                <SidebarSectionLabel label={props.dictionary.categoriesSectionTitle} />
+-                <IconButton
+-                  size="small"
+-                  onClick={() => props.onSelectSidebarItem("category")}
+-                  sx={{ color: "text.secondary" }}
+-                >
+-                  <AddRounded fontSize="small" />
+-                </IconButton>
+-              </Stack>
++                <Stack spacing={1}>
++                  <Stack direction="row" spacing={1} sx={{ justifyContent: "space-between", alignItems: "center" }}>
++                    <SidebarSectionLabel label={props.dictionary.categoriesSectionTitle} />
++                    <IconButton
++                      size="small"
++                      onClick={() => props.onSelectSidebarItem("category")}
++                      sx={{ color: "text.secondary" }}
++                    >
++                      <AddRounded fontSize="small" />
++                    </IconButton>
++                  </Stack>
+ 
+-              <Stack spacing={0.35}>
+-                {visibleCategories.map((category) => (
+-                  <CategorySidebarButton
+-                    key={category.id}
+-                    category={category}
+-                    project={props.project}
+-                    projectCount={countProjectsForCategory(category, props.projects)}
+-                    onClick={() => props.onSelectSidebarItem("board")}
+-                  />
+-                ))}
+-              </Stack>
+-            </Stack>
++                  <Stack spacing={0.35}>
++                    {visibleCategories.map((category) => (
++                      <CategorySidebarButton
++                        key={category.id}
++                        category={category}
++                        project={props.project}
++                        projectCount={countProjectsForCategory(category, props.projects)}
++                        onClick={() => props.onSelectSidebarItem("board")}
++                      />
++                    ))}
++                  </Stack>
++                </Stack>
+ 
+-            <SidebarSectionLabel label={props.dictionary.quickActionsTitle} />
+-            <Stack spacing={1}>
+-              <SecondaryActionButton
+-                label={props.dictionary.newProjectAction}
+-                onClick={props.onAddProject}
+-              />
+-              <SecondaryActionButton
+-                label={props.dictionary.newCategoryAction}
+-                onClick={() => props.onSelectSidebarItem("category")}
+-              />
+-            </Stack>
+-          </>
+-        ) : props.activeTopMenu === "projects" ? (
+-          <>
+-            <SidebarSectionLabel label={props.dictionary.projectDetailSectionLabel} />
+-            <Stack spacing={0.5}>
+-              {detailItems.map((item) => (
+-                <SidebarNavButton
+-                  key={item.id}
+-                  label={item.label}
+-                  active={props.activeDetailSection === item.id}
+-                  onClick={() => props.onSelectDetailSection(item.id)}
+-                />
+-              ))}
+-            </Stack>
++                <SidebarSectionLabel label={props.dictionary.quickActionsTitle} />
++                <Stack spacing={1}>
++                  <SecondaryActionButton
++                    label={props.dictionary.newProjectAction}
++                    onClick={props.onAddProject}
++                  />
++                  <SecondaryActionButton
++                    label={props.dictionary.newCategoryAction}
++                    onClick={() => props.onSelectSidebarItem("category")}
++                  />
++                </Stack>
++              </>
++            ) : (
++              <>
++                <SidebarSectionLabel label={props.dictionary.projectDetailSectionLabel} />
++                <Stack spacing={0.5}>
++                  {detailItems.map((item) => (
++                    <SidebarNavButton
++                      key={item.id}
++                      label={item.label}
++                      active={props.activeDetailSection === item.id}
++                      onClick={() => props.onSelectDetailSection(item.id)}
++                    />
++                  ))}
++                </Stack>
++              </>
++            )}
+           </>
+         ) : (
+           <>
+@@ -369,6 +409,122 @@ export function DashboardStatePanel(props: { title: string; helper: string }) {
+   );
+ }
+ 
++export function ProjectSelectorDialog(props: ProjectSelectorDialogProps) {
++  const theme = useTheme();
++  const sections = buildProjectBoardSections(props.categories, props.projects).filter(
++    (section) => section.projects.length > 0
++  );
++
++  return (
++    <Dialog open={props.open} onClose={props.onClose} fullWidth maxWidth="md">
++      <DialogTitle>{props.dictionary.projectSelectorTitle}</DialogTitle>
++      <DialogContent>
++        <Stack spacing={2} sx={{ pt: 1 }}>
++          <Typography variant="body2" color="text.secondary">
++            {props.dictionary.projectSelectorHint}
++          </Typography>
++
++          {sections.length === 0 ? (
++            <Alert severity="info">{props.dictionary.projectSelectorEmpty}</Alert>
++          ) : (
++            sections.map((section) => (
++              <Stack key={section.category.id} spacing={1}>
++                <Stack direction="row" spacing={1} sx={{ alignItems: "center", justifyContent: "space-between" }}>
++                  <Typography variant="overline" color="text.secondary">
++                    {section.category.name}
++                  </Typography>
++                  <Typography variant="caption" color="text.secondary">
++                    {section.projects.length}
++                  </Typography>
++                </Stack>
++
++                <Paper variant="outlined" sx={{ borderRadius: 1, overflow: "hidden" }}>
++                  <Stack divider={<Divider flexItem />}>
++                    {section.projects.map((project) => {
++                      const selected = project.id === props.project?.id;
++                      const projectVersion =
++                        project.projectVersion ?? project.pggVersion ?? project.installedVersion ?? props.dictionary.unknown;
++
++                      return (
++                        <ButtonBase
++                          key={project.id}
++                          onClick={() => props.onSelectProject(project.id)}
++                          sx={{
++                            px: 1.5,
++                            py: 1.35,
++                            justifyContent: "flex-start",
++                            textAlign: "left",
++                            backgroundColor: selected
++                              ? alpha(theme.palette.primary.main, 0.12)
++                              : "transparent"
++                          }}
++                        >
++                          <Stack direction="row" spacing={1.2} sx={{ alignItems: "center", width: "100%" }}>
++                            <Avatar
++                              variant="rounded"
++                              sx={{
++                                width: 40,
++                                height: 40,
++                                bgcolor: alpha(theme.palette.primary.main, 0.18),
++                                color: "primary.light",
++                                fontWeight: 700
++                              }}
++                            >
++                              {project.name.slice(0, 1).toUpperCase()}
++                            </Avatar>
++                            <Box sx={{ minWidth: 0, flex: 1 }}>
++                              <Stack
++                                direction="row"
++                                spacing={0.75}
++                                useFlexGap
++                                sx={{ alignItems: "center", flexWrap: "wrap", mb: 0.35 }}
++                              >
++                                <Typography variant="body1" sx={{ fontWeight: 700 }}>
++                                  {project.name}
++                                </Typography>
++                                {selected ? (
++                                  <Chip
++                                    size="small"
++                                    label={props.dictionary.current}
++                                    color="primary"
++                                    sx={{ height: 22 }}
++                                  />
++                                ) : null}
++                              </Stack>
++                              <Typography
++                                variant="body2"
++                                color="text.secondary"
++                                sx={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
++                              >
++                                {project.rootDir}
++                              </Typography>
++                            </Box>
++                            <Box sx={{ textAlign: "right", flexShrink: 0 }}>
++                              <Typography variant="body2" sx={{ fontWeight: 600 }}>
++                                {projectVersion}
++                              </Typography>
++                              <Typography variant="caption" color="text.secondary">
++                                {project.activeTopics.length} {props.dictionary.active}
++                              </Typography>
++                            </Box>
++                          </Stack>
++                        </ButtonBase>
++                      );
++                    })}
++                  </Stack>
++                </Paper>
++              </Stack>
++            ))
++          )}
++        </Stack>
++      </DialogContent>
++      <DialogActions>
++        <Button onClick={props.onClose}>{props.dictionary.cancel}</Button>
++      </DialogActions>
++    </Dialog>
++  );
++}
++
+ function SidebarSectionLabel(props: { label: string }) {
+   return (
+     <Typography variant="overline" color="text.secondary" sx={{ px: 0.25 }}>

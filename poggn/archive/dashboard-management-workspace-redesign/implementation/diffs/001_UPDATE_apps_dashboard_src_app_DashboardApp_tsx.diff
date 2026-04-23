@@ -1,0 +1,73 @@
+diff --git a/apps/dashboard/src/app/DashboardApp.tsx b/apps/dashboard/src/app/DashboardApp.tsx
+index d7b1b7c..5aa1460 100644
+--- a/apps/dashboard/src/app/DashboardApp.tsx
++++ b/apps/dashboard/src/app/DashboardApp.tsx
+@@ -35,6 +35,7 @@ import {
+ import { dashboardLocale } from "../shared/locale/dashboardLocale";
+ import type {
+   ArtifactSelection,
++  DashboardDetailSection,
+   DashboardQueryResult,
+   DashboardSettingsView,
+   DashboardSnapshot
+@@ -484,14 +485,18 @@ export default function DashboardApp() {
+   };
+ 
+   const focusProjectContext = (projectId: string) => {
++    const nextSection: DashboardDetailSection = projectDetailOpen ? activeDetailSection : "main";
++    const shouldResetSelection = selectedProjectId !== projectId;
+     markDashboardInteraction("project-switch", "start");
+     startTransition(() => {
+       setSelectedProjectId(projectId);
+       setActiveTopMenu("projects");
+       setActiveSidebarItem("board");
+       setProjectDetailOpen(true);
+-      setActiveDetailSection("project-info");
+-      resetProjectSurfaceSelection();
++      setActiveDetailSection(nextSection);
++      if (shouldResetSelection) {
++        resetProjectSurfaceSelection();
++      }
+       setProjectSelectorOpen(false);
+       if (isCompactShell) {
+         setSidebarDrawerOpen(false);
+@@ -499,6 +504,21 @@ export default function DashboardApp() {
+     });
+   };
+ 
++  const openManagementSection = (section: DashboardDetailSection) => {
++    const projectId = boardContextProject?.id ?? selectedProjectId;
++    if (!projectId) {
++      return;
++    }
++
++    startTransition(() => {
++      setSelectedProjectId(projectId);
++      setActiveTopMenu("projects");
++      setActiveSidebarItem("board");
++      setProjectDetailOpen(true);
++      setActiveDetailSection(section);
++    });
++  };
++
+   const openSettingsPanel = (panel: DashboardSettingsView) => {
+     setActiveSettingsView(panel);
+     if (isCompactShell) {
+@@ -785,7 +805,7 @@ export default function DashboardApp() {
+               projects={snapshot.projects}
+               dictionary={dictionary}
+               onSelectSidebarItem={setActiveSidebarItem}
+-              onSelectDetailSection={setActiveDetailSection}
++              onSelectDetailSection={openManagementSection}
+               onSelectSettingsView={openSettingsPanel}
+               onAddProject={() => setProjectDialogOpen(true)}
+               onOpenProjectSelector={openProjectSelector}
+@@ -849,7 +869,7 @@ export default function DashboardApp() {
+             setSidebarDrawerOpen(false);
+           }}
+           onSelectDetailSection={(section) => {
+-            setActiveDetailSection(section);
++            openManagementSection(section);
+             setSidebarDrawerOpen(false);
+           }}
+           onSelectSettingsView={openSettingsPanel}

@@ -1,0 +1,26 @@
+diff --git a/apps/dashboard/src/shared/locale/dashboardLocale.ts b/apps/dashboard/src/shared/locale/dashboardLocale.ts
+index df1db60..afdd6cc 100644
+--- a/apps/dashboard/src/shared/locale/dashboardLocale.ts
++++ b/apps/dashboard/src/shared/locale/dashboardLocale.ts
+@@ -114,6 +114,10 @@ export const dashboardLocale = {
+     insightProgressTitle: "Sprint progress",
+     insightProgressHint: "Archive versus active backlog share",
+     projectIdentityHint: "소프트웨어 프로젝트",
++    changeProjectAction: "프로젝트 선택",
++    projectSelectorTitle: "프로젝트 선택",
++    projectSelectorHint: "등록된 프로젝트를 카테고리별로 보고 선택한 뒤 Project 화면을 해당 프로젝트 기준으로 전환합니다.",
++    projectSelectorEmpty: "표시할 등록 프로젝트가 없습니다.",
+     workspaceSectionTitle: "WORKSPACE",
+     sidebarManagement: "MANAGEMENT",
+     categoriesSectionTitle: "CATEGORIES",
+@@ -405,6 +409,10 @@ export const dashboardLocale = {
+     insightProgressTitle: "Sprint progress",
+     insightProgressHint: "Archive versus active backlog share",
+     projectIdentityHint: "Software project",
++    changeProjectAction: "Select project",
++    projectSelectorTitle: "Select project",
++    projectSelectorHint: "Browse registered projects by category and switch the Project surface to the selection.",
++    projectSelectorEmpty: "No registered projects are available to select.",
+     workspaceSectionTitle: "WORKSPACE",
+     sidebarManagement: "MANAGEMENT",
+     categoriesSectionTitle: "CATEGORIES",
