@@ -1,0 +1,14 @@
+{
+  "topic": "pgg-dirty-worktree-baseline",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "version": "0.10.1",
+  "targetVersion": "0.10.1",
+  "previousVersion": "0.10.0",
+  "shortName": "dirty-worktree-baseline",
+  "workingBranch": "ai/fix/0.10.1-dirty-worktree-baseline",
+  "releaseBranch": "release/0.10.1-dirty-worktree-baseline",
+  "projectScope": "current-project",
+  "archivedAt": "2026-04-23T02:01:40Z",
+  "history": "poggn/version-history.ndjson"
+}

@@ -1,7 +1,0 @@
-{"ts":"2026-04-23T01:18:44Z","stage":"proposal","event":"topic-created"}
-{"ts":"2026-04-23T01:18:50Z","stage":"proposal","event":"proposal-reviewed","score":95}
-{"ts":"2026-04-23T01:18:50Z","stage":"plan","event":"plan-reviewed","score":95}
-{"ts":"2026-04-23T01:18:50Z","stage":"task","event":"task-reviewed","score":95}
-{"ts":"2026-04-23T01:57:33Z","stage":"implementation","event":"implementation-reviewed","score":96}
-{"ts":"2026-04-23T01:57:33Z","stage":"qa","event":"qa-reviewed","score":97}
-{"ts":"2026-04-23T02:01:25Z","stage":"implementation","event":"stage-commit","archiveType":"fix","commitTitle":"fix: dirty worktree baseline","summary":"dirty worktree baseline","why":"Pre-existing unrelated dirty paths should not block governed stage commits or archive publishes once a topic baseline recorded them.","footer":"Refs: pgg-dirty-worktree-baseline"}
