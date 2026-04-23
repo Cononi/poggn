@@ -6,7 +6,7 @@ dashboard-project-main-selector-version-sync
 
 ## Current Stage
 
-task
+implementation
 
 ## Goal
 
@@ -20,6 +20,8 @@ task
 - task: `poggn/active/dashboard-project-main-selector-version-sync/task.md`
 - plan review: `poggn/active/dashboard-project-main-selector-version-sync/reviews/plan.review.md`
 - task review: `poggn/active/dashboard-project-main-selector-version-sync/reviews/task.review.md`
+- implementation index: `poggn/active/dashboard-project-main-selector-version-sync/implementation/index.md`
+- code review: `poggn/active/dashboard-project-main-selector-version-sync/reviews/code.review.md`
 - spec:
   - `poggn/active/dashboard-project-main-selector-version-sync/spec/ui/project-main-reference-alignment.md`
   - `poggn/active/dashboard-project-main-selector-version-sync/spec/ui/project-selector-path-affordance.md`
@@ -62,10 +64,24 @@ task
 - CREATE `poggn/active/dashboard-project-main-selector-version-sync/spec/infra/project-version-latest-archive-source.md`
 - CREATE `poggn/active/dashboard-project-main-selector-version-sync/reviews/plan.review.md`
 - CREATE `poggn/active/dashboard-project-main-selector-version-sync/reviews/task.review.md`
+- CREATE `poggn/active/dashboard-project-main-selector-version-sync/implementation/index.md`
+- CREATE `poggn/active/dashboard-project-main-selector-version-sync/implementation/diffs/001_UPDATE_packages_core_src_index_ts.diff`
+- CREATE `poggn/active/dashboard-project-main-selector-version-sync/implementation/diffs/002_UPDATE_packages_core_test_version-history_test_mjs.diff`
+- CREATE `poggn/active/dashboard-project-main-selector-version-sync/implementation/diffs/003_UPDATE_packages_core_dist_index_js.diff`
+- CREATE `poggn/active/dashboard-project-main-selector-version-sync/implementation/diffs/004_UPDATE_packages_core_dist_index_js_map.diff`
+- CREATE `poggn/active/dashboard-project-main-selector-version-sync/implementation/diffs/005_UPDATE_apps_dashboard_src_app_DashboardShellChrome_tsx.diff`
+- CREATE `poggn/active/dashboard-project-main-selector-version-sync/implementation/diffs/006_UPDATE_apps_dashboard_src_features_project-detail_ProjectDetailWorkspace_tsx.diff`
+- CREATE `poggn/active/dashboard-project-main-selector-version-sync/reviews/code.review.md`
 - CREATE `poggn/active/dashboard-project-main-selector-version-sync/state/current.md`
 - CREATE `poggn/active/dashboard-project-main-selector-version-sync/state/history.ndjson`
 - CREATE `poggn/active/dashboard-project-main-selector-version-sync/state/dirty-worktree-baseline.txt`
 - UPDATE `poggn/active/dashboard-project-main-selector-version-sync/workflow.reactflow.json`
+- UPDATE `packages/core/src/index.ts`
+- UPDATE `packages/core/test/version-history.test.mjs`
+- UPDATE `packages/core/dist/index.js`
+- UPDATE `packages/core/dist/index.js.map`
+- UPDATE `apps/dashboard/src/app/DashboardShellChrome.tsx`
+- UPDATE `apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx`
 
 ## Last Expert Score
 
@@ -74,16 +90,19 @@ task
 
 ## Open Items
 
-- status: ready for code
+- status: ready for refactor
 
 ## Next Workflow
 
-- `pgg-code`
-- reason: plan, task, spec 경계가 고정돼 구현 단계에서 version resolver와 UI 회귀 수정을 바로 시작할 수 있다.
+- `pgg-refactor`
+- reason: 구현과 code review, implementation diff/index, workspace verification 기록이 완료돼 refactor 단계로 넘길 수 있다.
 
 ## Verification
 
 - project verification: `manual verification required`
+- workspace check: `pnpm build` pass
+- core regression: `pnpm --filter @pgg/core test` pass
+- dashboard build: `pnpm --filter @pgg/dashboard build` pass
 
 ## Git Publish Message
 
