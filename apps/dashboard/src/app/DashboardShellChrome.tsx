@@ -22,6 +22,7 @@ type TopNavigationProps = {
   title: string;
   titleIconSvg: string;
   latestProject: string;
+  latestProjectVersion: string | null;
   dictionary: DashboardLocale;
   activeTopMenu: DashboardPrimaryMenu;
   compactShell: boolean;
@@ -43,6 +44,9 @@ type ProjectContextSidebarProps = {
 
 export function TopNavigation(props: TopNavigationProps) {
   const theme = useTheme();
+  const latestProjectSummary = `${props.latestProject} · ${
+    props.latestProjectVersion ?? props.dictionary.unknown
+  }`;
   const navItems = [
     { id: "projects", label: props.dictionary.projectMenu, onClick: props.onOpenProjects },
     { id: "settings", label: props.dictionary.settings, onClick: props.onOpenSettings }
@@ -92,7 +96,7 @@ export function TopNavigation(props: TopNavigationProps) {
                     sx={{
                       px: 1.25,
                       py: 1,
-                      borderRadius: 1.2,
+                      borderRadius: 1,
                       color: active ? "primary.light" : "text.secondary",
                       borderBottom: active
                         ? `3px solid ${theme.palette.primary.main}`
@@ -111,7 +115,7 @@ export function TopNavigation(props: TopNavigationProps) {
 
         <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
           <Chip
-            label={`${props.dictionary.latestProject}: ${props.latestProject}`}
+            label={`${props.dictionary.latestProject}: ${latestProjectSummary}`}
             color="primary"
             sx={{ maxWidth: { xs: 164, md: 280 } }}
           />
@@ -257,7 +261,7 @@ function SidebarNavButton(props: {
         justifyContent: "flex-start",
         px: 1.1,
         py: 1.1,
-        borderRadius: 0.9,
+        borderRadius: 1,
         color: props.disabled ? "text.disabled" : props.active ? "primary.light" : "text.secondary",
         backgroundColor: props.active ? alpha(theme.palette.primary.main, 0.18) : "transparent",
         borderLeft: props.active ? `4px solid ${theme.palette.primary.main}` : "4px solid transparent"
@@ -279,7 +283,7 @@ function UtilityButton(props: { label: string; active?: boolean; onClick: () => 
       sx={{
         px: 1.2,
         py: 0.95,
-        borderRadius: 0.8,
+        borderRadius: 1,
         border: `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
         bgcolor: props.active ? alpha(theme.palette.primary.main, 0.16) : "transparent",
         color: props.active ? "primary.light" : "text.secondary"

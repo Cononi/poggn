@@ -1,0 +1,496 @@
+diff --git a/apps/dashboard/src/features/project-list/ProjectListBoard.tsx b/apps/dashboard/src/features/project-list/ProjectListBoard.tsx
+index 88afd37..dd02772 100644
+--- a/apps/dashboard/src/features/project-list/ProjectListBoard.tsx
++++ b/apps/dashboard/src/features/project-list/ProjectListBoard.tsx
+@@ -1,6 +1,21 @@
+-import { useMemo, useState } from "react";
++import { useDeferredValue, useMemo, useState } from "react";
+ import { alpha, useTheme } from "@mui/material/styles";
+-import { Alert, Box, Button, ButtonBase, Chip, Paper, Stack, Typography } from "@mui/material";
++import {
++  Alert,
++  Box,
++  Button,
++  Chip,
++  Divider,
++  IconButton,
++  Paper,
++  Stack,
++  TextField,
++  Tooltip,
++  Typography
++} from "@mui/material";
++import AddRounded from "@mui/icons-material/AddRounded";
++import DeleteOutlineRounded from "@mui/icons-material/DeleteOutlineRounded";
++import { resolveDashboardStageLabel } from "../../shared/locale/dashboardLocale";
+ import type { DashboardLocale, ProjectCategory, ProjectSnapshot } from "../../shared/model/dashboard";
+ import { formatDate } from "../../shared/utils/dashboard";
+ import { buildProjectBoardSections, filterProjectsByQuery, type ProjectBoardSection } from "./projectBoard";
+@@ -17,23 +32,16 @@ type ProjectListBoardProps = {
+   onAddProject: () => void;
+   onOpenProject: (projectId: string) => void;
+   onDeleteProject: (projectId: string) => void;
+-  onMoveProject: (projectId: string, targetCategoryId: string, targetIndex: number) => void;
+-};
+-
+-type DragState = {
+-  projectId: string;
+-  sourceCategoryId: string;
+-  sourceIndex: number;
+ };
+ 
+ export function ProjectListBoard(props: ProjectListBoardProps) {
+   const theme = useTheme();
+   const [projectFilter, setProjectFilter] = useState("");
+-  const [dragState, setDragState] = useState<DragState | null>(null);
++  const deferredProjectFilter = useDeferredValue(projectFilter);
+ 
+   const filteredProjects = useMemo(
+-    () => filterProjectsByQuery(props.projects, projectFilter),
+-    [projectFilter, props.projects]
++    () => filterProjectsByQuery(props.projects, deferredProjectFilter),
++    [deferredProjectFilter, props.projects]
+   );
+ 
+   const boardSections = useMemo(
+@@ -47,21 +55,12 @@ export function ProjectListBoard(props: ProjectListBoardProps) {
+     return <Alert severity="info">{props.dictionary.empty}</Alert>;
+   }
+ 
+-  const moveDraggedProject = (targetCategoryId: string, targetIndex: number) => {
+-    if (!dragState) {
+-      return;
+-    }
+-
+-    props.onMoveProject(dragState.projectId, targetCategoryId, targetIndex);
+-    setDragState(null);
+-  };
+-
+   return (
+     <Stack spacing={3}>
+       <Paper
+         sx={{
+           p: { xs: 2, md: 2.75 },
+-          borderRadius: 1.5,
++          borderRadius: 1,
+           position: "relative",
+           overflow: "hidden"
+         }}
+@@ -102,27 +101,28 @@ export function ProjectListBoard(props: ProjectListBoardProps) {
+             spacing={2}
+             sx={{ alignItems: { lg: "flex-end" }, justifyContent: "space-between" }}
+           >
+-            <Box
+-              component="input"
++            <TextField
++              size="small"
+               value={projectFilter}
+               onChange={(event) => setProjectFilter(event.target.value)}
+               placeholder={props.dictionary.searchProjectsPlaceholder}
+               sx={{
+                 minWidth: { xs: "100%", lg: 320 },
+-                border: `1px solid ${alpha(theme.palette.text.primary, 0.14)}`,
+-                borderRadius: 1.25,
+-                px: 1.75,
+-                py: 1.1,
+-                font: "inherit",
+-                color: "text.primary",
+-                backgroundColor: alpha(theme.palette.background.paper, 0.94)
++                "& .MuiOutlinedInput-root": {
++                  backgroundColor: alpha(theme.palette.background.paper, 0.94)
++                }
+               }}
+             />
+             <Stack direction={{ xs: "column", sm: "row" }} spacing={1.25} sx={{ alignItems: { sm: "center" } }}>
+               <Typography variant="caption" color="text.secondary">
+                 {props.dictionary.projectBoardAddHint}
+               </Typography>
+-              <Button variant="contained" disabled={!props.isLiveMode} onClick={props.onAddProject}>
++              <Button
++                variant="contained"
++                startIcon={<AddRounded />}
++                disabled={!props.isLiveMode}
++                onClick={props.onAddProject}
++              >
+                 {props.dictionary.addProject}
+               </Button>
+             </Stack>
+@@ -144,12 +144,8 @@ export function ProjectListBoard(props: ProjectListBoardProps) {
+             latestActiveProjectId={props.latestActiveProjectId}
+             dictionary={props.dictionary}
+             isLiveMode={props.isLiveMode}
+-            dragState={dragState}
+             onOpenProject={props.onOpenProject}
+             onDeleteProject={props.onDeleteProject}
+-            onDragStart={setDragState}
+-            onDragEnd={() => setDragState(null)}
+-            onDropProject={moveDraggedProject}
+           />
+         ))}
+       </Stack>
+@@ -163,34 +159,15 @@ type CategorySectionProps = ProjectBoardSection & {
+   latestActiveProjectId: string | null;
+   dictionary: DashboardLocale;
+   isLiveMode: boolean;
+-  dragState: DragState | null;
+   onOpenProject: (projectId: string) => void;
+   onDeleteProject: (projectId: string) => void;
+-  onDragStart: (value: DragState | null) => void;
+-  onDragEnd: () => void;
+-  onDropProject: (targetCategoryId: string, targetIndex: number) => void;
+ };
+ 
+ function CategorySection(props: CategorySectionProps) {
+   const orderedProjects = [...props.activeProjects, ...props.inactiveProjects];
+ 
+   return (
+-    <Paper
+-      sx={{ p: 2.25, borderRadius: 1.5 }}
+-      onDragOver={(event) => {
+-        if (!props.isLiveMode || !props.dragState) {
+-          return;
+-        }
+-        event.preventDefault();
+-      }}
+-      onDrop={(event) => {
+-        if (!props.isLiveMode || !props.dragState) {
+-          return;
+-        }
+-        event.preventDefault();
+-        props.onDropProject(props.category.id, orderedProjects.length);
+-      }}
+-    >
++    <Paper sx={{ p: 2.25, borderRadius: 1 }}>
+       <Stack spacing={1.5}>
+         <Stack
+           direction={{ xs: "column", md: "row" }}
+@@ -213,47 +190,29 @@ function CategorySection(props: CategorySectionProps) {
+               {props.dictionary.boardCategoryHint}
+             </Typography>
+           </Stack>
+-
+-          {props.dragState ? (
+-            <Typography variant="caption" color="text.secondary">
+-              {props.dictionary.boardDragHint}
+-            </Typography>
+-          ) : null}
+         </Stack>
+ 
+         <ProjectGroup
+           title={props.dictionary.activeProjects}
+           projects={props.activeProjects}
+-          orderedProjects={orderedProjects}
+-          categoryId={props.category.id}
+           currentProjectId={props.currentProjectId}
+           selectedProjectId={props.selectedProjectId}
+           latestActiveProjectId={props.latestActiveProjectId}
+           dictionary={props.dictionary}
+           isLiveMode={props.isLiveMode}
+-          dragState={props.dragState}
+           onOpenProject={props.onOpenProject}
+           onDeleteProject={props.onDeleteProject}
+-          onDragStart={props.onDragStart}
+-          onDragEnd={props.onDragEnd}
+-          onDropProject={props.onDropProject}
+         />
+         <ProjectGroup
+           title={props.dictionary.inactiveProjects}
+           projects={props.inactiveProjects}
+-          orderedProjects={orderedProjects}
+-          categoryId={props.category.id}
+           currentProjectId={props.currentProjectId}
+           selectedProjectId={props.selectedProjectId}
+           latestActiveProjectId={props.latestActiveProjectId}
+           dictionary={props.dictionary}
+           isLiveMode={props.isLiveMode}
+-          dragState={props.dragState}
+           onOpenProject={props.onOpenProject}
+           onDeleteProject={props.onDeleteProject}
+-          onDragStart={props.onDragStart}
+-          onDragEnd={props.onDragEnd}
+-          onDropProject={props.onDropProject}
+         />
+       </Stack>
+     </Paper>
+@@ -263,23 +222,17 @@ function CategorySection(props: CategorySectionProps) {
+ function ProjectGroup(props: {
+   title: string;
+   projects: ProjectSnapshot[];
+-  orderedProjects: ProjectSnapshot[];
+-  categoryId: string;
+   currentProjectId: string | null;
+   selectedProjectId: string | null;
+   latestActiveProjectId: string | null;
+   dictionary: DashboardLocale;
+   isLiveMode: boolean;
+-  dragState: DragState | null;
+   onOpenProject: (projectId: string) => void;
+   onDeleteProject: (projectId: string) => void;
+-  onDragStart: (value: DragState | null) => void;
+-  onDragEnd: () => void;
+-  onDropProject: (targetCategoryId: string, targetIndex: number) => void;
+ }) {
+   if (props.projects.length === 0) {
+     return (
+-      <Paper variant="outlined" sx={{ p: 1.5, borderRadius: 1.25, borderStyle: "dashed" }}>
++      <Paper variant="outlined" sx={{ p: 1.5, borderRadius: 1, borderStyle: "dashed" }}>
+         <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+           {props.title}
+         </Typography>
+@@ -307,47 +260,19 @@ function ProjectGroup(props: {
+           }
+         }}
+       >
+-        {props.projects.map((project) => {
+-          const orderedIndex = props.orderedProjects.findIndex((entry) => entry.id === project.id);
+-
+-          return (
+-            <ProjectCard
+-              key={project.id}
+-              project={project}
+-              orderedIndex={orderedIndex}
+-              currentProjectId={props.currentProjectId}
+-              isSelected={props.selectedProjectId === project.id}
+-              isLatest={props.latestActiveProjectId === project.id}
+-              dictionary={props.dictionary}
+-              isLiveMode={props.isLiveMode}
+-              onOpenProject={() => props.onOpenProject(project.id)}
+-              onDeleteProject={() => props.onDeleteProject(project.id)}
+-              onDragStart={(value) =>
+-                props.onDragStart({
+-                  projectId: project.id,
+-                  sourceCategoryId: props.categoryId,
+-                  sourceIndex: value
+-                })
+-              }
+-              onDragEnd={props.onDragEnd}
+-              onDropProject={(targetProjectId) => {
+-                const destinationIndex = props.orderedProjects.findIndex(
+-                  (entry) => entry.id === targetProjectId
+-                );
+-                if (destinationIndex < 0) {
+-                  return;
+-                }
+-
+-                const nextIndex =
+-                  props.dragState?.sourceCategoryId === props.categoryId &&
+-                  props.dragState.sourceIndex < destinationIndex
+-                    ? destinationIndex - 1
+-                    : destinationIndex;
+-                props.onDropProject(props.categoryId, nextIndex);
+-              }}
+-            />
+-          );
+-        })}
++        {props.projects.map((project) => (
++          <ProjectCard
++            key={project.id}
++            project={project}
++            currentProjectId={props.currentProjectId}
++            isSelected={props.selectedProjectId === project.id}
++            isLatest={props.latestActiveProjectId === project.id}
++            dictionary={props.dictionary}
++            isLiveMode={props.isLiveMode}
++            onOpenProject={() => props.onOpenProject(project.id)}
++            onDeleteProject={() => props.onDeleteProject(project.id)}
++          />
++        ))}
+       </Box>
+     </Stack>
+   );
+@@ -355,7 +280,6 @@ function ProjectGroup(props: {
+ 
+ function ProjectCard(props: {
+   project: ProjectSnapshot;
+-  orderedIndex: number;
+   currentProjectId: string | null;
+   isSelected: boolean;
+   isLatest: boolean;
+@@ -363,9 +287,6 @@ function ProjectCard(props: {
+   isLiveMode: boolean;
+   onOpenProject: () => void;
+   onDeleteProject: () => void;
+-  onDragStart: (sourceIndex: number) => void;
+-  onDragEnd: () => void;
+-  onDropProject: (targetProjectId: string) => void;
+ }) {
+   const theme = useTheme();
+   const isActive = props.project.activeTopics.length > 0;
+@@ -375,26 +296,10 @@ function ProjectCard(props: {
+   return (
+     <Paper
+       variant="outlined"
+-      draggable={props.isLiveMode}
+-      onDragStart={() => props.onDragStart(props.orderedIndex)}
+-      onDragEnd={props.onDragEnd}
+-      onDragOver={(event) => {
+-        if (!props.isLiveMode) {
+-          return;
+-        }
+-        event.preventDefault();
+-      }}
+-      onDrop={(event) => {
+-        if (!props.isLiveMode) {
+-          return;
+-        }
+-        event.preventDefault();
+-        props.onDropProject(props.project.id);
+-      }}
+       onClick={props.onOpenProject}
+       sx={{
+         p: 1.5,
+-        borderRadius: 1.35,
++        borderRadius: 1,
+         cursor: "pointer",
+         borderColor,
+         borderWidth: isActive ? 2 : 1,
+@@ -412,11 +317,13 @@ function ProjectCard(props: {
+         }
+       }}
+     >
+-      <Stack spacing={1.15}>
++      <Stack spacing={1.2}>
+         <Stack direction="row" spacing={1} sx={{ justifyContent: "space-between", alignItems: "flex-start" }}>
+-          <Stack spacing={0.4} sx={{ minWidth: 0 }}>
++          <Stack spacing={0.5} sx={{ minWidth: 0 }}>
+             <Stack direction="row" spacing={0.75} useFlexGap sx={{ flexWrap: "wrap", alignItems: "center" }}>
+-              <Typography variant="subtitle2">{props.project.name}</Typography>
++              <Typography variant="subtitle2" sx={{ lineHeight: 1.25 }}>
++                {props.project.name}
++              </Typography>
+               {props.isLatest ? <Chip size="small" color="primary" label={props.dictionary.latestBadge} /> : null}
+               {isCurrentDashboardRoot ? (
+                 <Chip size="small" variant="outlined" label={props.dictionary.current} />
+@@ -427,63 +334,97 @@ function ProjectCard(props: {
+               color="text.secondary"
+               sx={{
+                 display: "-webkit-box",
+-                WebkitLineClamp: 2,
++                WebkitLineClamp: 1,
+                 WebkitBoxOrient: "vertical",
+                 overflow: "hidden"
+               }}
+             >
+-              {props.project.latestTopicName ?? props.project.rootDir}
++              {props.project.rootDir}
+             </Typography>
+           </Stack>
+-          <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", flexShrink: 0 }}>
+-            <Chip size="small" variant="outlined" label={props.dictionary.boardDragHandle} />
+-            <Button
+-              size="small"
+-              color="error"
+-              disabled={!props.isLiveMode || isCurrentDashboardRoot}
+-              onClick={(event) => {
+-                event.stopPropagation();
+-                props.onDeleteProject();
+-              }}
+-            >
+-              {props.dictionary.deleteProject}
+-            </Button>
+-          </Stack>
++          <Tooltip title={props.dictionary.deleteProject}>
++            <span>
++              <IconButton
++                size="small"
++                color="error"
++                disabled={!props.isLiveMode || isCurrentDashboardRoot}
++                onClick={(event) => {
++                  event.stopPropagation();
++                  props.onDeleteProject();
++                }}
++              >
++                <DeleteOutlineRounded fontSize="small" />
++              </IconButton>
++            </span>
++          </Tooltip>
+         </Stack>
+ 
+-        <Stack direction="row" spacing={0.8} useFlexGap sx={{ flexWrap: "wrap" }}>
+-          <Chip
+-            size="small"
+-            variant="outlined"
+-            label={`${props.dictionary.version}: ${props.project.installedVersion ?? "-"}`}
++        <Box
++          sx={{
++            display: "grid",
++            gap: 1,
++            gridTemplateColumns: { xs: "1fr", sm: "repeat(2, minmax(0, 1fr))" }
++          }}
++        >
++          <ProjectCardMetric
++            label={props.dictionary.version}
++            value={props.project.installedVersion ?? props.dictionary.unknown}
++          />
++          <ProjectCardMetric
++            label={props.dictionary.latestActivity}
++            value={
++              props.project.latestActivityAt
++                ? formatDate(props.project.latestActivityAt, props.project.language)
++                : props.dictionary.unknown
++            }
++          />
++          <ProjectCardMetric
++            label={props.dictionary.topic}
++            value={props.project.latestTopicName ?? props.dictionary.unknown}
++          />
++          <ProjectCardMetric
++            label={props.dictionary.topicStage}
++            value={resolveDashboardStageLabel(props.project.latestTopicStage, props.dictionary)}
+           />
++        </Box>
++
++        <Divider flexItem />
++
++        <Stack direction="row" spacing={0.8} useFlexGap sx={{ flexWrap: "wrap" }}>
+           <Chip
+             size="small"
+             variant="outlined"
+             color={isActive ? "primary" : "default"}
+             label={`${props.dictionary.active}: ${props.project.activeTopics.length}`}
+           />
+-          {props.project.latestTopicStage ? (
+-            <Chip size="small" variant="outlined" label={props.project.latestTopicStage} />
+-          ) : null}
+           <Chip
+             size="small"
+             color={props.project.missingRoot ? "warning" : "success"}
+             label={props.project.missingRoot ? props.dictionary.missing : props.dictionary.ok}
+           />
+         </Stack>
+-
+-        <Stack spacing={0.75}>
+-          <Typography variant="caption" color="text.secondary">
+-            {props.project.latestActivityAt
+-              ? formatDate(props.project.latestActivityAt, props.project.language)
+-              : "-"}
+-          </Typography>
+-          <Typography variant="caption" color={isActive ? "primary.main" : "text.secondary"}>
+-            {props.project.latestTopicStage ?? props.dictionary.openProject}
+-          </Typography>
+-        </Stack>
+       </Stack>
+     </Paper>
+   );
+ }
++
++function ProjectCardMetric(props: { label: string; value: string }) {
++  return (
++    <Stack spacing={0.25} sx={{ minWidth: 0 }}>
++      <Typography variant="caption" color="text.secondary">
++        {props.label}
++      </Typography>
++      <Typography
++        variant="body2"
++        sx={{
++          display: "-webkit-box",
++          WebkitLineClamp: 2,
++          WebkitBoxOrient: "vertical",
++          overflow: "hidden"
++        }}
++      >
++        {props.value}
++      </Typography>
++    </Stack>
++  );
++}

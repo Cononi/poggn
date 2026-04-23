@@ -1,0 +1,229 @@
+diff --git a/apps/dashboard/src/features/project-list/CategoryManagementPanel.tsx b/apps/dashboard/src/features/project-list/CategoryManagementPanel.tsx
+index 18b6407..3d3e169 100644
+--- a/apps/dashboard/src/features/project-list/CategoryManagementPanel.tsx
++++ b/apps/dashboard/src/features/project-list/CategoryManagementPanel.tsx
+@@ -1,5 +1,7 @@
+ import {
++  Chip,
+   Button,
++  IconButton,
+   Paper,
+   Stack,
+   Switch,
+@@ -9,8 +11,16 @@ import {
+   TableContainer,
+   TableHead,
+   TableRow,
++  Tooltip,
+   Typography
+ } from "@mui/material";
++import { alpha, useTheme } from "@mui/material/styles";
++import AddRounded from "@mui/icons-material/AddRounded";
++import DeleteOutlineRounded from "@mui/icons-material/DeleteOutlineRounded";
++import DragIndicatorRounded from "@mui/icons-material/DragIndicatorRounded";
++import DriveFileRenameOutlineRounded from "@mui/icons-material/DriveFileRenameOutlineRounded";
++import StarOutlineRounded from "@mui/icons-material/StarOutlineRounded";
++import { useState } from "react";
+ import type { DashboardLocale, ProjectCategory } from "../../shared/model/dashboard";
+ 
+ type CategoryManagementPanelProps = {
+@@ -26,8 +36,29 @@ type CategoryManagementPanelProps = {
+ };
+ 
+ export function CategoryManagementPanel(props: CategoryManagementPanelProps) {
++  const theme = useTheme();
++  const [draggedCategoryId, setDraggedCategoryId] = useState<string | null>(null);
++  const [dragOverCategoryId, setDragOverCategoryId] = useState<string | null>(null);
++
++  const draggedIndex = props.categories.findIndex((category) => category.id === draggedCategoryId);
++
++  const resetDragState = () => {
++    setDraggedCategoryId(null);
++    setDragOverCategoryId(null);
++  };
++
++  const moveDraggedCategory = (targetIndex: number) => {
++    if (!props.isLiveMode || draggedIndex < 0 || draggedIndex === targetIndex) {
++      resetDragState();
++      return;
++    }
++
++    props.onMoveCategory(props.categories[draggedIndex]!.id, targetIndex);
++    resetDragState();
++  };
++
+   return (
+-    <Paper sx={{ p: 2.5, borderRadius: 1.5 }}>
++    <Paper sx={{ p: 2.5, borderRadius: 1 }}>
+       <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ mb: 2, justifyContent: "space-between" }}>
+         <Stack spacing={1}>
+           <Typography variant="overline" color="primary.main">
+@@ -38,7 +69,12 @@ export function CategoryManagementPanel(props: CategoryManagementPanelProps) {
+             {props.dictionary.categoryTableHint}
+           </Typography>
+         </Stack>
+-        <Button variant="contained" disabled={!props.isLiveMode} onClick={props.onCreateCategory}>
++        <Button
++          variant="contained"
++          startIcon={<AddRounded />}
++          disabled={!props.isLiveMode}
++          onClick={props.onCreateCategory}
++        >
+           {props.dictionary.createCategory}
+         </Button>
+       </Stack>
+@@ -52,12 +88,47 @@ export function CategoryManagementPanel(props: CategoryManagementPanelProps) {
+               <TableCell>{props.dictionary.visible}</TableCell>
+               <TableCell>{props.dictionary.projects}</TableCell>
+               <TableCell>{props.dictionary.categoryOrdering}</TableCell>
+-              <TableCell align="right">{props.dictionary.settings}</TableCell>
++              <TableCell align="right">{props.dictionary.categoryActions}</TableCell>
+             </TableRow>
+           </TableHead>
+           <TableBody>
+             {props.categories.map((category, index) => (
+-              <TableRow key={category.id} hover>
++              <TableRow
++                key={category.id}
++                hover
++                draggable={props.isLiveMode}
++                onDragStart={() => {
++                  if (!props.isLiveMode) {
++                    return;
++                  }
++                  setDraggedCategoryId(category.id);
++                  setDragOverCategoryId(category.id);
++                }}
++                onDragOver={(event) => {
++                  if (!props.isLiveMode || !draggedCategoryId || draggedCategoryId === category.id) {
++                    return;
++                  }
++                  event.preventDefault();
++                  if (dragOverCategoryId !== category.id) {
++                    setDragOverCategoryId(category.id);
++                  }
++                }}
++                onDrop={(event) => {
++                  if (!props.isLiveMode || !draggedCategoryId) {
++                    return;
++                  }
++                  event.preventDefault();
++                  moveDraggedCategory(index);
++                }}
++                onDragEnd={resetDragState}
++                sx={{
++                  opacity: draggedCategoryId === category.id ? 0.6 : 1,
++                  backgroundColor:
++                    dragOverCategoryId === category.id && draggedCategoryId !== category.id
++                      ? alpha(theme.palette.primary.main, 0.08)
++                      : "transparent"
++                }}
++              >
+                 <TableCell>
+                   <Stack spacing={0.35}>
+                     <Typography variant="subtitle2">{category.name}</Typography>
+@@ -66,7 +137,13 @@ export function CategoryManagementPanel(props: CategoryManagementPanelProps) {
+                     </Typography>
+                   </Stack>
+                 </TableCell>
+-                <TableCell>{category.isDefault ? props.dictionary.yes : props.dictionary.no}</TableCell>
++                <TableCell>
++                  {category.isDefault ? (
++                    <Chip size="small" variant="outlined" label={props.dictionary.defaultBadge} />
++                  ) : (
++                    props.dictionary.no
++                  )}
++                </TableCell>
+                 <TableCell>
+                   <Switch
+                     checked={category.visible}
+@@ -76,47 +153,52 @@ export function CategoryManagementPanel(props: CategoryManagementPanelProps) {
+                 </TableCell>
+                 <TableCell>{category.projectIds.length}</TableCell>
+                 <TableCell>
+-                  <Stack direction="row" spacing={1}>
+-                    <Button
+-                      size="small"
+-                      disabled={!props.isLiveMode || index === 0}
+-                      onClick={() => props.onMoveCategory(category.id, index - 1)}
+-                    >
+-                      {props.dictionary.moveUp}
+-                    </Button>
+-                    <Button
+-                      size="small"
+-                      disabled={!props.isLiveMode || index === props.categories.length - 1}
+-                      onClick={() => props.onMoveCategory(category.id, index + 1)}
+-                    >
+-                      {props.dictionary.moveDown}
+-                    </Button>
++                  <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
++                    <DragIndicatorRounded
++                      color={props.isLiveMode ? "action" : "disabled"}
++                      fontSize="small"
++                    />
++                    <Typography variant="caption" color="text.secondary">
++                      {props.dictionary.categoryDragHint}
++                    </Typography>
+                   </Stack>
+                 </TableCell>
+                 <TableCell align="right">
+                   <Stack direction="row" spacing={1} sx={{ justifyContent: "flex-end" }}>
+-                    <Button
+-                      size="small"
+-                      disabled={!props.isLiveMode}
+-                      onClick={() => props.onEditCategory(category.id, category.name)}
+-                    >
+-                      {props.dictionary.rename}
+-                    </Button>
+-                    <Button
+-                      size="small"
+-                      disabled={!props.isLiveMode || category.isDefault}
+-                      onClick={() => props.onSetDefaultCategory(category.id)}
+-                    >
+-                      {props.dictionary.makeDefault}
+-                    </Button>
+-                    <Button
+-                      size="small"
+-                      color="error"
+-                      disabled={!props.isLiveMode || props.categories.length <= 1}
+-                      onClick={() => props.onDeleteCategory(category.id)}
+-                    >
+-                      {props.dictionary.remove}
+-                    </Button>
++                    <Tooltip title={props.dictionary.rename}>
++                      <span>
++                        <IconButton
++                          size="small"
++                          disabled={!props.isLiveMode}
++                          onClick={() => props.onEditCategory(category.id, category.name)}
++                        >
++                          <DriveFileRenameOutlineRounded fontSize="small" />
++                        </IconButton>
++                      </span>
++                    </Tooltip>
++                    <Tooltip title={props.dictionary.makeDefault}>
++                      <span>
++                        <IconButton
++                          size="small"
++                          disabled={!props.isLiveMode || category.isDefault}
++                          onClick={() => props.onSetDefaultCategory(category.id)}
++                        >
++                          <StarOutlineRounded fontSize="small" />
++                        </IconButton>
++                      </span>
++                    </Tooltip>
++                    <Tooltip title={props.dictionary.remove}>
++                      <span>
++                        <IconButton
++                          size="small"
++                          color="error"
++                          disabled={!props.isLiveMode || props.categories.length <= 1}
++                          onClick={() => props.onDeleteCategory(category.id)}
++                        >
++                          <DeleteOutlineRounded fontSize="small" />
++                        </IconButton>
++                      </span>
++                    </Tooltip>
+                   </Stack>
+                 </TableCell>
+               </TableRow>

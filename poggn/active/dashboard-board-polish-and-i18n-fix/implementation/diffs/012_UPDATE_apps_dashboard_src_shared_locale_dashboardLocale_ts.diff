@@ -1,0 +1,326 @@
+diff --git a/apps/dashboard/src/shared/locale/dashboardLocale.ts b/apps/dashboard/src/shared/locale/dashboardLocale.ts
+index 4b9f6e5..699d8cb 100644
+--- a/apps/dashboard/src/shared/locale/dashboardLocale.ts
++++ b/apps/dashboard/src/shared/locale/dashboardLocale.ts
+@@ -1,3 +1,60 @@
++export function resolveDashboardStageLabel(stage: string | null, dictionary: Record<string, string>): string {
++  if (stage === "proposal") {
++    return dictionary.filterProposal;
++  }
++  if (stage === "plan") {
++    return dictionary.filterPlan;
++  }
++  if (stage === "task") {
++    return dictionary.lanePlanTask;
++  }
++  if (stage === "implementation") {
++    return dictionary.laneImplementation;
++  }
++  if (stage === "refactor") {
++    return dictionary.laneRefactor;
++  }
++  if (stage === "qa") {
++    return dictionary.filterQa;
++  }
++
++  return stage ?? dictionary.unknown;
++}
++
++export function resolveDashboardFlowStatusLabel(
++  status: "done" | "current" | "upcoming",
++  dictionary: Record<string, string>
++): string {
++  if (status === "done") {
++    return dictionary.flowDone;
++  }
++  if (status === "current") {
++    return dictionary.flowCurrent;
++  }
++  return dictionary.flowUpcoming;
++}
++
++export function resolveDashboardTopicBucketLabel(
++  bucket: "active" | "archive",
++  dictionary: Record<string, string>
++): string {
++  return bucket === "active" ? dictionary.active : dictionary.archive;
++}
++
++export function resolveDashboardHealthLabel(value: string | null, dictionary: Record<string, string>): string {
++  if (value === "ok") {
++    return dictionary.ok;
++  }
++  if (value === "partial") {
++    return dictionary.partial;
++  }
++  if (value === "complete") {
++    return dictionary.complete;
++  }
++
++  return value ?? dictionary.unknown;
++}
++
+ export const dashboardLocale = {
+   ko: {
+     eyebrow: "workflow control center",
+@@ -10,18 +67,18 @@ export const dashboardLocale = {
+     generatedAt: "generated",
+     liveMode: "live api",
+     staticMode: "static snapshot",
+-    projects: "Projects",
+-    projectMenu: "Project",
+-    settings: "Settings",
++    projects: "프로젝트",
++    projectMenu: "프로젝트",
++    settings: "설정",
+     navYourWork: "Your work",
+     navFilter: "Filter",
+     navDashboards: "Dashboards",
+     navTeams: "Teams",
+     navApps: "Apps",
+-    latestProject: "Latest Project",
+-    latestActivity: "Latest Activity",
+-    latestBadge: "Latest",
+-    menu: "Menu",
++    latestProject: "최신 프로젝트",
++    latestActivity: "최근 활동",
++    latestBadge: "최신",
++    menu: "메뉴",
+     openInsights: "Insights",
+     closeRail: "닫기",
+     globalSearchPlaceholder: "Search",
+@@ -29,7 +86,7 @@ export const dashboardLocale = {
+     lightMode: "Light",
+     darkMode: "Dark",
+     currentProject: "Current Project",
+-    current: "current",
++    current: "현재",
+     projectsBreadcrumb: "Projects",
+     backlogTitle: "Backlog",
+     backlogHint: "선택한 project 기준으로 active topic과 최근 archive topic을 dense row backlog 형태로 탐색합니다.",
+@@ -37,16 +94,16 @@ export const dashboardLocale = {
+     archiveBacklogTitle: "Recent Archive",
+     archiveBacklogHelper: "Recently completed topics",
+     backlogSearchPlaceholder: "Search backlog",
+-    createAction: "Create",
+-    filterAll: "All",
+-    filterActive: "Active",
+-    filterArchive: "Archive",
+-    filterAnyStage: "Any stage",
+-    filterProposal: "Proposal",
+-    filterPlan: "Plan",
+-    filterImplementation: "Implementation",
++    createAction: "생성",
++    filterAll: "전체",
++    filterActive: "진행 중",
++    filterArchive: "보관",
++    filterAnyStage: "모든 단계",
++    filterProposal: "제안",
++    filterPlan: "계획",
++    filterImplementation: "구현",
+     filterQa: "QA",
+-    filterBlocked: "Blocked",
++    filterBlocked: "차단",
+     readOnlyMode: "read only",
+     issueCountSuffix: "issues",
+     insightsTitle: "Backlog Insights",
+@@ -56,7 +113,7 @@ export const dashboardLocale = {
+     insightTrendHint: "Recent topic activity over time",
+     insightProgressTitle: "Sprint progress",
+     insightProgressHint: "Archive versus active backlog share",
+-    projectIdentityHint: "Software project",
++    projectIdentityHint: "소프트웨어 프로젝트",
+     sidebarManagement: "MANAGEMENT",
+     sidebarIssues: "Issues",
+     sidebarComponents: "Components",
+@@ -70,12 +127,12 @@ export const dashboardLocale = {
+     projectRailHint: "좌측 sidebar는 board, categories, reports, board settings 같은 menu navigation만 담당합니다.",
+     workspace: "Project Workspace",
+     workspaceHint: "선택한 topic의 workflow, artifact, active/archive 상태를 detail surface에서 확인합니다.",
+-    board: "Board",
+-    categoryMenu: "Category",
+-    reportMenu: "Report",
+-    historyMenu: "History",
+-    categories: "Categories",
+-    reports: "Reports",
++    board: "보드",
++    categoryMenu: "카테고리",
++    reportMenu: "리포트",
++    historyMenu: "이력",
++    categories: "카테고리",
++    reports: "리포트",
+     boardSettings: "Board Settings",
+     main: "Main",
+     refresh: "Refresh",
+@@ -88,14 +145,14 @@ export const dashboardLocale = {
+     editCategoryTitle: "카테고리 수정",
+     categoryName: "카테고리 이름",
+     category: "카테고리",
+-    categoryManagement: "Category Management",
++    categoryManagement: "카테고리 관리",
+     categoryManagementHint: "카테고리 생성, 이름 수정, 삭제, default 변경을 관리합니다.",
+     categoryTableHint: "default, visibility, 순서, 프로젝트 수를 한 테이블에서 관리합니다.",
+-    categoryOrdering: "Category Ordering",
++    categoryOrdering: "카테고리 순서",
+     categoryOrderingHint: "카테고리 순서와 visibility는 Board Settings에서 조정합니다.",
+-    defaultBadge: "default",
+-    visible: "visible",
+-    hidden: "hidden",
++    defaultBadge: "기본",
++    visible: "표시",
++    hidden: "숨김",
+     show: "보이기",
+     hide: "숨기기",
+     moveUp: "위로",
+@@ -109,53 +166,55 @@ export const dashboardLocale = {
+     cancel: "취소",
+     rename: "이름 수정",
+     remove: "삭제",
+-    makeDefault: "default 지정",
+-    projectBoard: "Category Project Board",
+-    projectBoardHint: "카테고리 구조를 유지한 채 프로젝트 카드의 상태, 순서 이동, 삭제 액션을 한 화면에서 관리합니다.",
++    makeDefault: "기본 지정",
++    projectBoard: "프로젝트 보드",
++    projectBoardHint: "카테고리 구조를 유지한 채 프로젝트 카드의 상태, 버전, 최근 활동, 삭제 액션을 한 화면에서 관리합니다.",
+     projectBoardAddHint: "프로젝트 추가는 board 문맥에서 처리하고, sidebar는 navigation만 유지합니다.",
+     searchProjectsPlaceholder: "프로젝트 검색",
+-    boardCategoryHint: "이 카테고리 안에서 프로젝트를 탐색하고 history surface로 이동합니다.",
+-    boardDragHint: "카드를 드래그해 순서나 카테고리를 변경할 수 있습니다.",
+-    boardDragHandle: "drag",
++    boardCategoryHint: "이 카테고리 안에서 프로젝트의 최근 상태와 메타데이터를 빠르게 확인합니다.",
++    boardDragHint: "프로젝트 카드는 드래그하지 않고 탐색 중심으로 사용합니다.",
++    boardDragHandle: "드래그",
+     activeBorderHint: "active border",
+-    activeProjects: "active 있음",
+-    inactiveProjects: "active 없음",
++    activeProjects: "진행 중",
++    inactiveProjects: "대기 중",
+     noProjectsInCategory: "이 카테고리에 배치된 프로젝트가 없습니다.",
+-    dropHint: "프로젝트 카드를 드롭해 이 카테고리로 이동",
++    dropHint: "이 카테고리로 프로젝트를 이동합니다.",
+     noVisibleCategories: "보이는 카테고리가 없습니다. Board Settings에서 visibility를 조정하세요.",
++    categoryActions: "동작",
++    categoryDragHint: "드래그로 순서를 변경합니다.",
+     reportsTitle: "Recent Reports",
+     reportsHint: "최근 작업 순으로 프로젝트와 topic 이력을 테이블 형태로 확인합니다.",
+     historyTitle: "Project History",
+     historyHint: "선택한 프로젝트의 active/archive topic 흐름을 stage 중심 히스토리로 탐색합니다.",
+     noRecentActivity: "표시할 최근 작업 이력이 없습니다.",
+-    project: "project",
+-    topic: "topic",
+-    updated: "updated",
+-    overview: "Overview",
+-    active: "active",
+-    archive: "archive",
++    project: "프로젝트",
++    topic: "토픽",
++    updated: "업데이트",
++    overview: "개요",
++    active: "활성",
++    archive: "보관",
+     activeBoard: "Active Board",
+     archiveBoard: "Archive Board",
+-    language: "language",
+-    autoMode: "auto mode",
+-    teamsMode: "teams mode",
+-    gitMode: "git mode",
+-    provider: "provider",
+-    version: "version",
++    language: "언어",
++    autoMode: "자동 모드",
++    teamsMode: "팀 모드",
++    gitMode: "Git 모드",
++    provider: "제공자",
++    version: "버전",
+     port: "dashboard port",
+-    health: "health",
+-    path: "path",
+-    verification: "verification",
+-    verificationCommands: "verification commands",
+-    verificationReason: "verification reason",
++    health: "상태",
++    path: "경로",
++    verification: "검증",
++    verificationCommands: "검증 명령",
++    verificationReason: "검증 사유",
+     verificationRequired: "manual verification required",
+-    missing: "missing root",
+-    partial: "partial",
+-    complete: "complete",
+-    ok: "ok",
+-    yes: "yes",
+-    no: "no",
+-    registered: "registered",
++    missing: "루트 누락",
++    partial: "부분적",
++    complete: "완료",
++    ok: "정상",
++    yes: "예",
++    no: "아니오",
++    registered: "등록됨",
+     searchPlaceholder: "topic 검색",
+     noTopics: "필터 조건에 맞는 topic이 없습니다.",
+     lifecycleBoardHint: "active는 workflow stage 중심, archive는 change category 중심으로 정렬합니다.",
+@@ -170,11 +229,26 @@ export const dashboardLocale = {
+     detailUnavailable: "이 artifact는 snapshot에 detail payload가 없습니다.",
+     detailPath: "source",
+     detailUpdatedAt: "updated",
+-    topicNext: "next action",
+-    topicScore: "last score",
+-    topicBlock: "blocking",
+-    topicStage: "stage",
+-    topicStatus: "status",
++    topicNext: "다음 작업",
++    topicScore: "최근 점수",
++    topicBlock: "차단 이슈",
++    topicStage: "단계",
++    topicStatus: "상태",
++    unknown: "알 수 없음",
++    lanePlanTask: "계획/작업",
++    laneImplementation: "구현",
++    laneRefactor: "리팩터",
++    statusReady: "준비",
++    statusBlocked: "차단",
++    statusInProgress: "진행 중",
++    statusDone: "완료",
++    flowDone: "완료",
++    flowCurrent: "현재",
++    flowUpcoming: "예정",
++    metricDone: "완료",
++    metricProgress: "진행 중",
++    metricBlocked: "차단",
++    scoreLabel: "점수",
+     archiveType: "archive type",
+     versionBump: "version bump",
+     targetVersion: "target version",
+@@ -349,6 +423,8 @@ export const dashboardLocale = {
+     noProjectsInCategory: "No projects are assigned to this category yet.",
+     dropHint: "Drop a project card here to move it into this category",
+     noVisibleCategories: "No categories are visible. Update visibility in Board Settings.",
++    categoryActions: "Actions",
++    categoryDragHint: "Drag to reorder categories.",
+     reportsTitle: "Recent Reports",
+     reportsHint: "Review recent project and topic activity as a log-style table.",
+     historyTitle: "Project History",
+@@ -401,6 +477,21 @@ export const dashboardLocale = {
+     topicBlock: "blocking",
+     topicStage: "stage",
+     topicStatus: "status",
++    unknown: "unknown",
++    lanePlanTask: "plan/task",
++    laneImplementation: "implementation",
++    laneRefactor: "refactor",
++    statusReady: "READY",
++    statusBlocked: "BLOCKED",
++    statusInProgress: "IN PROGRESS",
++    statusDone: "DONE",
++    flowDone: "done",
++    flowCurrent: "current",
++    flowUpcoming: "upcoming",
++    metricDone: "Done",
++    metricProgress: "In progress",
++    metricBlocked: "Blocked",
++    scoreLabel: "score",
+     archiveType: "archive type",
+     versionBump: "version bump",
+     targetVersion: "target version",

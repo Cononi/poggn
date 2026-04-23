@@ -337,7 +337,7 @@ function ToolbarField(props: { children: React.ReactNode; compact?: boolean }) {
 function MetricDot(props: { tone: DashboardTone }) {
   const theme = useTheme();
 
-  return <Box sx={{ width: 12, height: 12, borderRadius: 0.3, bgcolor: resolveDashboardToneDot(theme, props.tone) }} />;
+  return <Box sx={{ width: 12, height: 12, borderRadius: 1, bgcolor: resolveDashboardToneDot(theme, props.tone) }} />;
 }
 
 function ToneChip(props: {
@@ -356,7 +356,7 @@ function ToneChip(props: {
         height: 32,
         fontSize: 12,
         fontWeight: 700,
-        borderRadius: 0.75,
+        borderRadius: 1,
         letterSpacing: "0.04em",
         color: props.outlined ? token.background : token.color,
         bgcolor: props.outlined ? alpha(token.background, 0.12) : token.background,

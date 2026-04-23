@@ -429,15 +429,6 @@ export default function DashboardApp() {
             setPendingDeleteProjectId(projectId);
             setDangerousDeleteRoot(false);
           }}
-          onMoveProject={(projectId, targetCategoryId, targetIndex) =>
-            mutateSnapshot(
-              createMutationPayload("/api/dashboard/categories/move", "POST", {
-                projectId,
-                targetCategoryId,
-                targetIndex
-              })
-            )
-          }
         />
       );
     }
@@ -473,6 +464,7 @@ export default function DashboardApp() {
         title={currentProject?.dashboardTitle ?? dictionary.dashboardFallbackTitle}
         titleIconSvg={currentProject?.dashboardTitleIconSvg ?? ""}
         latestProject={latestActiveProject?.name ?? "-"}
+        latestProjectVersion={latestActiveProject?.installedVersion ?? null}
         dictionary={dictionary}
         activeTopMenu={activeTopMenu}
         compactShell={isCompactShell}
@@ -630,7 +622,7 @@ export default function DashboardApp() {
               {dictionary.deleteProjectHint}
             </Typography>
             {pendingDeleteProject ? (
-              <Paper variant="outlined" sx={{ p: 1.5, borderRadius: 1.25 }}>
+              <Paper variant="outlined" sx={{ p: 1.5, borderRadius: 1 }}>
                 <Stack spacing={0.5}>
                   <Typography variant="subtitle2">{pendingDeleteProject.name}</Typography>
                   <Typography variant="caption" color="text.secondary">
@@ -642,7 +634,7 @@ export default function DashboardApp() {
             {isDeletingCurrentProject ? (
               <Alert severity="warning">{dictionary.deleteProjectBlockedCurrent}</Alert>
             ) : null}
-            <Paper variant="outlined" sx={{ p: 1.5, borderRadius: 1.25 }}>
+            <Paper variant="outlined" sx={{ p: 1.5, borderRadius: 1 }}>
               <FormControlLabel
                 control={
                   <Checkbox

@@ -1,6 +1,10 @@
 import { alpha, type Theme, useTheme } from "@mui/material/styles";
 import { Box, Card, CardActionArea, CardContent, Chip, Paper, Stack, Typography } from "@mui/material";
 import type { DashboardLocale, TopicLane, TopicSummary } from "../../shared/model/dashboard";
+import {
+  resolveDashboardStageLabel,
+  resolveDashboardTopicBucketLabel
+} from "../../shared/locale/dashboardLocale";
 import { buildTopicArtifactEntries, buildTopicKey, formatDate } from "../../shared/utils/dashboard";
 
 type TopicLifecycleBoardProps = {
@@ -166,11 +170,17 @@ function TopicCard(props: {
                   {props.topic.goal ?? "-"}
                 </Typography>
               </Stack>
-              <Chip size="small" color={props.topic.bucket === "archive" ? "default" : "primary"} label={props.topic.bucket} />
+              <Chip
+                size="small"
+                color={props.topic.bucket === "archive" ? "default" : "primary"}
+                label={resolveDashboardTopicBucketLabel(props.topic.bucket, props.dictionary)}
+              />
             </Stack>
 
             <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
-              {props.topic.stage ? <Chip size="small" label={props.topic.stage} /> : null}
+              {props.topic.stage ? (
+                <Chip size="small" label={resolveDashboardStageLabel(props.topic.stage, props.dictionary)} />
+              ) : null}
               {props.topic.archiveType ? (
                 <Chip size="small" label={props.topic.archiveType} />
               ) : null}
@@ -184,7 +194,11 @@ function TopicCard(props: {
                 <Chip size="small" variant="outlined" label={props.topic.publishResultType} />
               ) : null}
               {typeof props.topic.score === "number" ? (
-                <Chip size="small" color="success" label={`score ${props.topic.score}`} />
+                <Chip
+                  size="small"
+                  color="success"
+                  label={`${props.dictionary.scoreLabel} ${props.topic.score}`}
+                />
               ) : null}
             </Stack>
 

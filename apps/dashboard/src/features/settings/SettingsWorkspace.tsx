@@ -63,7 +63,7 @@ export function SettingsWorkspace(props: SettingsWorkspaceProps) {
     <Paper
       sx={{
         p: 2.5,
-        borderRadius: 1.5,
+        borderRadius: 1,
         background:
           theme.palette.mode === "dark"
             ? `linear-gradient(180deg, ${alpha(theme.palette.background.paper, 0.98)}, ${alpha(theme.palette.background.default, 0.84)})`
@@ -240,7 +240,7 @@ export function SettingsWorkspace(props: SettingsWorkspaceProps) {
 
 function SettingsSection(props: { title: string; helper: string; children: React.ReactNode }) {
   return (
-    <Paper variant="outlined" sx={{ p: 2, borderRadius: 1.35 }}>
+    <Paper variant="outlined" sx={{ p: 2, borderRadius: 1 }}>
       <Stack spacing={1.5}>
         <Stack spacing={0.4}>
           <Typography variant="subtitle1">{props.title}</Typography>
@@ -263,7 +263,7 @@ function BrandPreviewCard(props: { title: string; iconSvg: string; dictionary: D
       variant="outlined"
       sx={{
         p: 1.5,
-        borderRadius: 1.25,
+        borderRadius: 1,
         backgroundColor: alpha(theme.palette.background.default, 0.48)
       }}
     >
@@ -339,7 +339,7 @@ function InlineToggleGroup(props: {
             sx={{
               px: 1.5,
               py: 1,
-              borderRadius: 1.1,
+              borderRadius: 1,
               border: `1px solid ${alpha(theme.palette.text.primary, active ? 0.18 : 0.08)}`,
               bgcolor: active ? alpha(theme.palette.primary.main, 0.14) : alpha(theme.palette.background.default, 0.42),
               color: active ? "primary.light" : "text.secondary"
@@ -362,7 +362,7 @@ function SystemToggle(props: {
   onChange: (checked: boolean) => void;
 }) {
   return (
-    <Paper variant="outlined" sx={{ p: 1.5, borderRadius: 1.25 }}>
+    <Paper variant="outlined" sx={{ p: 1.5, borderRadius: 1 }}>
       <Stack direction="row" spacing={2} sx={{ alignItems: "center", justifyContent: "space-between" }}>
         <Typography variant="body1">{props.label}</Typography>
         <Switch

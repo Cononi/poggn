@@ -10,6 +10,7 @@
   "dependencies": {
     "@emotion/react": "latest",
     "@emotion/styled": "latest",
+    "@mui/icons-material": "^9.0.0",
     "@mui/material": "latest",
     "@tanstack/react-query": "latest",
     "@xyflow/react": "latest",

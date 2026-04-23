@@ -1,6 +1,11 @@
 import { alpha, useTheme } from "@mui/material/styles";
 import { Alert, Box, Button, Chip, Paper, Stack, Typography } from "@mui/material";
 import { Background, Controls, MiniMap, ReactFlow } from "@xyflow/react";
+import {
+  resolveDashboardFlowStatusLabel,
+  resolveDashboardHealthLabel,
+  resolveDashboardStageLabel
+} from "../../shared/locale/dashboardLocale";
 import type {
   ArtifactDocumentEntry,
   ArtifactSelection,
@@ -107,8 +112,14 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
             <Box sx={{ display: "grid", gap: 1.5, gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
               <MetricCard label={props.dictionary.active} value={String(props.project.activeTopics.length)} accent />
               <MetricCard label={props.dictionary.archive} value={String(props.project.archivedTopics.length)} />
-              <MetricCard label={props.dictionary.version} value={props.project.installedVersion ?? "unknown"} />
-              <MetricCard label={props.dictionary.health} value={props.project.missingRoot ? props.dictionary.partial : props.dictionary.ok} />
+              <MetricCard
+                label={props.dictionary.version}
+                value={props.project.installedVersion ?? props.dictionary.unknown}
+              />
+              <MetricCard
+                label={props.dictionary.health}
+                value={props.project.missingRoot ? props.dictionary.partial : props.dictionary.ok}
+              />
             </Box>
           </Paper>
 
@@ -215,22 +226,29 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
                 />
                 {props.selectedTopic ? (
                   <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
-                    <Chip size="small" color="primary" label={props.selectedTopic.stage ?? "unknown"} />
-                    <Chip size="small" label={props.selectedTopic.health} />
+                    <Chip
+                      size="small"
+                      color="primary"
+                      label={resolveDashboardStageLabel(props.selectedTopic.stage, props.dictionary)}
+                    />
+                    <Chip
+                      size="small"
+                      label={resolveDashboardHealthLabel(props.selectedTopic.health, props.dictionary)}
+                    />
                     <Chip
                       size="small"
                       sx={{ bgcolor: alpha(theme.palette.success.main, 0.16), color: "success.dark" }}
-                      label="done"
+                      label={resolveDashboardFlowStatusLabel("done", props.dictionary)}
                     />
                     <Chip
                       size="small"
                       sx={{ bgcolor: alpha(theme.palette.primary.main, 0.16), color: "primary.dark" }}
-                      label="current"
+                      label={resolveDashboardFlowStatusLabel("current", props.dictionary)}
                     />
                     <Chip
                       size="small"
                       sx={{ bgcolor: alpha(theme.palette.warning.main, 0.18), color: "warning.dark" }}
-                      label="upcoming"
+                      label={resolveDashboardFlowStatusLabel("upcoming", props.dictionary)}
                     />
                   </Stack>
                 ) : null}

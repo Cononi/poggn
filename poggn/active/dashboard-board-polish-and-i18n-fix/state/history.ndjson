@@ -1,0 +1,6 @@
+{"ts":"2026-04-23T03:34:40Z","stage":"proposal","event":"topic-created"}
+{"ts":"2026-04-23T03:34:40Z","stage":"proposal","event":"proposal-reviewed","score":95}
+{"ts":"2026-04-23T04:04:53Z","stage":"plan","event":"plan-reviewed","score":95}
+{"ts":"2026-04-23T04:04:53Z","stage":"task","event":"task-reviewed","score":95}
+{"ts":"2026-04-23T04:32:10Z","stage":"implementation","event":"implementation-reviewed","score":95}
+{"ts":"2026-04-23T04:34:59Z","stage":"implementation","event":"stage-commit","archiveType":"fix","commitTitle":"fix: dashboard board polish","summary":"dashboard board polish","why":"project drag를 제거하고 category icon ordering, latest version, radius, locale 정리를 함께 반영한다","footer":"Refs: dashboard-board-polish-and-i18n-fix","branchRecovery":"recovered","branchRecoveryReason":"Governed checkout recovered the stage helper onto 'ai/fix/0.11.1-dashboard-board-polish' from 'release/0.11.0-dashboard-management-refinement'.","branchRecoveryFrom":"release/0.11.0-dashboard-management-refinement"}

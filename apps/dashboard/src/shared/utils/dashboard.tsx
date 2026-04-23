@@ -93,10 +93,16 @@ export function buildTopicLanes(
       id: lane,
       label:
         lane === "proposal"
-          ? "proposal"
+          ? dictionary.filterProposal
           : lane === "plan"
-            ? "plan/task"
-            : lane,
+            ? dictionary.lanePlanTask
+            : lane === "code"
+              ? dictionary.laneImplementation
+              : lane === "refactor"
+                ? dictionary.laneRefactor
+                : lane === "blocked"
+                  ? dictionary.filterBlocked
+                  : dictionary.filterQa,
       helper: dictionary.topicNext,
       topics: laneMap.get(lane) ?? []
     }));

@@ -1,0 +1,24 @@
+diff --git a/apps/dashboard/src/shared/utils/dashboard.tsx b/apps/dashboard/src/shared/utils/dashboard.tsx
+index f7fedbb..21f1138 100644
+--- a/apps/dashboard/src/shared/utils/dashboard.tsx
++++ b/apps/dashboard/src/shared/utils/dashboard.tsx
+@@ -93,10 +93,16 @@ export function buildTopicLanes(
+       id: lane,
+       label:
+         lane === "proposal"
+-          ? "proposal"
++          ? dictionary.filterProposal
+           : lane === "plan"
+-            ? "plan/task"
+-            : lane,
++            ? dictionary.lanePlanTask
++            : lane === "code"
++              ? dictionary.laneImplementation
++              : lane === "refactor"
++                ? dictionary.laneRefactor
++                : lane === "blocked"
++                  ? dictionary.filterBlocked
++                  : dictionary.filterQa,
+       helper: dictionary.topicNext,
+       topics: laneMap.get(lane) ?? []
+     }));

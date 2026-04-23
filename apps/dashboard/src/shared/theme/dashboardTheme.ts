@@ -165,7 +165,7 @@ export function createDashboardTheme(mode: DashboardThemeMode) {
       MuiChip: {
         styleOverrides: {
           root: {
-            borderRadius: 0.75,
+            borderRadius: 1,
             height: 28
           }
         }
@@ -201,7 +201,7 @@ export function createDashboardTheme(mode: DashboardThemeMode) {
       MuiMenu: {
         styleOverrides: {
           paper: {
-            borderRadius: 12,
+            borderRadius: 1,
             border: `1px solid ${surfaceBorder}`,
             boxShadow: isDark
               ? "0 16px 36px rgba(0, 0, 0, 0.38)"
@@ -212,7 +212,7 @@ export function createDashboardTheme(mode: DashboardThemeMode) {
       MuiMenuItem: {
         styleOverrides: {
           root: {
-            borderRadius: 10,
+            borderRadius: 1,
             marginInline: 6,
             marginBlock: 2
           }

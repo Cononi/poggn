@@ -27,7 +27,7 @@ export function InsightsRail(props: InsightsRailProps) {
               justifyContent: "space-between",
               px: 0.75,
               py: 0.5,
-              borderRadius: 0.8,
+              borderRadius: 1,
               color: "text.primary"
             }}
           >

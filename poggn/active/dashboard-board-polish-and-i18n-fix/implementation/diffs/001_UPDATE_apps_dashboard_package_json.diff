@@ -1,0 +1,12 @@
+diff --git a/apps/dashboard/package.json b/apps/dashboard/package.json
+index 1aaa09f..9f7d757 100644
+--- a/apps/dashboard/package.json
++++ b/apps/dashboard/package.json
+@@ -10,6 +10,7 @@
+   "dependencies": {
+     "@emotion/react": "latest",
+     "@emotion/styled": "latest",
++    "@mui/icons-material": "^9.0.0",
+     "@mui/material": "latest",
+     "@tanstack/react-query": "latest",
+     "@xyflow/react": "latest",
