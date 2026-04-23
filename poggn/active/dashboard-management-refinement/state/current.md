@@ -6,11 +6,11 @@ dashboard-management-refinement
 
 ## Current Stage
 
-refactor
+qa
 
 ## Goal
 
-구현된 dashboard management refinement topic을 정리하고 레거시 상태를 제거해 QA 가능한 상태로 고정한다.
+dashboard management refinement 구현과 refactor 결과를 검증하고 archive 가능 여부를 판정한다.
 
 ## Confirmed Scope
 
@@ -45,7 +45,7 @@ refactor
 
 ## Open Items
 
-- status: ready for `pgg-qa`
+- status: pass
 - blocking issues: 없음
 - refactor stage commit helper: deferred | unrelated worktree changes `.codex/sh/pgg-stage-commit.sh`, `.pgg/project.json`, `apps/dashboard/public/dashboard-data.json`
 
@@ -83,6 +83,8 @@ refactor
 
 - verification contract | `manual verification required`
 - `pnpm build` | pass
+- `pnpm test` | pass
+- `./.codex/sh/pgg-gate.sh pgg-qa dashboard-management-refinement` | pass
 - `bash ./.codex/sh/pgg-stage-commit.sh ... refactor ...` | `publish_blocked` | unrelated worktree changes present
 
 ## Changed Files
@@ -116,13 +118,18 @@ refactor
 | UPDATE | `apps/dashboard/src/features/backlog/BacklogWorkspace.tsx` | `implementation/diffs/022_UPDATE_apps_dashboard_src_features_backlog_BacklogWorkspace_tsx.refactor.diff` |
 | UPDATE | `apps/dashboard/src/shared/model/dashboard.ts` | `implementation/diffs/023_UPDATE_apps_dashboard_src_shared_model_dashboard_ts.refactor.diff` |
 | UPDATE | `apps/dashboard/src/shared/store/dashboardStore.ts` | `implementation/diffs/024_UPDATE_apps_dashboard_src_shared_store_dashboardStore_ts.refactor.diff` |
+| CREATE | `poggn/active/dashboard-management-refinement/qa/report.md` | 없음 |
 | UPDATE | `poggn/active/dashboard-management-refinement/state/current.md` | 없음 |
 | UPDATE | `poggn/active/dashboard-management-refinement/state/history.ndjson` | 없음 |
 | UPDATE | `poggn/active/dashboard-management-refinement/workflow.reactflow.json` | 없음 |
 
+## QA Report
+
+- ref: `qa/report.md`
+
 ## Last Expert Score
 
-- phase: refactor
+- phase: qa
 - score: 96
 - blocking issues: 없음
 
@@ -134,4 +141,4 @@ refactor
 
 ## Next Action
 
-`pgg-qa`
+archive allowed

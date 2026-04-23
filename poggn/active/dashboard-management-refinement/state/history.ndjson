@@ -4,5 +4,7 @@
 {"ts":"2026-04-23T02:24:55Z","stage":"task","event":"task-reviewed","score":95}
 {"ts":"2026-04-23T03:14:53Z","stage":"implementation","event":"code-reviewed","score":95}
 {"ts":"2026-04-23T03:23:16Z","stage":"refactor","event":"refactor-reviewed","score":96}
+{"ts":"2026-04-23T03:31:20Z","stage":"qa","event":"qa-reviewed","score":96}
 {"ts":"2026-04-23T03:15:50Z","stage":"implementation","event":"stage-commit","archiveType":"feat","commitTitle":"feat: dashboard management refinement","summary":"dashboard management refinement","why":"dashboard shell, board actions, settings branding, and axios-backed live mutations were aligned under the approved implementation contract","footer":"Refs: dashboard-management-refinement"}
 {"ts":"2026-04-23T03:30:07Z","stage":"refactor","event":"stage-commit","archiveType":"feat","commitTitle":"feat: dashboard management cleanup","summary":"dashboard management cleanup","why":"dashboard shell dead state was removed and destructive delete opt-in was tightened without expanding product scope","footer":"Refs: dashboard-management-refinement"}
+{"ts":"2026-04-23T03:31:57Z","stage":"qa","event":"stage-commit","archiveType":"feat","commitTitle":"feat: qa completion","summary":"qa completion","why":"QA artifacts and final verification updates need a completion commit before archive publish.","footer":"Refs: dashboard-management-refinement"}
