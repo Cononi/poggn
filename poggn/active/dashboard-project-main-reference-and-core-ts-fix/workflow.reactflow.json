@@ -60,6 +60,16 @@
         "path": "reviews/refactor.review.md",
         "stage": "refactor"
       }
+    },
+    {
+      "id": "qa-report",
+      "type": "review",
+      "position": { "x": 1320, "y": 0 },
+      "data": {
+        "label": "qa/report.md",
+        "path": "qa/report.md",
+        "stage": "qa"
+      }
     }
   ],
   "edges": [
@@ -67,6 +77,7 @@
     { "id": "e-plan-task", "source": "plan", "target": "task" },
     { "id": "e-task-implementation", "source": "task", "target": "implementation" },
     { "id": "e-implementation-review", "source": "implementation", "target": "code-review" },
-    { "id": "e-code-review-refactor-review", "source": "code-review", "target": "refactor-review" }
+    { "id": "e-code-review-refactor-review", "source": "code-review", "target": "refactor-review" },
+    { "id": "e-refactor-review-qa-report", "source": "refactor-review", "target": "qa-report" }
   ]
 }

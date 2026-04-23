@@ -2,4 +2,6 @@
 {"ts":"2026-04-23T12:47:41Z","stage":"plan","event":"plan-docs-created"}
 {"ts":"2026-04-23T12:47:41Z","stage":"implementation","event":"implementation-started"}
 {"ts":"2026-04-23T13:20:14Z","stage":"refactor","event":"refactor-reviewed"}
+{"ts":"2026-04-23T13:24:10Z","stage":"qa","event":"qa-reported"}
 {"ts":"2026-04-23T13:23:29Z","stage":"refactor","event":"stage-commit","archiveType":"fix","commitTitle":"fix: dashboard board cleanup","summary":"dashboard board cleanup","why":"board shell wiring 중복과 dead prop을 정리해 qa 전 구조를 단순화한다.","footer":"Refs: dashboard-project-main-reference-and-core-ts-fix","branchRecovery":"recovered","branchRecoveryReason":"Governed checkout recovered the stage helper onto 'ai/fix/0.13.1-dashboard-fix' from 'main'.","branchRecoveryFrom":"main"}
+{"ts":"2026-04-23T13:25:43Z","stage":"qa","event":"stage-commit","archiveType":"fix","commitTitle":"fix: qa completion","summary":"qa completion","why":"QA artifacts and final verification updates need a completion commit before archive publish.","footer":"Refs: dashboard-project-main-reference-and-core-ts-fix"}

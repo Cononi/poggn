@@ -6,7 +6,7 @@ dashboard-project-main-reference-and-core-ts-fix
 
 ## Current Stage
 
-refactor
+qa
 
 ## Goal
 
@@ -17,6 +17,7 @@ refactor
 - proposal: `poggn/active/dashboard-project-main-reference-and-core-ts-fix/proposal.md`
 - plan: `poggn/active/dashboard-project-main-reference-and-core-ts-fix/plan.md`
 - task: `poggn/active/dashboard-project-main-reference-and-core-ts-fix/task.md`
+- qa report: `poggn/active/dashboard-project-main-reference-and-core-ts-fix/qa/report.md`
 - refactor review: `poggn/active/dashboard-project-main-reference-and-core-ts-fix/reviews/refactor.review.md`
 - spec:
   - `poggn/active/dashboard-project-main-reference-and-core-ts-fix/spec/core/core-typescript-guard.md`
@@ -46,11 +47,13 @@ refactor
 - [pgg-token]: [not_required] | token 비용보다는 core 타입 오류와 dashboard 화면 반영이 중심이다
 - [pgg-performance]: [not_required] | 성능 측정이 아니라 build blocker 제거와 정적 화면 반영 범위다
 
-## Refactor Result
+## QA Result
 
-- `DashboardApp`에서 board context project와 insights rail prop wiring 중복을 줄였다.
-- `ProjectListBoard`에서 사용하지 않는 `snapshotSource` prop을 제거해 surface를 줄였다.
-- `InsightsRail`에서 backlog progress width 계산의 최대값 계산을 분리해 가독성을 높였다.
+- `pnpm build` pass
+- `pgg-code gate` pass
+- `pgg-refactor gate` pass
+- `pgg-qa gate` pass
+- current-project verification contract는 없어 `manual verification required`로 기록했다
 
 ## Changed Files
 
@@ -81,6 +84,7 @@ refactor
 - CREATE `poggn/active/dashboard-project-main-reference-and-core-ts-fix/implementation/diffs/009_UPDATE_packages_core_dist_index_js_map.diff`
 - CREATE `poggn/active/dashboard-project-main-reference-and-core-ts-fix/reviews/code.review.md`
 - CREATE `poggn/active/dashboard-project-main-reference-and-core-ts-fix/reviews/refactor.review.md`
+- CREATE `poggn/active/dashboard-project-main-reference-and-core-ts-fix/qa/report.md`
 - UPDATE `poggn/active/dashboard-project-main-reference-and-core-ts-fix/workflow.reactflow.json`
 - UPDATE `poggn/active/dashboard-project-main-reference-and-core-ts-fix/state/history.ndjson`
 
@@ -95,8 +99,8 @@ refactor
 
 ## Next Workflow
 
-- `pgg-qa`
-- reason: implementation과 refactor review가 모두 정리됐고 build 검증까지 통과해 QA 단계로 넘길 수 있다.
+- `archive`
+- reason: QA report와 qa gate까지 완료돼 archive helper를 실행할 수 있다.
 
 ## Verification
 
