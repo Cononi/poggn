@@ -1,0 +1,103 @@
+diff --git a/apps/dashboard/src/app/DashboardApp.tsx b/apps/dashboard/src/app/DashboardApp.tsx
+index 422598f..59162cd 100644
+--- a/apps/dashboard/src/app/DashboardApp.tsx
++++ b/apps/dashboard/src/app/DashboardApp.tsx
+@@ -101,6 +101,7 @@ export default function DashboardApp() {
+   const [fileSelection, setFileSelection] = useState<ArtifactSelection | null>(null);
+   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+   const [sidebarDrawerOpen, setSidebarDrawerOpen] = useState(false);
++  const [projectBoardFilter, setProjectBoardFilter] = useState("");
+ 
+   const snapshotQuery = useQuery({
+     queryKey: ["dashboard-snapshot"],
+@@ -115,6 +116,7 @@ export default function DashboardApp() {
+   const latestActiveProject = resolveLatestActiveProject(snapshot, currentProject);
+   const dictionary = dashboardLocale[(selectedProject ?? currentProject)?.language ?? "en"];
+   const isLiveMode = snapshotSource === "live";
++  const boardContextProject = selectedProject ?? currentProject;
+   const categories = useMemo(
+     () => [...(snapshot?.categories ?? [])].sort((left, right) => left.order - right.order),
+     [snapshot?.categories]
+@@ -677,9 +679,12 @@ export default function DashboardApp() {
+         selectedProjectId={selectedProjectId}
+         latestActiveProjectId={latestActiveProject?.id ?? null}
+         dictionary={dictionary}
+-        snapshotSource={snapshotSource}
++        projectFilter={projectBoardFilter}
+         isLiveMode={isLiveMode}
++        insightsOpen={insightsRailOpen}
+         onAddProject={() => setProjectDialogOpen(true)}
++        onProjectFilterChange={setProjectBoardFilter}
++        onToggleInsights={() => setInsightsRailOpen(!insightsRailOpen)}
+         onOpenProject={openProjectContext}
+         onDeleteProject={(projectId) => {
+           setPendingDeleteProjectId(projectId);
+@@ -707,10 +712,14 @@ export default function DashboardApp() {
+         dictionary={dictionary}
+         activeTopMenu={activeTopMenu}
+         compactShell={isCompactShell}
++        showProjectControls={activeTopMenu === "projects" && !projectDetailOpen}
++        projectSearchValue={projectBoardFilter}
+         onOpenProjects={() => setActiveTopMenu("projects")}
+         onOpenSettings={() => setActiveTopMenu("settings")}
+         onToggleSidebar={() => setSidebarDrawerOpen(true)}
+         onToggleInsights={() => setInsightsRailOpen(!insightsRailOpen)}
++        onProjectSearchChange={setProjectBoardFilter}
++        onAddProject={() => setProjectDialogOpen(true)}
+       />
+ 
+       <Box
+@@ -734,10 +743,13 @@ export default function DashboardApp() {
+               activeDetailSection={activeDetailSection}
+               activeSettingsView={activeSettingsView}
+               project={selectedProject}
++              categories={categories}
++              projects={snapshot.projects}
+               dictionary={dictionary}
+               onSelectSidebarItem={setActiveSidebarItem}
+               onSelectDetailSection={setActiveDetailSection}
+               onSelectSettingsView={openSettingsPanel}
++              onAddProject={() => setProjectDialogOpen(true)}
+             />
+           </Box>
+         ) : null}
+@@ -762,6 +774,9 @@ export default function DashboardApp() {
+           >
+             <InsightsRail
+               summary={insightsSummary}
++              project={boardContextProject}
++              isCurrentProject={boardContextProject?.id === currentProject?.id}
++              isLatestProject={boardContextProject?.id === latestActiveProject?.id}
+               dictionary={dictionary}
+               isLiveMode={isLiveMode}
+               onClose={() => setInsightsRailOpen(false)}
+@@ -787,6 +802,8 @@ export default function DashboardApp() {
+           activeDetailSection={activeDetailSection}
+           activeSettingsView={activeSettingsView}
+           project={selectedProject}
++          categories={categories}
++          projects={snapshot.projects}
+           dictionary={dictionary}
+           onSelectSidebarItem={(item) => {
+             setActiveSidebarItem(item);
+@@ -797,6 +814,10 @@ export default function DashboardApp() {
+             setSidebarDrawerOpen(false);
+           }}
+           onSelectSettingsView={openSettingsPanel}
++          onAddProject={() => {
++            setProjectDialogOpen(true);
++            setSidebarDrawerOpen(false);
++          }}
+         />
+       </Drawer>
+ 
+@@ -814,6 +835,9 @@ export default function DashboardApp() {
+         <Box sx={{ p: 1.5 }}>
+           <InsightsRail
+             summary={insightsSummary}
++            project={boardContextProject}
++            isCurrentProject={boardContextProject?.id === currentProject?.id}
++            isLatestProject={boardContextProject?.id === latestActiveProject?.id}
+             dictionary={dictionary}
+             isLiveMode={isLiveMode}
+             onClose={() => setInsightsRailOpen(false)}

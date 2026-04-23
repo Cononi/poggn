@@ -1,20 +1,32 @@
-import { memo, useDeferredValue, useMemo, useState } from "react";
+import type { ReactNode } from "react";
+import { memo, useMemo, useState } from "react";
 import { alpha, useTheme } from "@mui/material/styles";
 import {
   Alert,
+  Avatar,
   Box,
   Button,
   ButtonBase,
   Chip,
   IconButton,
+  InputAdornment,
   Paper,
   Stack,
   TextField,
   Tooltip,
   Typography
 } from "@mui/material";
-import AddRounded from "@mui/icons-material/AddRounded";
+import ArchiveOutlined from "@mui/icons-material/ArchiveOutlined";
+import AutoGraphRounded from "@mui/icons-material/AutoGraphRounded";
+import BlockOutlined from "@mui/icons-material/BlockOutlined";
 import DeleteOutlineRounded from "@mui/icons-material/DeleteOutlineRounded";
+import FilterListRounded from "@mui/icons-material/FilterListRounded";
+import FolderOpenRounded from "@mui/icons-material/FolderOpenRounded";
+import MoreHorizRounded from "@mui/icons-material/MoreHorizRounded";
+import PlayCircleOutlineRounded from "@mui/icons-material/PlayCircleOutlineRounded";
+import SearchRounded from "@mui/icons-material/SearchRounded";
+import SwapVertRounded from "@mui/icons-material/SwapVertRounded";
+import TroubleshootRounded from "@mui/icons-material/TroubleshootRounded";
 import { resolveDashboardStageLabel } from "../../shared/locale/dashboardLocale";
 import type { DashboardLocale, ProjectCategory, ProjectSnapshot } from "../../shared/model/dashboard";
 import { formatDate } from "../../shared/utils/dashboard";
@@ -27,111 +39,155 @@ type ProjectListBoardProps = {
   selectedProjectId: string | null;
   latestActiveProjectId: string | null;
   dictionary: DashboardLocale;
-  snapshotSource: "live" | "static";
+  projectFilter: string;
   isLiveMode: boolean;
+  insightsOpen: boolean;
   onAddProject: () => void;
+  onProjectFilterChange: (value: string) => void;
+  onToggleInsights: () => void;
   onOpenProject: (projectId: string) => void;
   onDeleteProject: (projectId: string) => void;
 };
 
+type BoardSortMode = "recent" | "name";
+type BoardFilterMode = "all" | "active";
+
 export function ProjectListBoard(props: ProjectListBoardProps) {
   const theme = useTheme();
-  const [projectFilter, setProjectFilter] = useState("");
-  const deferredProjectFilter = useDeferredValue(projectFilter);
+  const [sortMode, setSortMode] = useState<BoardSortMode>("recent");
+  const [filterMode, setFilterMode] = useState<BoardFilterMode>("all");
 
-  const filteredProjects = useMemo(
-    () => filterProjectsByQuery(props.projects, deferredProjectFilter),
-    [deferredProjectFilter, props.projects]
+  const scopedProjects = useMemo(
+    () =>
+      filterMode === "active"
+        ? props.projects.filter((project) => project.activeTopics.length > 0)
+        : props.projects,
+    [filterMode, props.projects]
+  );
+  const searchedProjects = useMemo(
+    () => filterProjectsByQuery(scopedProjects, props.projectFilter),
+    [props.projectFilter, scopedProjects]
+  );
+  const orderedProjects = useMemo(
+    () =>
+      sortMode === "name"
+        ? [...searchedProjects].sort((left, right) => left.name.localeCompare(right.name))
+        : searchedProjects,
+    [searchedProjects, sortMode]
   );
   const boardSections = useMemo(
-    () => buildProjectBoardSections(props.categories, filteredProjects),
-    [props.categories, filteredProjects]
+    () => buildProjectBoardSections(props.categories, orderedProjects),
+    [props.categories, orderedProjects]
   );
-  const activeProjectCount = filteredProjects.filter((project) => project.activeTopics.length > 0).length;
-  const archivedTopicCount = filteredProjects.reduce((sum, project) => sum + project.archivedTopics.length, 0);
+  const totalProjectCount = searchedProjects.length;
+  const activeProjectCount = searchedProjects.filter((project) => project.activeTopics.length > 0).length;
+  const archivedTopicCount = searchedProjects.reduce((sum, project) => sum + project.archivedTopics.length, 0);
+  const blockedCount = searchedProjects.reduce(
+    (sum, project) =>
+      sum +
+      project.activeTopics.filter(
+        (topic) => topic.blockingIssues && topic.blockingIssues !== "없음" && topic.blockingIssues !== "none"
+      ).length,
+    0
+  );
 
   if (props.projects.length === 0) {
     return <Alert severity="info">{props.dictionary.empty}</Alert>;
   }
 
   return (
-    <Stack spacing={3}>
-      <Paper
-        sx={{
-          p: { xs: 2, md: 3 },
-          borderRadius: 1,
-          overflow: "hidden",
-          position: "relative"
-        }}
-      >
+    <Stack spacing={2.5}>
+      <Stack spacing={1}>
+        <Stack direction={{ xs: "column", lg: "row" }} spacing={1.5} sx={{ justifyContent: "space-between" }}>
+          <Box>
+            <Typography variant="h3" sx={{ fontSize: { xs: "2rem", md: "2.35rem" }, mb: 0.6 }}>
+              {props.dictionary.projectBoard}
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              {props.dictionary.projectBoardHint}
+            </Typography>
+          </Box>
+          <Button
+            variant={props.insightsOpen ? "contained" : "outlined"}
+            startIcon={<AutoGraphRounded />}
+            onClick={props.onToggleInsights}
+            sx={{ alignSelf: { xs: "flex-start", lg: "center" } }}
+          >
+            {props.dictionary.openInsights}
+          </Button>
+        </Stack>
+
         <Box
           sx={{
-            position: "absolute",
-            inset: 0,
-            background:
-              theme.palette.mode === "dark"
-                ? "radial-gradient(circle at top left, rgba(14, 165, 233, 0.18), transparent 28%), radial-gradient(circle at 85% 20%, rgba(245, 158, 11, 0.16), transparent 20%), linear-gradient(135deg, rgba(15, 23, 42, 0.88), rgba(17, 24, 39, 0.58))"
-                : "radial-gradient(circle at top left, rgba(14, 165, 233, 0.14), transparent 26%), radial-gradient(circle at 85% 18%, rgba(245, 158, 11, 0.14), transparent 18%), linear-gradient(135deg, rgba(248, 250, 252, 0.98), rgba(240, 249, 255, 0.94))"
+            display: "grid",
+            gap: 1.25,
+            gridTemplateColumns: {
+              xs: "repeat(2, minmax(0, 1fr))",
+              lg: "repeat(4, minmax(0, 1fr))"
+            }
           }}
-        />
-        <Stack spacing={2.5} sx={{ position: "relative" }}>
-          <Stack
-            direction={{ xs: "column", xl: "row" }}
-            spacing={2}
-            sx={{ justifyContent: "space-between", alignItems: { xl: "flex-start" } }}
-          >
-            <Stack spacing={1}>
-              <Typography variant="overline" color="primary.main">
-                {props.dictionary.projectMenu}
-              </Typography>
-              <Typography variant="h4">{props.dictionary.projectBoard}</Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 760 }}>
-                {props.dictionary.projectBoardHint}
-              </Typography>
-            </Stack>
+        >
+          <BoardMetricCard
+            label={props.dictionary.totalLabel}
+            value={String(totalProjectCount)}
+            icon={<TroubleshootRounded />}
+          />
+          <BoardMetricCard
+            label={props.dictionary.active}
+            value={String(activeProjectCount)}
+            icon={<PlayCircleOutlineRounded />}
+            accent="success"
+          />
+          <BoardMetricCard
+            label={props.dictionary.archive}
+            value={String(archivedTopicCount)}
+            icon={<ArchiveOutlined />}
+          />
+          <BoardMetricCard
+            label={props.dictionary.metricBlocked}
+            value={String(blockedCount)}
+            icon={<BlockOutlined />}
+            accent="danger"
+          />
+        </Box>
+      </Stack>
 
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={1.25} sx={{ alignItems: { sm: "center" } }}>
-              <TextField
-                size="small"
-                value={projectFilter}
-                onChange={(event) => setProjectFilter(event.target.value)}
-                placeholder={props.dictionary.searchProjectsPlaceholder}
-                sx={{
-                  minWidth: { xs: "100%", sm: 280 },
-                  "& .MuiOutlinedInput-root": {
-                    backgroundColor: alpha(theme.palette.background.paper, 0.94)
-                  }
-                }}
-              />
-              <Button
-                variant="contained"
-                startIcon={<AddRounded />}
-                disabled={!props.isLiveMode}
-                onClick={props.onAddProject}
-              >
-                {props.dictionary.addProject}
-              </Button>
-            </Stack>
-          </Stack>
-
-          <Box
-            sx={{
-              display: "grid",
-              gap: 1.25,
-              gridTemplateColumns: {
-                xs: "repeat(2, minmax(0, 1fr))",
-                lg: "repeat(4, minmax(0, 1fr))"
-              }
+      <Paper
+        sx={{
+          p: 1.2,
+          borderRadius: 1,
+          bgcolor: alpha(theme.palette.background.paper, 0.78)
+        }}
+      >
+        <Stack direction={{ xs: "column", md: "row" }} spacing={1.1}>
+          <TextField
+            size="small"
+            value={props.projectFilter}
+            onChange={(event) => props.onProjectFilterChange(event.target.value)}
+            placeholder={props.dictionary.boardSearchPlaceholder}
+            fullWidth
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchRounded fontSize="small" />
+                </InputAdornment>
+              )
             }}
+          />
+          <Button
+            variant="outlined"
+            startIcon={<FilterListRounded />}
+            onClick={() => setFilterMode((current) => (current === "all" ? "active" : "all"))}
           >
-            <BoardMetricCard label={props.dictionary.category} value={String(boardSections.length)} />
-            <BoardMetricCard label={props.dictionary.workflowActive} value={String(activeProjectCount)} accent />
-            <BoardMetricCard label={props.dictionary.archive} value={String(archivedTopicCount)} />
-            <BoardMetricCard
-              label={props.dictionary.generatedAt}
-              value={props.snapshotSource === "live" ? props.dictionary.liveMode : props.dictionary.staticMode}
-            />
-          </Box>
+            {filterMode === "all" ? props.dictionary.filterAction : props.dictionary.active}
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<SwapVertRounded />}
+            onClick={() => setSortMode((current) => (current === "recent" ? "name" : "recent"))}
+          >
+            {sortMode === "recent" ? props.dictionary.sortRecent : props.dictionary.sortName}
+          </Button>
         </Stack>
       </Paper>
 
@@ -141,8 +197,8 @@ export function ProjectListBoard(props: ProjectListBoardProps) {
         sx={{
           display: "grid",
           gridAutoFlow: { xs: "row", xl: "column" },
-          gridAutoColumns: { xl: "minmax(320px, 360px)" },
-          gap: 2,
+          gridAutoColumns: { xl: "minmax(276px, 1fr)" },
+          gap: 1.5,
           overflowX: { xl: "auto" },
           alignItems: "start",
           pb: { xl: 1 }
@@ -158,11 +214,32 @@ export function ProjectListBoard(props: ProjectListBoardProps) {
             latestActiveProjectId={props.latestActiveProjectId}
             dictionary={props.dictionary}
             isLiveMode={props.isLiveMode}
+            onAddProject={props.onAddProject}
             onOpenProject={props.onOpenProject}
             onDeleteProject={props.onDeleteProject}
           />
         ))}
       </Box>
+
+      <Paper
+        variant="outlined"
+        sx={{
+          p: 2.1,
+          borderRadius: 1,
+          borderStyle: "dashed",
+          bgcolor: alpha(theme.palette.background.paper, 0.3)
+        }}
+      >
+        <Stack direction="row" spacing={1.6} sx={{ alignItems: "center" }}>
+          <FolderOpenRounded color="action" />
+          <Box>
+            <Typography variant="h6">{props.dictionary.boardDragHint}</Typography>
+            <Typography variant="body2" color="text.secondary">
+              {props.dictionary.dropHint}
+            </Typography>
+          </Box>
+        </Stack>
+      </Paper>
     </Stack>
   );
 }
@@ -173,6 +250,7 @@ type CategorySectionProps = ProjectBoardSection & {
   latestActiveProjectId: string | null;
   dictionary: DashboardLocale;
   isLiveMode: boolean;
+  onAddProject: () => void;
   onOpenProject: (projectId: string) => void;
   onDeleteProject: (projectId: string) => void;
 };
@@ -181,34 +259,63 @@ function CategorySection(props: CategorySectionProps) {
   return (
     <Paper
       sx={{
-        p: { xs: 1.5, md: 1.75 },
+        p: 1.35,
         borderRadius: 1,
-        minHeight: 420,
-        background: "linear-gradient(180deg, rgba(15, 23, 42, 0.02), rgba(255, 255, 255, 0))"
+        minHeight: 520
       }}
     >
-      <Stack spacing={1.5}>
-        <Stack spacing={0.5} sx={{ pb: 1.25, borderBottom: "1px solid rgba(9, 30, 66, 0.08)" }}>
-          <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap", alignItems: "center" }}>
-            <Typography variant="h6">{props.category.name}</Typography>
-            {props.category.isDefault ? (
-              <Chip size="small" variant="outlined" label={props.dictionary.defaultBadge} />
-            ) : null}
-            <Chip size="small" variant="outlined" label={`${props.dictionary.project}: ${props.projects.length}`} />
+      <Stack spacing={1.2}>
+        <Stack spacing={0.35}>
+          <Stack direction="row" spacing={1} sx={{ justifyContent: "space-between", alignItems: "center" }}>
+            <Typography variant="h5" sx={{ fontSize: "1.05rem", fontWeight: 700 }}>
+              {props.category.name}
+            </Typography>
+            <IconButton size="small" sx={{ color: "text.secondary" }}>
+              <MoreHorizRounded fontSize="small" />
+            </IconButton>
           </Stack>
           <Typography variant="body2" color="text.secondary">
-            {props.dictionary.boardCategoryHint}
+            {props.projects.length} {props.projects.length === 1 ? props.dictionary.project : props.dictionary.projects}
           </Typography>
         </Stack>
 
         {props.projects.length === 0 ? (
-          <Paper variant="outlined" sx={{ p: 1.5, borderRadius: 1, borderStyle: "dashed" }}>
-            <Typography variant="body2" color="text.secondary">
-              {props.dictionary.noProjectsInCategory}
-            </Typography>
+          <Paper
+            variant="outlined"
+            sx={{
+              minHeight: 356,
+              display: "grid",
+              placeItems: "center",
+              p: 2,
+              borderRadius: 1,
+              bgcolor: alpha("#0f172a", 0.08)
+            }}
+          >
+            <Stack spacing={2} sx={{ alignItems: "center", textAlign: "center", width: "100%" }}>
+              <Avatar
+                variant="rounded"
+                sx={{
+                  width: 72,
+                  height: 72,
+                  bgcolor: alpha("#64748b", 0.14),
+                  color: "text.secondary"
+                }}
+              >
+                <FolderOpenRounded />
+              </Avatar>
+              <Box>
+                <Typography variant="h6">{props.dictionary.emptyCategoryTitle}</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {props.dictionary.emptyCategoryHint}
+                </Typography>
+              </Box>
+              <Button variant="outlined" onClick={props.onAddProject}>
+                {props.dictionary.addProject}
+              </Button>
+            </Stack>
           </Paper>
         ) : (
-          <Stack spacing={1.25}>
+          <Stack spacing={1}>
             {props.projects.map((project) => (
               <MemoizedProjectCard
                 key={project.id}
@@ -244,92 +351,66 @@ function ProjectCard(props: ProjectCardProps) {
   const theme = useTheme();
   const isWorkflowActive = props.project.activeTopics.length > 0;
   const isCurrentDashboardRoot = props.currentProjectId === props.project.id;
-  const accentColor = isWorkflowActive ? theme.palette.primary.main : theme.palette.text.secondary;
   const latestActivity = props.project.latestActivityAt
     ? formatDate(props.project.latestActivityAt, props.project.language)
     : props.dictionary.unknown;
+  const workflowLabel = props.project.latestTopicStage
+    ? resolveDashboardStageLabel(props.project.latestTopicStage, props.dictionary)
+    : `${props.dictionary.workflow} ${Math.max(props.project.activeTopics.length, 1)}`;
 
   return (
-    <ButtonBase
-      onClick={props.onOpenProject}
-      sx={{
-        width: "100%",
-        display: "block",
-        textAlign: "left",
-        borderRadius: 1
-      }}
-    >
+    <ButtonBase onClick={props.onOpenProject} sx={{ width: "100%", textAlign: "left", borderRadius: 1 }}>
       <Paper
         variant="outlined"
         sx={{
-          position: "relative",
+          width: "100%",
+          p: 1.35,
           borderRadius: 1,
-          overflow: "hidden",
-          borderColor: props.isSelected
-            ? alpha(theme.palette.primary.main, 0.52)
-            : alpha(theme.palette.text.primary, 0.12),
-          boxShadow: props.isSelected
-            ? `0 18px 36px ${alpha(theme.palette.common.black, theme.palette.mode === "dark" ? 0.32 : 0.12)}`
-            : "none",
-          transition: "transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease",
-          "&:hover": {
-            transform: "translateY(-2px)",
-            boxShadow: `0 16px 28px ${alpha(theme.palette.common.black, theme.palette.mode === "dark" ? 0.28 : 0.12)}`
-          }
+          borderColor: props.isSelected ? "primary.main" : alpha(theme.palette.text.primary, 0.12),
+          backgroundColor: alpha(theme.palette.background.paper, 0.92),
+          boxShadow: props.isSelected ? `0 0 0 1px ${alpha(theme.palette.primary.main, 0.24)}` : "none"
         }}
       >
-        <Box
-          sx={{
-            position: "absolute",
-            inset: 0,
-            background:
-              theme.palette.mode === "dark"
-                ? `linear-gradient(180deg, ${alpha(accentColor, isWorkflowActive ? 0.18 : 0.08)}, ${alpha(theme.palette.background.paper, 0.96)})`
-                : `linear-gradient(180deg, ${alpha(accentColor, isWorkflowActive ? 0.14 : 0.04)}, ${alpha(theme.palette.background.paper, 0.98)})`
-          }}
-        />
-        <Box
-          sx={{
-            position: "absolute",
-            inset: "0 auto 0 0",
-            width: 5,
-            backgroundColor: alpha(accentColor, 0.92)
-          }}
-        />
-
-        <Stack spacing={1.4} sx={{ position: "relative", p: 1.5 }}>
+        <Stack spacing={1.1}>
           <Stack direction="row" spacing={1} sx={{ justifyContent: "space-between", alignItems: "flex-start" }}>
-            <Stack spacing={0.65} sx={{ minWidth: 0 }}>
-              <Stack direction="row" spacing={0.75} useFlexGap sx={{ flexWrap: "wrap", alignItems: "center" }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.25 }}>
-                  {props.project.name}
-                </Typography>
-                {isCurrentDashboardRoot ? <Chip size="small" color="primary" label={props.dictionary.current} /> : null}
-                {props.isLatest ? <Chip size="small" variant="outlined" label={props.dictionary.latestBadge} /> : null}
-              </Stack>
-              <Typography
-                variant="body2"
-                color="text.secondary"
+            <Stack direction="row" spacing={1} sx={{ minWidth: 0, flex: 1 }}>
+              <Avatar
+                variant="rounded"
                 sx={{
-                  display: "-webkit-box",
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: "vertical",
-                  overflow: "hidden"
+                  width: 34,
+                  height: 34,
+                  bgcolor: isWorkflowActive ? alpha(theme.palette.primary.main, 0.22) : alpha("#64748b", 0.18),
+                  color: isWorkflowActive ? "primary.light" : "text.secondary",
+                  fontWeight: 700
                 }}
               >
-                {props.project.rootDir}
-              </Typography>
+                {props.project.name.slice(0, 1).toUpperCase()}
+              </Avatar>
+              <Stack spacing={0.3} sx={{ minWidth: 0, flex: 1 }}>
+                <Stack direction="row" spacing={0.55} useFlexGap sx={{ flexWrap: "wrap", alignItems: "center" }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.1 }}>
+                    {props.project.name}
+                  </Typography>
+                  {isCurrentDashboardRoot ? <TagChip label={props.dictionary.current} tone="primary" /> : null}
+                  {props.isLatest ? <TagChip label={props.dictionary.latestBadge} tone="success" /> : null}
+                  {!isWorkflowActive ? <TagChip label={props.dictionary.archive} tone="neutral" /> : null}
+                </Stack>
+                <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  {props.project.rootDir}
+                </Typography>
+              </Stack>
             </Stack>
+
             <Tooltip title={props.dictionary.deleteProject}>
               <span>
                 <IconButton
                   size="small"
-                  color="error"
                   disabled={!props.isLiveMode || isCurrentDashboardRoot}
                   onClick={(event) => {
                     event.stopPropagation();
                     props.onDeleteProject();
                   }}
+                  sx={{ color: "text.secondary" }}
                 >
                   <DeleteOutlineRounded fontSize="small" />
                 </IconButton>
@@ -337,107 +418,79 @@ function ProjectCard(props: ProjectCardProps) {
             </Tooltip>
           </Stack>
 
-          <Stack direction="row" spacing={0.8} useFlexGap sx={{ flexWrap: "wrap" }}>
-            <Chip
-              size="small"
-              color={isWorkflowActive ? "primary" : "default"}
-              label={
-                isWorkflowActive
-                  ? `${props.dictionary.workflowActive} ${props.project.activeTopics.length}`
-                  : props.dictionary.readOnlyMode
-              }
-            />
-            <Chip size="small" variant="outlined" label={`${props.dictionary.language}: ${props.project.language}`} />
-            <Chip
-              size="small"
-              variant="outlined"
-              label={`${props.dictionary.projectVersion}: ${props.project.projectVersion ?? props.dictionary.unknown}`}
-            />
-          </Stack>
+          <Typography variant="body2" sx={{ color: "text.primary" }}>
+            {workflowLabel} &nbsp;•&nbsp; {props.dictionary.archive} {props.project.archivedTopics.length}
+          </Typography>
 
-          <Box sx={{ display: "grid", gap: 1, gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
-            <BoardStat label={props.dictionary.workflow} value={String(props.project.activeTopics.length)} />
-            <BoardStat label={props.dictionary.archive} value={String(props.project.archivedTopics.length)} />
-          </Box>
-
-          <Stack spacing={0.85}>
-            <MetricLine label={props.dictionary.topic} value={props.project.latestTopicName ?? props.dictionary.unknown} />
-            <MetricLine
-              label={props.dictionary.topicStage}
-              value={resolveDashboardStageLabel(props.project.latestTopicStage, props.dictionary)}
-            />
-            <MetricLine label={props.dictionary.updated} value={latestActivity} />
-            <MetricLine label={props.dictionary.pggVersion} value={props.project.pggVersion ?? props.dictionary.unknown} />
-          </Stack>
+          <Typography variant="body2" color="text.secondary">
+            {props.dictionary.updated} {latestActivity}
+          </Typography>
         </Stack>
       </Paper>
     </ButtonBase>
   );
 }
 
-function BoardMetricCard(props: { label: string; value: string; accent?: boolean }) {
+function BoardMetricCard(props: {
+  label: string;
+  value: string;
+  icon: ReactNode;
+  accent?: "success" | "danger";
+}) {
   const theme = useTheme();
+  const accentColor =
+    props.accent === "success"
+      ? theme.palette.success.main
+      : props.accent === "danger"
+        ? theme.palette.error.main
+        : theme.palette.primary.main;
 
   return (
-    <Paper
-      variant="outlined"
-      sx={{
-        p: 1.4,
-        borderRadius: 1,
-        backgroundColor: props.accent
-          ? alpha(theme.palette.primary.main, theme.palette.mode === "dark" ? 0.22 : 0.1)
-          : alpha(theme.palette.background.paper, 0.76)
-      }}
-    >
-      <Typography variant="caption" color="text.secondary">
-        {props.label}
-      </Typography>
-      <Typography variant="h5" sx={{ mt: 0.5 }}>
-        {props.value}
-      </Typography>
+    <Paper variant="outlined" sx={{ p: 1.45, borderRadius: 1 }}>
+      <Stack direction="row" spacing={1.1} sx={{ alignItems: "flex-start" }}>
+        <Avatar
+          variant="rounded"
+          sx={{
+            width: 34,
+            height: 34,
+            bgcolor: alpha(accentColor, 0.18),
+            color: accentColor
+          }}
+        >
+          {props.icon}
+        </Avatar>
+        <Box>
+          <Typography variant="body2" color="text.secondary">
+            {props.label}
+          </Typography>
+          <Typography variant="h4" sx={{ lineHeight: 1.1, mt: 0.35 }}>
+            {props.value}
+          </Typography>
+        </Box>
+      </Stack>
     </Paper>
   );
 }
 
-function BoardStat(props: { label: string; value: string }) {
+function TagChip(props: { label: string; tone: "primary" | "success" | "neutral" }) {
   const theme = useTheme();
+  const styles =
+    props.tone === "primary"
+      ? { color: theme.palette.primary.light, backgroundColor: alpha(theme.palette.primary.main, 0.18) }
+      : props.tone === "success"
+        ? { color: theme.palette.success.main, backgroundColor: alpha(theme.palette.success.main, 0.16) }
+        : { color: theme.palette.text.secondary, backgroundColor: alpha(theme.palette.text.secondary, 0.14) };
 
   return (
-    <Paper
-      variant="outlined"
+    <Chip
+      size="small"
+      label={props.label}
       sx={{
-        p: 1.1,
-        borderRadius: 1,
-        backgroundColor: alpha(theme.palette.background.paper, 0.72)
+        height: 24,
+        fontWeight: 600,
+        ...styles
       }}
-    >
-      <Typography variant="caption" color="text.secondary">
-        {props.label}
-      </Typography>
-      <Typography variant="subtitle1">{props.value}</Typography>
-    </Paper>
-  );
-}
-
-function MetricLine(props: { label: string; value: string }) {
-  return (
-    <Box>
-      <Typography variant="caption" color="text.secondary">
-        {props.label}
-      </Typography>
-      <Typography
-        variant="body2"
-        sx={{
-          wordBreak: "break-word",
-          display: "-webkit-box",
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: "vertical",
-          overflow: "hidden"
-        }}
-      >
-        {props.value}
-      </Typography>
-    </Box>
+    />
   );
 }
 

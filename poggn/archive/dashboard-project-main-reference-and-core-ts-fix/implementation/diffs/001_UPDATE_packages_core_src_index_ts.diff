@@ -1,0 +1,15 @@
+diff --git a/packages/core/src/index.ts b/packages/core/src/index.ts
+index 108d49f..df62f5e 100644
+--- a/packages/core/src/index.ts
++++ b/packages/core/src/index.ts
+@@ -1320,6 +1320,10 @@ function parseMarkdownSectionByKeyword(markdown: string, keyword: string): strin
+ 
+   for (let index = 0; index < sections.length; index += 1) {
+     const section = sections[index];
++    if (!section) {
++      continue;
++    }
++
+     const title = section[1]?.trim().toLowerCase() ?? "";
+     if (!title.includes(normalizedKeyword)) {
+       continue;

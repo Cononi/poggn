@@ -1,0 +1,32 @@
+{
+  "topic": "dashboard-project-main-reference-and-core-ts-fix",
+  "version": "0.13.1",
+  "targetVersion": "0.13.1",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "commitTitle": "fix: dashboard main reference",
+  "commitSha": "6d8f3d563e1739144c9db7867d6c178fce5880ef",
+  "pushStatus": "failed",
+  "remote": "origin",
+  "branch": "release/0.13.1-dashboard-fix",
+  "workingBranch": "ai/fix/0.13.1-dashboard-fix",
+  "releaseBranch": "release/0.13.1-dashboard-fix",
+  "resultType": "push_failed",
+  "reason": "Release branch push failed.",
+  "publishedAt": null,
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "failed",
+  "cleanupStatus": "not_attempted",
+  "cleanupReason": "AI branch cleanup was skipped because the release branch was not published.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "not_attempted",
+  "branchRecoveryReason": null,
+  "branchRecoveryFrom": null,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/dashboard-project-main-reference-and-core-ts-fix",
+    "versionFile": "poggn/archive/dashboard-project-main-reference-and-core-ts-fix/version.json"
+  }
+}

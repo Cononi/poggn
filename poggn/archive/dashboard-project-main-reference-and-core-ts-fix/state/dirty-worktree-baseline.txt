@@ -1,0 +1,4 @@
+packages/core/dist/index.d.ts
+packages/core/dist/index.js
+packages/core/dist/index.js.map
+add-img/5.png

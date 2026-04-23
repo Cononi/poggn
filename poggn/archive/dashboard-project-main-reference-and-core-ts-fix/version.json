@@ -1,0 +1,14 @@
+{
+  "topic": "dashboard-project-main-reference-and-core-ts-fix",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "version": "0.13.1",
+  "targetVersion": "0.13.1",
+  "previousVersion": "0.13.0",
+  "shortName": "dashboard-fix",
+  "workingBranch": "ai/fix/0.13.1-dashboard-fix",
+  "releaseBranch": "release/0.13.1-dashboard-fix",
+  "projectScope": "current-project",
+  "archivedAt": "2026-04-23T13:28:04Z",
+  "history": "poggn/version-history.ndjson"
+}
