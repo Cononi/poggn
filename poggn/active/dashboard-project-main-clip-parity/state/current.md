@@ -6,11 +6,11 @@ dashboard-project-main-clip-parity
 
 ## Current Stage
 
-refactor
+qa
 
 ## Goal
 
-Project 기본 화면을 `Main`으로 정리하고 `Project workspace` banner, Project Board 화면, 별도 Workflow page를 제거하며, 기존 History/이력 기능은 `Workflow` 이름으로 노출한다. Dashboard Clip/Chip 계열 디자인은 `add-img/1.png` 기준으로 맞추는 구현과 구조 정리를 완료했다.
+Project 기본 화면을 `Main`으로 정리하고 `Project workspace` banner, Project Board 화면, 별도 Workflow page를 제거하며, 기존 History/이력 기능은 `Workflow` 이름으로 노출한다. Dashboard Clip/Chip 계열 디자인은 `add-img/1.png` 기준으로 맞추는 구현과 QA pass 판정을 완료했다.
 
 ## Constraints
 
@@ -43,6 +43,7 @@ Project 기본 화면을 `Main`으로 정리하고 `Project workspace` banner, P
 - Chip parity is applied through `MuiChip` defaults and local chip wrapper alignment.
 - Refactor extracts duplicate `ProjectDetailWorkspace` rendering in `DashboardApp.tsx` into a single helper and centralizes artifact/file topic-key resolution.
 - Refactor removes unused `ProjectContextSidebar` props for sidebar item callbacks while leaving category management state untouched.
+- QA confirms dashboard build, removed-symbol search, topic JSON/NDJSON validation, and archive readiness pass.
 
 ## Scope
 
@@ -92,6 +93,9 @@ Project 기본 화면을 `Main`으로 정리하고 `Project workspace` banner, P
 - evidence: `pnpm --filter @pgg/dashboard build` passed
 - evidence: Vite reported a non-blocking large JS chunk warning after minification.
 - evidence: refactor `pnpm --filter @pgg/dashboard build` passed with the same large JS chunk warning.
+- evidence: QA `pnpm --filter @pgg/dashboard build` passed with the same large JS chunk warning.
+- evidence: QA removed-symbol search found no `ProjectListBoard`, `Project workspace`, stale History label, `workflowViewMode`, or `DashboardWorkflowViewMode` matches.
+- evidence: QA topic JSON/NDJSON validation passed.
 
 ## Changed Files
 
@@ -113,18 +117,11 @@ Project 기본 화면을 `Main`으로 정리하고 `Project workspace` banner, P
 | CREATE | `poggn/active/dashboard-project-main-clip-parity/reviews/task.review.md` | pending |
 | CREATE | `poggn/active/dashboard-project-main-clip-parity/implementation/index.md` | `implementation/index.md` |
 | CREATE | `poggn/active/dashboard-project-main-clip-parity/reviews/code.review.md` | pending |
-| UPDATE | `apps/dashboard/src/app/DashboardApp.tsx` | `implementation/diffs/001_UPDATE_apps_dashboard_src_app_DashboardApp_tsx.diff` |
-| UPDATE | `apps/dashboard/src/app/DashboardShellChrome.tsx` | `implementation/diffs/002_UPDATE_apps_dashboard_src_app_DashboardShellChrome_tsx.diff` |
-| UPDATE | `apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx` | `implementation/diffs/003_UPDATE_apps_dashboard_src_features_project-detail_ProjectDetailWorkspace_tsx.diff` |
-| UPDATE | `apps/dashboard/src/shared/model/dashboard.ts` | `implementation/diffs/004_UPDATE_apps_dashboard_src_shared_model_dashboard_ts.diff` |
-| UPDATE | `apps/dashboard/src/shared/store/dashboardStore.ts` | `implementation/diffs/005_UPDATE_apps_dashboard_src_shared_store_dashboardStore_ts.diff` |
-| UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | `implementation/diffs/006_UPDATE_apps_dashboard_src_shared_locale_dashboardLocale_ts.diff` |
-| UPDATE | `apps/dashboard/src/shared/theme/dashboardTheme.ts` | `implementation/diffs/007_UPDATE_apps_dashboard_src_shared_theme_dashboardTheme_ts.diff` |
-| UPDATE | `apps/dashboard/src/features/backlog/BacklogWorkspace.tsx` | `implementation/diffs/008_UPDATE_apps_dashboard_src_features_backlog_BacklogWorkspace_tsx.diff` |
-| UPDATE | `apps/dashboard/src/features/backlog/InsightsRail.tsx` | `implementation/diffs/009_UPDATE_apps_dashboard_src_features_backlog_InsightsRail_tsx.diff` |
-| DELETE | `apps/dashboard/src/features/project-list/ProjectListBoard.tsx` | `implementation/diffs/010_DELETE_apps_dashboard_src_features_project-list_ProjectListBoard_tsx.diff` |
-| UPDATE | `apps/dashboard/src/app/DashboardApp.tsx` | `implementation/diffs/011_UPDATE_apps_dashboard_src_app_DashboardApp_tsx.refactor.diff` |
-| UPDATE | `apps/dashboard/src/app/DashboardShellChrome.tsx` | `implementation/diffs/012_UPDATE_apps_dashboard_src_app_DashboardShellChrome_tsx.refactor.diff` |
+| UPDATE | `poggn/active/dashboard-project-main-clip-parity/implementation/index.md` | `implementation/index.md`; source diff list is recorded there |
+| UPDATE | `poggn/active/dashboard-project-main-clip-parity/workflow.reactflow.json` | pending |
+| UPDATE | `poggn/active/dashboard-project-main-clip-parity/state/current.md` | pending |
+| UPDATE | `poggn/active/dashboard-project-main-clip-parity/state/history.ndjson` | pending |
+| CREATE | `poggn/active/dashboard-project-main-clip-parity/qa/report.md` | pending |
 
 ## Dirty Worktree Baseline
 
@@ -134,7 +131,7 @@ Project 기본 화면을 `Main`으로 정리하고 `Project workspace` banner, P
 
 - score: `96`
 - blocking issue: `none`
-- review refs: `reviews/proposal.review.md`, `reviews/plan.review.md`, `reviews/task.review.md`, `reviews/code.review.md`, `reviews/refactor.review.md`
+- review refs: `reviews/proposal.review.md`, `reviews/plan.review.md`, `reviews/task.review.md`, `reviews/code.review.md`, `reviews/refactor.review.md`, `qa/report.md`
 
 ## Git Publish Message
 
@@ -144,8 +141,8 @@ Project 기본 화면을 `Main`으로 정리하고 `Project workspace` banner, P
 
 ## Next
 
-`pgg-qa`
+`archive`
 
 ## Next Action
 
-Run `pgg-qa` for `dashboard-project-main-clip-parity`.
+Archive the topic with `.codex/sh/pgg-archive.sh dashboard-project-main-clip-parity`.

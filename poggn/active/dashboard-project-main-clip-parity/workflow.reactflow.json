@@ -40,7 +40,7 @@
         "label": "state/current.md",
         "stage": "handoff",
         "status": "ready",
-        "next": "pgg-qa"
+        "next": "archive"
       }
     },
     {
@@ -126,6 +126,21 @@
         "status": "reviewed",
         "score": 96
       }
+    },
+    {
+      "id": "qa",
+      "type": "qa",
+      "position": {
+        "x": 0,
+        "y": 510
+      },
+      "data": {
+        "label": "qa/report.md",
+        "stage": "qa",
+        "status": "done",
+        "score": 96,
+        "decision": "pass"
+      }
     }
   ],
   "edges": [
@@ -182,6 +197,16 @@
     {
       "id": "refactor-state",
       "source": "refactor",
+      "target": "state"
+    },
+    {
+      "id": "refactor-qa",
+      "source": "refactor",
+      "target": "qa"
+    },
+    {
+      "id": "qa-state",
+      "source": "qa",
       "target": "state"
     }
   ]
