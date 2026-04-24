@@ -338,7 +338,7 @@ function HistoryOverview(props: {
       <Paper sx={{ p: 1.8, borderRadius: 1 }}>
         <Stack spacing={2}>
           <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
-            {props.dictionary.workflowProgressTitle}
+            Workflow Progress
           </Typography>
           <Box
             sx={{
@@ -360,7 +360,7 @@ function HistoryOverview(props: {
               spacing={{ xs: 1.2, sm: 2 }}
               sx={{ alignItems: "center", justifyContent: "center", minWidth: 0, flexWrap: "wrap" }}
             >
-              <WorkflowProgressChart completed={progress.completed} active={progress.active} pending={progress.pending} completion={progress.completion} dictionary={props.dictionary} />
+              <WorkflowProgressChart completed={progress.completed} active={progress.active} pending={progress.pending} completion={progress.completion} />
               <WorkflowProgressCounts completed={progress.completed} active={progress.active} pending={progress.pending} />
             </Stack>
           </Box>
@@ -423,7 +423,7 @@ function HistoryOverview(props: {
           </Box>
         ))}
       </SummaryPanel>
-      <WorkflowLogDialog step={selectedStep} dictionary={props.dictionary} onClose={() => setSelectedStep(null)} />
+      <WorkflowLogDialog step={selectedStep} onClose={() => setSelectedStep(null)} />
     </Stack>
   );
 }
@@ -564,12 +564,12 @@ function workflowStepColor(theme: Theme, step: WorkflowStep): string {
   return theme.palette.text.secondary;
 }
 
-function WorkflowProgressChart(props: { completed: number; active: number; pending: number; completion: number; dictionary: DashboardLocale }) {
+function WorkflowProgressChart(props: { completed: number; active: number; pending: number; completion: number }) {
   const theme = useTheme();
   const data = [
-    { id: "completed", value: props.completed, label: props.dictionary.workflowStatusComplete, color: theme.palette.success.main },
-    { id: "active", value: props.active, label: props.dictionary.workflowStatusInProgress, color: theme.palette.primary.main },
-    { id: "pending", value: props.pending, label: props.dictionary.workflowStatusNotStarted, color: theme.palette.text.secondary }
+    { id: "completed", value: props.completed, label: "Done", color: theme.palette.success.main },
+    { id: "active", value: props.active, label: "Active", color: theme.palette.primary.main },
+    { id: "pending", value: props.pending, label: "Waiting", color: theme.palette.text.secondary }
   ].filter((item) => item.value > 0);
 
   return (
@@ -579,7 +579,7 @@ function WorkflowProgressChart(props: { completed: number; active: number; pendi
         height={136}
         series={[
           {
-            data: data.length ? data : [{ id: "empty", value: 1, label: props.dictionary.workflowStatusNotStarted, color: alpha(theme.palette.text.secondary, 0.32) }],
+            data: data.length ? data : [{ id: "empty", value: 1, label: "Pending", color: alpha(theme.palette.text.secondary, 0.32) }],
             innerRadius: 45,
             outerRadius: 64,
             paddingAngle: 2,
@@ -595,7 +595,7 @@ function WorkflowProgressChart(props: { completed: number; active: number; pendi
             {props.completion}%
           </Typography>
           <Typography variant="caption" color="text.secondary">
-            {props.completed} {props.dictionary.workflowStatusComplete}
+            {props.completed} completed
           </Typography>
         </Stack>
       </Box>
@@ -623,7 +623,7 @@ function WorkflowProgressCounts(props: { completed: number; active: number; pend
   );
 }
 
-function WorkflowLogDialog(props: { step: WorkflowStep | null; dictionary: DashboardLocale; onClose: () => void }) {
+function WorkflowLogDialog(props: { step: WorkflowStep | null; onClose: () => void }) {
   const open = Boolean(props.step);
   const step = props.step;
 
@@ -632,9 +632,9 @@ function WorkflowLogDialog(props: { step: WorkflowStep | null; dictionary: Dashb
       <DialogTitle sx={{ pr: 6 }}>
         <Stack spacing={0.4}>
           <Typography variant="h6" sx={{ fontWeight: 800 }}>
-            {step?.label ?? props.dictionary.workflowProgressTitle}
+            {step?.label ?? "Workflow"} log
           </Typography>
-          {step ? <Typography variant="body2" color="text.secondary">{workflowStatusLabel(step, props.dictionary)}</Typography> : null}
+          {step ? <Typography variant="body2" color="text.secondary">{step.status}</Typography> : null}
         </Stack>
         <IconButton
           aria-label="Close"
@@ -648,31 +648,21 @@ function WorkflowLogDialog(props: { step: WorkflowStep | null; dictionary: Dashb
       <DialogContent dividers>
         {step ? (
           <Stack spacing={1.3}>
-            <KeyValue label={props.dictionary.topicStatus} value={workflowStatusLabel(step, props.dictionary)} />
-            <KeyValue label={props.dictionary.workflowStartTime} value={step.startTime} />
-            <KeyValue label={props.dictionary.workflowUpdatedTime} value={step.updatedTime} />
-            <KeyValue label={props.dictionary.workflowDetail} value={step.detail} />
-            {step.command ? <KeyValue label={props.dictionary.workflowNextCommand} value={step.command} strong /> : null}
-            {step.blockingIssues ? <KeyValue label={props.dictionary.workflowBlocking} value={step.blockingIssues} /> : null}
+            <KeyValue label="Status" value={step.status} />
+            <KeyValue label="Start Time" value={step.startTime} />
+            <KeyValue label="Updated Time" value={step.updatedTime} />
+            <KeyValue label="Detail" value={step.detail} />
+            {step.command ? <KeyValue label="Next Command" value={step.command} strong /> : null}
+            {step.blockingIssues ? <KeyValue label="Blocking" value={step.blockingIssues} /> : null}
             <Divider />
-            <LogList title={props.dictionary.workflowEvents} values={step.events} empty={props.dictionary.workflowNoEntries} />
-            <LogList title={props.dictionary.workflowFiles} values={step.files} empty={props.dictionary.workflowNoFiles} />
-            <LogList title={props.dictionary.workflowRefs} values={step.refs} empty={props.dictionary.workflowNoRefs} />
+            <LogList title="Events" values={step.events} />
+            <LogList title="Files" values={step.files} empty="No related files in this snapshot." />
+            <LogList title="Refs" values={step.refs} empty="No workflow refs in this snapshot." />
           </Stack>
         ) : null}
       </DialogContent>
     </Dialog>
   );
-}
-
-function workflowStatusLabel(step: WorkflowStep, dictionary: DashboardLocale): string {
-  if (step.status === "completed") {
-    return dictionary.workflowStatusComplete;
-  }
-  if (isActiveWorkflowStep(step)) {
-    return dictionary.workflowStatusInProgress;
-  }
-  return dictionary.workflowStatusNotStarted;
 }
 
 function LogList(props: { title: string; values: string[]; empty?: string }) {
