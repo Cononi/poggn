@@ -96,20 +96,10 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
     ) : (
       <HistoryRelations topic={selectedTopic} topics={allTopics} />
     );
-  const historyTabIndex = activeTab === "overview" ? 0 : activeTab === "timeline" ? 1 : 2;
   const historyTabWidth = { xs: 98, sm: 128 };
   const historyTabHeight = { xs: 42, sm: 50 };
   const historyTabGap = 2;
   const historyTabInset = 12;
-  const historyTabLineOverlap = 4;
-  const historyTabMaskLeft = {
-    xs: `${historyTabInset + historyTabIndex * (98 + historyTabGap)}px`,
-    sm: `${historyTabInset + historyTabIndex * (128 + historyTabGap)}px`
-  };
-  const historyTabMaskRight = {
-    xs: `${historyTabInset + historyTabIndex * (98 + historyTabGap) + 98}px`,
-    sm: `${historyTabInset + historyTabIndex * (128 + historyTabGap) + 128}px`
-  };
   const historyPanelBg = alpha(theme.palette.background.default, theme.palette.mode === "dark" ? 0.18 : 0.34);
   const historyPanelBorder = alpha(theme.palette.primary.light, theme.palette.mode === "dark" ? 0.62 : 0.42);
 
@@ -183,7 +173,7 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
                 pl: `${historyTabInset}px`,
                 minHeight: historyTabHeight,
                 overflow: "visible",
-                mb: 0
+                mb: "-2px"
               }}
             >
               {(["overview", "timeline", "relations"] as const).map((tab) => {
@@ -211,8 +201,20 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
                       borderTopLeftRadius: selected ? { xs: 2, sm: 2.5 } : 0,
                       borderTopRightRadius: selected ? { xs: 2, sm: 2.5 } : 0,
                       position: "relative",
-                      zIndex: selected ? 2 : 1,
-                      boxShadow: "none",
+                      zIndex: selected ? 3 : 1,
+                      boxShadow: selected ? `0 3px 0 ${historyPanelBg}` : "none",
+                      "&::after": selected
+                        ? {
+                            content: '""',
+                            position: "absolute",
+                            left: "2px",
+                            right: "2px",
+                            bottom: "-4px",
+                            height: "4px",
+                            bgcolor: historyPanelBg,
+                            pointerEvents: "none"
+                          }
+                        : undefined,
                       "&:hover": {
                         bgcolor: selected ? historyPanelBg : alpha(theme.palette.text.primary, 0.04)
                       },
@@ -239,39 +241,12 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
               position: "relative",
               p: { xs: 1.2, md: 1.5 },
               border: `2px solid ${historyPanelBorder}`,
-              borderTop: 0,
               borderRadius: 1,
               borderTopLeftRadius: 0,
               borderTopRightRadius: 0,
               borderBottomLeftRadius: 1,
               borderBottomRightRadius: 1,
-              bgcolor: historyPanelBg,
-              "&::before": {
-                content: '""',
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: {
-                  xs: `calc(${historyTabMaskLeft.xs} + ${historyTabLineOverlap}px)`,
-                  sm: `calc(${historyTabMaskLeft.sm} + ${historyTabLineOverlap}px)`
-                },
-                height: 2,
-                bgcolor: historyPanelBorder,
-                pointerEvents: "none"
-              },
-              "&::after": {
-                content: '""',
-                position: "absolute",
-                top: 0,
-                left: {
-                  xs: `calc(${historyTabMaskRight.xs} - ${historyTabLineOverlap}px)`,
-                  sm: `calc(${historyTabMaskRight.sm} - ${historyTabLineOverlap}px)`
-                },
-                right: 0,
-                height: 2,
-                bgcolor: historyPanelBorder,
-                pointerEvents: "none"
-              }
+              bgcolor: historyPanelBg
             }}
           >
             {activePanel}
@@ -497,23 +472,24 @@ function HistoryOverview(props: {
                   />
                 ))}
               </Box>
-              <Stack
-                direction="row"
-                spacing={0.8}
-                useFlexGap
+              <Box
                 sx={{
-                  flexWrap: "wrap",
+                  display: "grid",
+                  gridTemplateColumns: "repeat(6, minmax(0, 1fr))",
+                  gap: { xs: 0.8, md: 0.95 },
                   minWidth: 0,
+                  overflow: "hidden",
                   pt: 1.1,
                   borderTop: `1px solid ${alpha("#8aa4d6", 0.14)}`
                 }}
               >
                 <OverviewMeta title="Status" value={topicStatus(props.topic)} helper={props.topic.bucket === "archive" ? props.dictionary.archive : props.dictionary.statusInProgress} tone="success" />
                 <OverviewMeta title="Workflow Stage" value={currentStageLabel} helper={currentStageHelper} tone="primary" />
+                <OverviewMeta title="Progress" value={`${progress.completion}%`} helper={`${progress.completed}/${steps.length}`} tone="primary" />
                 <OverviewMeta title="Priority" value={priority.value} helper={priority.helper} tone={priority.tone} />
                 <OverviewMeta title="Created" value={created.value} lines={created.lines} helper={created.helper} />
                 <OverviewMeta title="Updated" value={updated.value} lines={updated.lines} helper={currentFlowLabel} />
-              </Stack>
+              </Box>
             </Stack>
             <Stack
               spacing={1.4}
@@ -664,26 +640,29 @@ function OverviewMeta(props: {
   return (
     <Box
       sx={{
-        minWidth: { xs: 118, sm: 128 },
-        px: 1,
+        minWidth: 0,
+        width: "100%",
+        px: { xs: 0.55, sm: 0.7, md: 0.85 },
         py: 0.75,
+        boxSizing: "border-box",
         borderRadius: 1,
         border: `1px solid ${alpha(color, 0.18)}`,
-        bgcolor: alpha(color, 0.07)
+        bgcolor: alpha(color, 0.07),
+        overflow: "hidden"
       }}
     >
-      <Typography variant="caption" color="text.secondary" sx={{ display: "block", lineHeight: 1.1 }}>
+      <Typography noWrap variant="caption" color="text.secondary" sx={{ display: "block", maxWidth: "100%", minWidth: 0, lineHeight: 1.1 }}>
         {props.title}
       </Typography>
-      <Stack spacing={0.1} sx={{ minWidth: 0, mt: 0.45 }}>
+      <Stack spacing={0.1} sx={{ minWidth: 0, maxWidth: "100%", overflow: "hidden", mt: 0.45 }}>
         {(props.lines?.length ? props.lines : [props.value]).map((line) => (
-          <Typography key={line} variant="caption" sx={{ color: "#f8fbff", fontWeight: 850, lineHeight: 1.12, overflowWrap: "anywhere" }}>
+          <Typography noWrap key={line} variant="caption" sx={{ maxWidth: "100%", minWidth: 0, color: "#f8fbff", fontWeight: 850, lineHeight: 1.12 }}>
             {line}
           </Typography>
         ))}
       </Stack>
       {props.helper ? (
-        <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.35, lineHeight: 1.15, overflowWrap: "anywhere" }}>
+        <Typography noWrap variant="caption" color="text.secondary" sx={{ display: "block", maxWidth: "100%", minWidth: 0, mt: 0.35, lineHeight: 1.15 }}>
           {props.helper}
         </Typography>
       ) : null}

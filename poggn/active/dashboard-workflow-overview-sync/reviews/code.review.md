@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T19:22:20Z"
+  updated_at: "2026-04-24T19:33:31Z"
 ---
 
 # code.review
@@ -37,6 +37,11 @@ pgg:
 | UI 통합 리뷰어 | 96 | MUI `Tabs`/`Tab`을 제거하고 `ButtonBase` 기반 `tablist`로 교체해 built-in selected underline을 없앴다. 선택 탭과 panel은 같은 2px outline으로 이어진다. | none |
 | UI 정렬 리뷰어 | 96 | 선택 탭과 panel top-line segment의 겹침을 4px로 늘려 오른쪽에 남는 미세한 끊김을 왼쪽으로 보정했다. | none |
 | 상태 모델 리뷰어 | 96 | unverified `stage-completed`를 completion evidence에서 제외하고, governed `stage-commit` 또는 verified/final `stage-completed`만 완료로 계산하게 해 작업 중 추가 요구가 너무 빨리 `완료`로 바뀌지 않게 했다. | none |
+| UI 정렬 리뷰어 | 96 | 선택 탭과 panel top-line segment의 겹침을 8px로 늘려 여전히 오른쪽에서 끊겨 보이던 연결부를 더 왼쪽으로 보정했다. | none |
+| UX 밀도 리뷰어 | 96 | Workflow Progress metadata를 Status/Workflow Stage/Progress/Priority/Created/Updated 6개 카드 고정 grid로 바꿔 두 번째 줄로 wrap되지 않게 했다. | none |
+| UI 정렬 리뷰어 | 96 | 계산된 top-line segment 방식을 제거하고 panel의 연속 top border를 선택 탭 inner mask로 덮어 양쪽 tab side border가 panel line에 직접 연결되게 했다. | none |
+| UX 밀도 리뷰어 | 96 | 6개 metadata card에 `minWidth: 0`, `boxSizing`, `noWrap`, container overflow clipping을 적용해 좁은 폭에서 카드와 텍스트가 시각적으로 겹치지 않게 했다. | none |
+| UI 정렬 리뷰어 | 96 | 선택 탭의 inner bottom mask와 matching shadow를 4px까지 확장해 active tab과 content 사이에 남던 panel top line을 숨겼다. | none |
 
 ## Findings
 
@@ -66,8 +71,9 @@ pgg:
 - source check for unified tab panel surface wrapping Overview, Timeline, and Relations content: pass
 - source check for borderless text-only inactive tabs and selected-tab panel blending: pass
 - source check for selected-tab flush edge alignment and no active-tab bottom line: pass
-- source check for 4px selected-tab line overlap and verified/final completion evidence gating: pass
-- source check for metadata card bar under the workflow rail: pass
+- source check for continuous panel top border with selected-tab inner mask: pass
+- source check for fixed six-column metadata card row without wrapping or overlap: pass
+- source check for active-tab inner line masking while preserving side connections: pass
 
 ## Residual Risks
 

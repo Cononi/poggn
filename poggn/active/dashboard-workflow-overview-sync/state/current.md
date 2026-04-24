@@ -35,6 +35,8 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - follow-up connector reference: `add-img/6.png`
 - follow-up center/gap reference: `add-img/8.png`
 - follow-up tab reference: `add-img/9.png`
+- follow-up tab connection reference: `add-img/10.png`
+- follow-up metadata card reference: `add-img/11.png`
 - density reference: `add-img/1.png`
 
 ## Constraints
@@ -85,7 +87,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - Workflow Progress title and donut percentage typography were reduced to match surrounding Overview density.
 - Overview summary cards now derive Workflow Stage, Priority, Created, and Updated from real topic workflow/timestamp/score/blocking data instead of placeholders.
 - Created and Updated cards split date/time into separate lines, hide the decorative dot, and use `Add` / current flow labels as concise helpers.
-- Status, Workflow Stage, Priority, Created, and Updated moved into the Workflow Progress title area; the Type card was removed.
+- Status, Workflow Stage, Priority, Created, and Updated moved under the Workflow Progress rail; the Type card was removed.
 - Created/Updated now use fixed `YYYY.MM.DD` and `오전/오후 HH:MM:SS` two-line formatting.
 - Priority ignores placeholder blocking values such as `none` and uses score/workflow context helper copy.
 - Overview/Timeline/Relations content should render inside the topic header/tab surface so the selected tab panel does not look detached from the tab area.
@@ -96,12 +98,14 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - Selected tab should match `add-img/9.png`: rounded top corners, visible top/side border, matching panel fill, and no bottom border.
 - History tabs use custom `ButtonBase` tabs instead of MUI `Tabs`/`Tab`, so no built-in selected underline can appear.
 - Selected tab and content panel outline must use the same thickness/color and read as one continuous path.
-- Selected tab sits flush with the content panel edge, and panel top-line segments overlap the selected tab side borders by 4px to prevent visible connection gaps or right-shifted line starts.
+- Selected tab overlaps the content panel edge, and the panel keeps one continuous top border while the selected tab masks only its inner bottom segment so both tab side borders connect cleanly.
+- Selected tab extends its inner bottom mask and same-color shadow so the panel line is hidden only between the selected tab and content, while the remaining top line stays connected.
 - Content panel top border remains visible except under the selected tab segment, where the selected tab connects to the panel.
 - New dialogue requirements should append `requirements-added` before completion evidence so live dashboard refresh can show the current flow as `추가 진행`.
 - This `requirements-added` first rule is a global pgg workflow rule for future active topics, not a one-off behavior for this topic.
 - During implementation, unverified `stage-completed` must not resolve `추가 진행`; dashboard completion requires `stage-commit` or verified/final `stage-completed`.
 - Work-in-progress follow-ups should be recorded as `stage-progress`, not `stage-completed`, until verification and commit are done.
+- Workflow Progress metadata should be Status, Workflow Stage, Progress, Priority, Created, and Updated in a fixed six-card row that does not wrap to a second line or visually overlap.
 - Workflow Progress compact UI removes the bordered time/status box and uses caption typography.
 - Flow nodes expose hover/focus tooltip copy through locale keys.
 - Active/revision rail uses visible overflow and fixed visual sizing to avoid clipping while preserving click target.
@@ -128,6 +132,9 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - `앞으로 플로우 처리는 다른 토픽 도 마찬가지고 전부 이렇게 되야 합니다. 그리고 add-img의 9.png 이미지 다시 보세요 경계선이 있나요? 전혀 다른 디자인입니다. 다시 해주세요.`
 - `탭 기능을 보세요. 9.png와 전혀 다릅니다. 라인 자체도 여전히 이어지지 않았고 탭의 하단에 셀렉트로 인한 라인도 살아 있습니다. 모습이 같습니까?`
 - `탭의 선이 완벽하게 이어지지 않고 있습니다. 왼쪽으로 조금 더 가야 딱 맞을거 같습니다. 그리고 워크플로우에서 추가 사항은 좋으나, 작업이 끝나기 전인에 너무 빨리 작업 완료 처리로 상태를 바꾸는거 같습니다.`
+- `탭이 여전히 컨텐츠와의 선이 연결이 안되고 있습니다. 왼쪽으로 조금 더 가야 맞을거 같습니다. 그리고 Status,Workflow Stage,Priority,Created,Updated 는 카드가 두번째 칸으로 넘어가지 동적으로 사이즈가 바뀌어서 항상 6개의 카드가 일자로 볼 수 있게 만들어주세요.`
+- `탭은 add-img/10.png 보시면 여전히 선이 안맞습니다. 양쪽다 전부 이어지도록 해주세요. 그리고 add-img/11.png 보시면 카드 탭들이 서로 겹칩니다. 겹치면 안되고 사이즈에 맞게 자동으로 줄었다가 커졌다 해야 합니다.`
+- `탭의 선은 연결됐습니다. 9.png 처럼 탭과 컨텐츠 사이에 선은 없애줘야죠. 자연스럽게 그리고 나머지 선은이어야 합니다.`
 
 ## Audit Applicability
 
@@ -229,8 +236,9 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - source check for unified tab panel surface wrapping Overview, Timeline, and Relations content: pass
 - source check for borderless text-only inactive tabs and selected-tab panel blending: pass
 - source check for selected-tab flush edge alignment and no active-tab bottom line: pass
-- source check for 4px selected-tab line overlap and verified/final completion evidence gating: pass
-- source check for metadata card bar under the workflow rail: pass
+- source check for continuous panel top border with selected-tab inner mask: pass
+- source check for fixed six-column metadata card row without wrapping or overlap: pass
+- source check for active-tab inner line masking while preserving side connections: pass
 
 ## Next Action
 

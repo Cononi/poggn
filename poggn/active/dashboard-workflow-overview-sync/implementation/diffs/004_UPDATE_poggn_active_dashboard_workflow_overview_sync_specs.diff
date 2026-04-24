@@ -1,59 +1,33 @@
-diff --git a/poggn/active/dashboard-workflow-overview-sync/spec/model/flow-timestamp-and-status-source.md b/poggn/active/dashboard-workflow-overview-sync/spec/model/flow-timestamp-and-status-source.md
-index 9bd4fa3..05ad620 100644
---- a/poggn/active/dashboard-workflow-overview-sync/spec/model/flow-timestamp-and-status-source.md
-+++ b/poggn/active/dashboard-workflow-overview-sync/spec/model/flow-timestamp-and-status-source.md
-@@ -36,7 +36,8 @@ Workflow Progress의 flow별 시작, 진행, 완료 시간을 독립 source에
- 
- ## Status Contract
- 
--- completed flow는 trusted `completedAt`, `stage-completed`, 또는 governed completion commit인 `stage-commit` evidence가 있어야 한다.
-+- completed flow는 trusted `completedAt`, verified/final `stage-completed`, 또는 governed completion commit인 `stage-commit` evidence가 있어야 한다.
-+- 검증 전 작업 정리용 `stage-completed`는 완료 evidence로 보지 않고 `stage-progress`처럼 진행 중 상태를 유지해야 한다.
- - current/generated flow는 active stage 또는 `stage-progress` evidence를 기준으로 한다.
- - pending/not-started flow는 start evidence가 없는 future flow다.
- - revision/update status는 S2에서 정의하며 time source priority는 이 spec을 따른다.
-@@ -53,6 +54,6 @@ Workflow Progress의 flow별 시작, 진행, 완료 시간을 독립 source에
- ## Acceptance
- 
- - Add, Plan, Code가 같은 fallback completed time으로 반복 표시되지 않는다.
--- `stage-completed` event가 있는 flow는 해당 timestamp를 완료 시각으로 표시할 수 있다.
-+- verified/final `stage-completed` event 또는 `stage-commit` event가 있는 flow는 해당 timestamp를 완료 시각으로 표시할 수 있다.
- - `stage-progress`만 있는 flow는 completed가 아니라 generated/current 계열로 표시된다.
- - timestamp confidence가 낮으면 log modal에서 source 또는 추정 상태를 확인할 수 있다.
 diff --git a/poggn/active/dashboard-workflow-overview-sync/spec/qa/workflow-overview-sync-acceptance.md b/poggn/active/dashboard-workflow-overview-sync/spec/qa/workflow-overview-sync-acceptance.md
-index d8262e4..a7f45b6 100644
+index a7f45b6..b1da8f3 100644
 --- a/poggn/active/dashboard-workflow-overview-sync/spec/qa/workflow-overview-sync-acceptance.md
 +++ b/poggn/active/dashboard-workflow-overview-sync/spec/qa/workflow-overview-sync-acceptance.md
-@@ -46,7 +46,8 @@ Workflow Overview sync 변경의 visual, model, telemetry, i18n, accessibility a
+@@ -29,10 +29,12 @@ Workflow Overview sync 변경의 visual, model, telemetry, i18n, accessibility a
+ - The selected tab follows the `add-img/9.png` shape: rounded top corners, visible top/side border, no bottom border, and a fill that matches the content panel.
+ - The selected tab shape is implemented without MUI `Tabs`/`Tab` indicator styling; there must be no selected underline or extra bottom line.
+ - The selected tab border and content panel border use the same thickness/color so their outline appears continuous.
+-- The selected tab sits flush with the content panel edge, and panel top-line segments overlap the selected tab side borders enough to avoid visible gaps.
++- The content panel top border is one continuous line, and the selected tab masks only the inner bottom segment so both tab side borders connect cleanly to the panel line.
++- No panel top line is visible between the selected tab and content; the remaining top border outside the selected tab stays connected.
+ - Only the selected tab and its content panel are framed together; inactive tabs are not boxed.
+ - The content panel keeps its top border except for the segment directly under the selected tab.
+-- Status, Workflow Stage, Priority, Created, and Updated appear as a compact card bar under the workflow rail inside Workflow Progress.
++- Status, Workflow Stage, Progress, Priority, Created, and Updated appear as a compact six-card row under the workflow rail inside Workflow Progress.
++- The Workflow Progress metadata cards stay in one row instead of wrapping or visually overlapping; compact text truncation is preferred over row wrapping.
  
- ## Telemetry Acceptance
+ ## Model Acceptance
  
--- `stage-started`, `stage-progress`, `stage-completed`, `stage-commit` event를 dashboard model source로 사용할 수 있다.
-+- `stage-started`, `stage-progress`, verified/final `stage-completed`, `stage-commit` event를 dashboard model source로 사용할 수 있다.
-+- 검증 전 `stage-completed`는 완료 처리하지 않고 `stage-commit` 또는 verified/final completion evidence가 들어오기 전까지 `추가 진행`/`생성 중` 계열 상태를 유지한다.
- - `proposal-updated`, `plan-updated`, `task-updated`, `stage-revised`, `requirements-added` 계열 event는 update status source가 될 수 있다.
- - `workflow.reactflow.json` node detail timestamps는 broad fallback보다 우선한다.
- - telemetry가 없는 과거 topic은 dashboard가 깨지지 않고 conservative fallback을 사용한다.
-diff --git a/poggn/active/dashboard-workflow-overview-sync/spec/telemetry/stage-progress-contract.md b/poggn/active/dashboard-workflow-overview-sync/spec/telemetry/stage-progress-contract.md
-index ae5a080..596e63c 100644
---- a/poggn/active/dashboard-workflow-overview-sync/spec/telemetry/stage-progress-contract.md
-+++ b/poggn/active/dashboard-workflow-overview-sync/spec/telemetry/stage-progress-contract.md
-@@ -22,6 +22,8 @@ AI/pgg 작업 진행이 dashboard Workflow Progress와 Workflow/React Flow surfa
-   - fields: `ts`, `stage`, `event`, optional `flow`, `task`, `summary`, `source`
- - `stage-completed`
-   - fields: `ts`, `stage`, `event`, optional `flow`, `task`, `summary`, `source`
-+  - 검증 전 중간 완료처럼 보이는 작업 정리 이벤트에는 사용하지 않는다.
-+  - `stage-completed`가 completion evidence로 쓰이려면 `source`가 `verified`, `final`, `gate`, `qa`, `검증`, `최종` 계열이어야 한다.
- - `stage-commit`
-   - fields: `ts`, `stage`, `event`, optional `flow`, `task`, `summary`, `source`, `commitTitle`
- - `stage-revised` 또는 stage-specific update event
-@@ -58,7 +60,7 @@ AI/pgg 작업 진행이 dashboard Workflow Progress와 Workflow/React Flow surfa
+diff --git a/poggn/active/dashboard-workflow-overview-sync/spec/ui/compact-workflow-progress-surface.md b/poggn/active/dashboard-workflow-overview-sync/spec/ui/compact-workflow-progress-surface.md
+index a14ff0c..b52e9de 100644
+--- a/poggn/active/dashboard-workflow-overview-sync/spec/ui/compact-workflow-progress-surface.md
++++ b/poggn/active/dashboard-workflow-overview-sync/spec/ui/compact-workflow-progress-surface.md
+@@ -43,7 +43,8 @@ Workflow Progress를 `add-img/5.png`의 connector/status 정확도와 `add-img/1
+ - flow 이름 아래 bordered box는 제거한다.
+ - 완료 time 또는 status는 small caption typography로 표시한다.
+ - caption은 1-2줄 안에서 줄바꿈하고 circle/connector와 겹치지 않아야 한다.
+-- Status, Workflow Stage, Priority, Created, Updated metadata card bar is placed under the workflow rail inside the Workflow Progress surface, not beside the title.
++- Status, Workflow Stage, Progress, Priority, Created, and Updated metadata cards are placed under the workflow rail inside the Workflow Progress surface, not beside the title.
++- The metadata card bar uses a single six-column row that does not wrap into a second line or visually overlap; card widths shrink within the row and text truncates cleanly when space is tight.
  
- ## Acceptance
+ ## Tooltip Contract
  
--- `stage-started`, `stage-progress`, `stage-completed`, `stage-commit` event가 있으면 Overview Progress에 시작/진행/완료 상태와 시간이 반영된다.
-+- `stage-started`, `stage-progress`, verified/final `stage-completed`, `stage-commit` event가 있으면 Overview Progress에 시작/진행/완료 상태와 시간이 반영된다.
- - `proposal-updated`, `requirements-added`, 또는 `stage-revised` event가 있으면 update status source가 될 수 있다.
--- 새 대화/요구가 들어온 시점에는 `requirements-added`가 먼저 기록되고, 작업 완료 시점의 `stage-completed` 또는 `stage-commit`이 그 update status를 해소한다.
-+- 새 대화/요구가 들어온 시점에는 `requirements-added`가 먼저 기록되고, 검증 완료 시점의 verified/final `stage-completed` 또는 governed `stage-commit`이 그 update status를 해소한다.
- - Workflow/React Flow surface와 Overview Progress가 서로 다른 status를 보여 주지 않는다.

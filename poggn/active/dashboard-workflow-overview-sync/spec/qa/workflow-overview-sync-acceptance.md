@@ -29,10 +29,12 @@ Workflow Overview sync 변경의 visual, model, telemetry, i18n, accessibility a
 - The selected tab follows the `add-img/9.png` shape: rounded top corners, visible top/side border, no bottom border, and a fill that matches the content panel.
 - The selected tab shape is implemented without MUI `Tabs`/`Tab` indicator styling; there must be no selected underline or extra bottom line.
 - The selected tab border and content panel border use the same thickness/color so their outline appears continuous.
-- The selected tab sits flush with the content panel edge, and panel top-line segments overlap the selected tab side borders enough to avoid visible gaps.
+- The content panel top border is one continuous line, and the selected tab masks only the inner bottom segment so both tab side borders connect cleanly to the panel line.
+- No panel top line is visible between the selected tab and content; the remaining top border outside the selected tab stays connected.
 - Only the selected tab and its content panel are framed together; inactive tabs are not boxed.
 - The content panel keeps its top border except for the segment directly under the selected tab.
-- Status, Workflow Stage, Priority, Created, and Updated appear as a compact card bar under the workflow rail inside Workflow Progress.
+- Status, Workflow Stage, Progress, Priority, Created, and Updated appear as a compact six-card row under the workflow rail inside Workflow Progress.
+- The Workflow Progress metadata cards stay in one row instead of wrapping or visually overlapping; compact text truncation is preferred over row wrapping.
 
 ## Model Acceptance
 

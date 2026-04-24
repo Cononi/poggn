@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T19:22:20Z"
+  updated_at: "2026-04-24T19:33:31Z"
   auto_mode: "on"
   archive_type: "fix"
   version_bump: "patch"
@@ -43,12 +43,13 @@ state:
 - Workflow Progress title and donut percentage typography were reduced from `h5`/`h4` to `h6`/`h5` scale to fit the Overview density.
 - Overview summary cards now derive Workflow Stage, Priority, Created, and Updated from workflow steps, score/blocking metadata, history events, files, artifact summary, and topic timestamps instead of placeholder values.
 - Created and Updated cards now split date/time into separate lines, hide the decorative dot, and use `Add` / current flow labels as concise helper context.
-- Status, Workflow Stage, Priority, Created, and Updated now live in the Workflow Progress title area as compact metadata; the Type card was removed from the Overview card row.
+- Status, Workflow Stage, Priority, Created, and Updated now live under the Workflow Progress rail as compact metadata; the Type card was removed from the Overview card row.
 - Created/Updated date lines now use fixed `YYYY.MM.DD` and `오전/오후 HH:MM:SS` formatting instead of locale strings split at punctuation.
 - Priority ignores non-blocking placeholder values such as `none` and uses score/workflow context as helper copy.
 - Overview, Timeline, and Relations content now renders inside the same tab panel surface as the topic header/tabs instead of detached sibling cards.
 - Overview tabs now remove the tab-group box and header/content divider; inactive tabs are text-only and the selected tab blends into the content panel.
-- Selected tab now sits flush with the panel edge, and the panel top-line segments overlap the selected tab side borders by 4px so the outline does not break or sit too far right.
+- Selected tab now overlaps the panel border directly; the panel keeps a continuous top border and the selected tab masks only its inner bottom segment so both side borders connect cleanly.
+- Selected tab now extends its inner bottom mask and matching shadow below the tab so the panel line does not remain visible between the active tab and content.
 - Selected tab and its content panel now share one framed surface while inactive tabs remain unboxed text controls.
 - Selected tabs now use the `add-img/9.png` tab shape with rounded top corners, top/side border, matching panel fill, and no bottom border.
 - History tabs now use a custom `ButtonBase` tablist instead of MUI `Tabs`/`Tab`, removing the built-in selected underline entirely.
@@ -58,7 +59,7 @@ state:
 - `.codex/add/WOKR-FLOW.md` now requires this `requirements-added` first rule for future topics, not only this topic.
 - Dashboard completion evidence now ignores unverified `stage-completed`; actual completion requires governed `stage-commit` or verified/final `stage-completed` so work-in-progress follow-ups do not flip to `완료` too early.
 - `.codex/add/WOKR-FLOW.md` now requires in-progress work to use `stage-progress` and reserves `stage-completed` for verified final completion.
-- Status/Workflow Stage/Priority/Created/Updated metadata card bar now sits under the workflow rail inside Workflow Progress.
+- Status/Workflow Stage/Progress/Priority/Created/Updated metadata now renders as a fixed six-column row under the workflow rail so it does not wrap or overlap.
 - ko/en locale copy was updated for generated/current, update, count, and tooltip labels.
 - Restored the Workflow Progress header icon import and migrated compact Drawer paper styling from `PaperProps` to `slotProps.paper` to remove runtime console errors.
 
@@ -131,8 +132,9 @@ state:
 - source check for unified tab panel surface wrapping Overview, Timeline, and Relations content: pass
 - source check for borderless text-only inactive tabs and selected-tab panel blending: pass
 - source check for selected-tab flush edge alignment and no active-tab bottom line: pass
-- source check for 4px selected-tab line overlap and verified/final completion evidence gating: pass
-- source check for metadata card bar under the workflow rail: pass
+- source check for continuous panel top border with selected-tab inner mask: pass
+- source check for fixed six-column metadata card row without wrapping or overlap: pass
+- source check for active-tab inner line masking while preserving side connections: pass
 - source check for `workflowProgressTooltip`, `historyEvents`, `stage-started`, `stage-commit`: pass
 - source check for removed `minHeight: 48` bordered time/status box pattern: pass
 
