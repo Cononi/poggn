@@ -481,6 +481,27 @@ function stageWeight(stage: string | null): number {
   return index >= 0 ? index : 3;
 }
 
+function inferNodeStatus(node: WorkflowNode, topicStage: string | null): FlowStatus {
+  const explicitStatus = node.data.status ?? node.data.detail?.status ?? "";
+  if (/revis|updated|revision/i.test(explicitStatus)) {
+    return "revising";
+  }
+  if (/done|complete|completed|reviewed|approved/i.test(explicitStatus)) {
+    return "done";
+  }
+  if (/pending|upcoming|not[-_ ]?started/i.test(explicitStatus)) {
+    return "upcoming";
+  }
+
+  const currentStageWeight = stageWeight(topicStage);
+  const nodeStageWeight = stageWeight(inferNodeStage(node));
+  return nodeStageWeight < currentStageWeight
+    ? "done"
+    : nodeStageWeight > currentStageWeight
+      ? "upcoming"
+      : "current";
+}
+
 function estimateNodeSize(node: WorkflowNode): { width: number; height: number } {
   const primary = node.data.label ?? node.id;
   const secondary = node.data.path ?? node.data.diffRef ?? "";
@@ -547,7 +568,6 @@ export function buildWorkflowModel(
     currentX += (columnWidths.get(columnIndex) ?? 220) + 68;
   });
 
-  const currentStageWeight = stageWeight(topicStage);
   const flowNodes = workflow.nodes.map((node) => {
     const rank = ranks.get(node.id) ?? 0;
     const columnNodes = columns.get(rank) ?? [];
@@ -556,13 +576,7 @@ export function buildWorkflowModel(
     const y = columnNodes
       .slice(0, index)
       .reduce((sum, entry) => sum + estimateNodeSize(entry).height + 28, 0);
-    const nodeStageWeight = stageWeight(inferNodeStage(node));
-    const status: FlowStatus =
-      nodeStageWeight < currentStageWeight
-        ? "done"
-        : nodeStageWeight > currentStageWeight
-          ? "upcoming"
-          : "current";
+    const status = inferNodeStatus(node, topicStage);
     const sourcePath = node.data.detail?.sourcePath ?? node.data.path ?? node.data.diffRef ?? null;
     const color = getStatusColor(status, theme);
 
@@ -625,6 +639,9 @@ export function buildWorkflowModel(
 export function getStatusColor(status: FlowStatus, theme: Theme): string {
   if (status === "done") {
     return theme.palette.success.main;
+  }
+  if (status === "revising") {
+    return theme.palette.secondary.main;
   }
   if (status === "current") {
     return theme.palette.primary.main;

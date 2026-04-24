@@ -1,0 +1,9 @@
+{"ts":"2026-04-24T15:52:34Z","stage":"proposal","event":"topic-created"}
+{"ts":"2026-04-24T15:52:42Z","stage":"proposal","event":"proposal-reviewed","score":94,"next":"pgg-plan"}
+{"ts":"2026-04-24T15:56:00Z","stage":"proposal","event":"proposal-updated","summary":"added active workflow step top clipping prevention requirement","score":95,"next":"pgg-plan"}
+{"ts":"2026-04-24T15:58:05Z","stage":"proposal","event":"proposal-updated","summary":"added distinct revision status for additional requirement reflection","score":96,"next":"pgg-plan"}
+{"ts":"2026-04-24T16:05:03Z","stage":"proposal","event":"proposal-updated","summary":"added compact flow caption density and tooltip requirements","score":97,"next":"pgg-plan"}
+{"ts":"2026-04-24T16:07:38Z","stage":"plan","event":"plan-reviewed","score":96,"next":"pgg-code"}
+{"ts":"2026-04-24T16:07:38Z","stage":"task","event":"task-reviewed","score":96,"next":"pgg-code"}
+{"ts":"2026-04-24T16:59:44Z","stage":"implementation","event":"stage-completed","summary":"implemented workflow telemetry source, revising status, compact caption UI, tooltip, and i18n updates","score":96,"next":"pgg-refactor"}
+{"ts":"2026-04-24T17:01:28Z","stage":"implementation","event":"stage-commit","archiveType":"fix","targetVersion":"2.2.3","projectLanguage":"ko","commitTitle":"fix: 2.2.3.워크플로우 동기화 구현","summary":"워크플로우 동기화 구현","why":"Workflow Progress의 시간 source, 추가 요소 반영 상태, compact caption UI, tooltip, telemetry ingestion이 선택 topic의 실제 진행 상태와 일관되게 보여야 한다","footer":"Refs: dashboard-workflow-overview-sync"}

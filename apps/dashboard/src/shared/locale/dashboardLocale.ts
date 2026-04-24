@@ -22,11 +22,14 @@ export function resolveDashboardStageLabel(stage: string | null, dictionary: Rec
 }
 
 export function resolveDashboardFlowStatusLabel(
-  status: "done" | "current" | "upcoming",
+  status: "done" | "current" | "revising" | "upcoming",
   dictionary: Record<string, string>
 ): string {
   if (status === "done") {
     return dictionary.flowDone;
+  }
+  if (status === "revising") {
+    return dictionary.flowRevising;
   }
   if (status === "current") {
     return dictionary.flowCurrent;
@@ -289,14 +292,18 @@ export const dashboardLocale = {
     statusDone: "완료",
     flowDone: "완료",
     flowCurrent: "현재",
+    flowRevising: "추가 반영",
     flowUpcoming: "예정",
     workflowProgressStatusPending: "진행 전",
-    workflowProgressStatusCurrent: "진행 중",
+    workflowProgressStatusCurrent: "생성 중",
+    workflowProgressStatusRevising: "추가 요소 반영 중",
     workflowProgressStatusCompleted: "완료",
     workflowProgressCountCompleted: "완료",
-    workflowProgressCountCurrent: "현재",
+    workflowProgressCountCurrent: "생성 중",
+    workflowProgressCountRevising: "추가 반영",
     workflowProgressCountPending: "진행 전",
     workflowProgressCompletedSummary: "완료",
+    workflowProgressTooltip: "진행 상태 확인 가능",
     workflowProgressFlowAdd: "Add",
     workflowProgressFlowPlan: "Plan",
     workflowProgressFlowCode: "Code",
@@ -611,14 +618,18 @@ export const dashboardLocale = {
     statusDone: "DONE",
     flowDone: "done",
     flowCurrent: "current",
+    flowRevising: "updating",
     flowUpcoming: "upcoming",
     workflowProgressStatusPending: "Not started",
-    workflowProgressStatusCurrent: "In progress",
+    workflowProgressStatusCurrent: "Generating",
+    workflowProgressStatusRevising: "Applying updates",
     workflowProgressStatusCompleted: "Completed",
     workflowProgressCountCompleted: "Completed",
-    workflowProgressCountCurrent: "Current",
+    workflowProgressCountCurrent: "Generating",
+    workflowProgressCountRevising: "Updating",
     workflowProgressCountPending: "Not started",
     workflowProgressCompletedSummary: "completed",
+    workflowProgressTooltip: "status details available",
     workflowProgressFlowAdd: "Add",
     workflowProgressFlowPlan: "Plan",
     workflowProgressFlowCode: "Code",

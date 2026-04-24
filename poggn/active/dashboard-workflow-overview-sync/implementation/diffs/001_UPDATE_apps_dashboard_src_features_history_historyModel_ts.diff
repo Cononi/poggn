@@ -1,0 +1,275 @@
+diff --git a/apps/dashboard/src/features/history/historyModel.ts b/apps/dashboard/src/features/history/historyModel.ts
+index f14e298..78bfc65 100644
+--- a/apps/dashboard/src/features/history/historyModel.ts
++++ b/apps/dashboard/src/features/history/historyModel.ts
+@@ -2,7 +2,8 @@ import type { TopicSummary } from "../../shared/model/dashboard";
+ import { buildTopicKey, formatDate } from "../../shared/utils/dashboard";
+ 
+ export type HistoryLanguage = "ko" | "en";
+-export type WorkflowStatus = "completed" | "current" | "pending";
++export type WorkflowStatus = "completed" | "current" | "revising" | "pending";
++export type WorkflowTimestampConfidence = "high" | "medium" | "low" | "none";
+ export type FileChangeKind = "A" | "M" | "D";
+ export type RelationKind = "depends" | "blocks" | "related" | "implements" | "mentioned";
+ export type HistoryChipColor = "primary" | "secondary" | "success" | "warning" | "default";
+@@ -14,6 +15,9 @@ export type WorkflowStep = {
+   date: string;
+   startTime: string;
+   updatedTime: string;
++  completedTime: string;
++  timeConfidence: WorkflowTimestampConfidence;
++  timeSource: string | null;
+   activeTaskIds: string[];
+   status: WorkflowStatus;
+   detail: string;
+@@ -40,6 +44,17 @@ type WorkflowFlowDefinition = {
+ };
+ type WorkflowNodeEntry = NonNullable<TopicSummary["workflow"]>["nodes"][number];
+ type TopicFileEntry = TopicSummary["files"][number];
++type TopicHistoryEventEntry = NonNullable<TopicSummary["historyEvents"]>[number];
++type TimestampEvidence = {
++  value: string | null;
++  confidence: WorkflowTimestampConfidence;
++  source: string | null;
++};
++type FlowTimestampBundle = {
++  startedAt: TimestampEvidence;
++  updatedAt: TimestampEvidence;
++  completedAt: TimestampEvidence;
++};
+ 
+ export type TimelineRow = {
+   id: string;
+@@ -235,10 +250,28 @@ function earliestDate(values: Array<string | null | undefined>): string | null {
+     .sort((left, right) => new Date(left).getTime() - new Date(right).getTime())[0] ?? null;
+ }
+ 
+-function formatDateValue(value: string | null, language: HistoryLanguage, fallback = "Pending"): string {
++function formatDateValue(value: string | null, language: HistoryLanguage, fallback = "unknown"): string {
+   return value ? formatDate(value, language) : fallback;
+ }
+ 
++function latestEvidence(evidence: TimestampEvidence[]): TimestampEvidence {
++  const withValues = evidence.filter((entry) => Boolean(entry.value));
++  return withValues.sort((left, right) => new Date(right.value ?? "").getTime() - new Date(left.value ?? "").getTime())[0] ?? {
++    value: null,
++    confidence: "none",
++    source: null
++  };
++}
++
++function earliestEvidence(evidence: TimestampEvidence[]): TimestampEvidence {
++  const withValues = evidence.filter((entry) => Boolean(entry.value));
++  return withValues.sort((left, right) => new Date(left.value ?? "").getTime() - new Date(right.value ?? "").getTime())[0] ?? {
++    value: null,
++    confidence: "none",
++    source: null
++  };
++}
++
+ function extractTaskIdsFromText(value: string | null | undefined): string[] {
+   if (!value) {
+     return [];
+@@ -307,44 +340,126 @@ function flowNodes(topic: TopicSummary, flow: WorkflowFlowDefinition): WorkflowN
+   });
+ }
+ 
+-function flowArtifactUpdatedAt(topic: TopicSummary, flow: WorkflowFlowDefinition): string | null {
+-  if (flow.id === "add") {
+-    return topic.artifactSummary.lifecycleDocs.latestUpdatedAt;
+-  }
+-  if (flow.id === "plan") {
+-    return latestDate([topic.artifactSummary.specDocs.latestUpdatedAt, topic.artifactSummary.lifecycleDocs.latestUpdatedAt]);
+-  }
+-  if (flow.id === "code" || flow.id === "refactor") {
+-    return topic.artifactSummary.implementationDocs.latestUpdatedAt;
++function eventFlowId(event: TopicHistoryEventEntry): WorkflowFlowId {
++  return normalizeFlowId(event.flow ?? event.stage ?? null);
++}
++
++function flowHistoryEvents(topic: TopicSummary, flow: WorkflowFlowDefinition): TopicHistoryEventEntry[] {
++  return (topic.historyEvents ?? []).filter((event) => eventFlowId(event) === flow.id);
++}
++
++function eventNameMatches(event: TopicHistoryEventEntry, patterns: RegExp[]): boolean {
++  const name = event.event ?? "";
++  return patterns.some((pattern) => pattern.test(name));
++}
++
++function timestampEvidenceFromEvents(
++  events: TopicHistoryEventEntry[],
++  patterns: RegExp[],
++  sourceLabel: string
++): TimestampEvidence[] {
++  return events
++    .filter((event) => event.ts && eventNameMatches(event, patterns))
++    .map((event) => ({
++      value: event.ts,
++      confidence: "high" as const,
++      source: `${sourceLabel}:${event.event ?? "event"}`
++    }));
++}
++
++function isRevisionEvent(event: TopicHistoryEventEntry): boolean {
++  return eventNameMatches(event, [/updated$/i, /revised$/i, /requirements-added/i]);
++}
++
++function flowRevisionEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition): TimestampEvidence[] {
++  const eventEvidence = flowHistoryEvents(topic, flow)
++    .filter((event) => event.ts && isRevisionEvent(event))
++    .map((event) => ({
++      value: event.ts,
++      confidence: "high" as const,
++      source: `state/history.ndjson:${event.event ?? "revision"}`
++    }));
++  const nodeEvidence = flowNodes(topic, flow)
++    .filter((node) => /revis|updated|revision/i.test(node.data.status ?? node.data.detail?.status ?? ""))
++    .map((node) => ({
++      value: node.data.detail?.updatedAt ?? null,
++      confidence: "high" as const,
++      source: sourcePathForNode(node)
++    }));
++
++  return [...eventEvidence, ...nodeEvidence];
++}
++
++function flowHasRevisionStatus(topic: TopicSummary, flow: WorkflowFlowDefinition, completedAt: string | null): boolean {
++  if (topic.bucket === "archive") {
++    return false;
+   }
+-  if (flow.id === "qa") {
+-    return topic.artifactSummary.qaDocs.latestUpdatedAt;
++
++  const latestRevision = latestEvidence(flowRevisionEvidence(topic, flow)).value;
++  if (!latestRevision) {
++    return false;
+   }
+-  if (flow.id === "done") {
+-    return topic.archivedAt;
++  if (!completedAt) {
++    return true;
+   }
+-  return null;
++  return new Date(latestRevision).getTime() > new Date(completedAt).getTime();
+ }
+ 
+-function flowTimeSources(topic: TopicSummary, flow: WorkflowFlowDefinition): Array<string | null | undefined> {
+-  const files = flowFiles(topic, flow);
+-  const nodes = flowNodes(topic, flow);
+-
+-  return [
+-    ...nodes.map((node) => node.data.detail?.updatedAt),
+-    ...files.map((file) => file.updatedAt),
+-    flowArtifactUpdatedAt(topic, flow),
+-    flow.id === normalizeFlowId(topic.stage) ? topic.updatedAt : null,
+-    flow.id === "done" ? topic.archivedAt : null
+-  ];
++function nodeTimestampEvidence(
++  nodes: WorkflowNodeEntry[],
++  field: "startedAt" | "updatedAt" | "completedAt"
++): TimestampEvidence[] {
++  return nodes.map((node) => ({
++    value: node.data.detail?.[field] ?? null,
++    confidence: "high" as const,
++    source: sourcePathForNode(node)
++  }));
+ }
+ 
+-function flowUpdatedAt(topic: TopicSummary, flow: WorkflowFlowDefinition): string | null {
+-  return latestDate(flowTimeSources(topic, flow));
++function fileTimestampEvidence(files: TopicFileEntry[]): TimestampEvidence[] {
++  return files.map((file) => ({
++    value: file.updatedAt,
++    confidence: "medium" as const,
++    source: file.relativePath
++  }));
+ }
+ 
+-function flowStartedAt(topic: TopicSummary, flow: WorkflowFlowDefinition): string | null {
+-  return earliestDate(flowTimeSources(topic, flow));
++function flowTimestampBundle(topic: TopicSummary, flow: WorkflowFlowDefinition): FlowTimestampBundle {
++  const files = flowFiles(topic, flow);
++  const nodes = flowNodes(topic, flow);
++  const events = flowHistoryEvents(topic, flow);
++  const startEvents = timestampEvidenceFromEvents(events, [/stage-started/i, /topic-created/i], "state/history.ndjson");
++  const progressEvents = timestampEvidenceFromEvents(events, [/stage-progress/i, /stage-revised/i, /updated$/i, /requirements-added/i], "state/history.ndjson");
++  const completeEvents = timestampEvidenceFromEvents(events, [/stage-completed/i, /reviewed$/i, /archived$/i], "state/history.ndjson");
++  const fileEvidence = fileTimestampEvidence(files);
++  const doneEvidence = flow.id === "done" ? [{ value: topic.archivedAt, confidence: "high" as const, source: "archive" }] : [];
++  const topicFallback =
++    flow.id === normalizeFlowId(topic.stage)
++      ? [{ value: topic.updatedAt, confidence: "low" as const, source: "topic.updatedAt" }]
++      : [];
++
++  return {
++    startedAt: earliestEvidence([
++      ...startEvents,
++      ...nodeTimestampEvidence(nodes, "startedAt"),
++      ...fileEvidence,
++      ...topicFallback
++    ]),
++    updatedAt: latestEvidence([
++      ...progressEvents,
++      ...completeEvents,
++      ...nodeTimestampEvidence(nodes, "updatedAt"),
++      ...fileEvidence,
++      ...doneEvidence,
++      ...topicFallback
++    ]),
++    completedAt: latestEvidence([
++      ...completeEvents,
++      ...nodeTimestampEvidence(nodes, "completedAt"),
++      ...doneEvidence,
++      ...fileEvidence
++    ])
++  };
+ }
+ 
+ function flowDetail(topic: TopicSummary, flow: WorkflowFlowDefinition): string {
+@@ -370,10 +485,17 @@ function flowDetail(topic: TopicSummary, flow: WorkflowFlowDefinition): string {
+ }
+ 
+ function flowEvents(topic: TopicSummary, flow: WorkflowFlowDefinition, language: HistoryLanguage): string[] {
+-  const updatedAt = flowUpdatedAt(topic, flow);
++  const timestamps = flowTimestampBundle(topic, flow);
+   const files = flowFiles(topic, flow);
++  const historyEvents = flowHistoryEvents(topic, flow)
++    .filter((event) => event.ts && event.event)
++    .slice(-4)
++    .map((event) => `${event.event}: ${formatDateValue(event.ts, language)}${event.summary ? ` - ${event.summary}` : ""}`);
+   const events = [
+-    updatedAt ? `${flow.label} updated ${formatDateValue(updatedAt, language)}` : null,
++    timestamps.startedAt.value ? `${flow.label} started ${formatDateValue(timestamps.startedAt.value, language)}` : null,
++    timestamps.updatedAt.value ? `${flow.label} updated ${formatDateValue(timestamps.updatedAt.value, language)} (${timestamps.updatedAt.source ?? "source unknown"})` : null,
++    timestamps.completedAt.value ? `${flow.label} completed ${formatDateValue(timestamps.completedAt.value, language)} (${timestamps.completedAt.source ?? "source unknown"})` : null,
++    ...historyEvents,
+     files.length ? `${files.length} related file${files.length > 1 ? "s" : ""}` : null,
+     flow.id === normalizeFlowId(topic.stage) && topic.nextAction ? `Next action: ${topic.nextAction}` : null
+   ].filter((value): value is string => Boolean(value));
+@@ -390,16 +512,20 @@ export function buildWorkflowSteps(topic: TopicSummary, language: HistoryLanguag
+     const activeTaskIds = activeTaskIdsForFlow(topic, flow);
+     const currentFlowIsComplete = stageComplete && activeTaskIds.length === 0;
+     const isComplete = topic.bucket === "archive" || index < currentIndex || (index === currentIndex && currentFlowIsComplete);
+-    const updatedAt = flowUpdatedAt(topic, flow);
+-    const startedAt = flowStartedAt(topic, flow);
+-    const status: WorkflowStatus = isComplete ? "completed" : index === currentIndex ? "current" : "pending";
++    const timestamps = flowTimestampBundle(topic, flow);
++    const revising = flowHasRevisionStatus(topic, flow, timestamps.completedAt.value) && index <= currentIndex;
++    const status: WorkflowStatus = revising ? "revising" : isComplete ? "completed" : index === currentIndex ? "current" : "pending";
++    const displayedCompletedAt = status === "completed" && timestamps.completedAt.confidence !== "low" ? timestamps.completedAt.value : null;
+ 
+     return {
+       id: flow.id,
+       label: flow.label,
+-      date: isComplete ? formatDateValue(updatedAt, language) : "",
+-      startTime: formatDateValue(startedAt, language),
+-      updatedTime: formatDateValue(updatedAt, language),
++      date: status === "completed" ? formatDateValue(displayedCompletedAt, language, "record unavailable") : "",
++      startTime: formatDateValue(timestamps.startedAt.value, language),
++      updatedTime: formatDateValue(timestamps.updatedAt.value, language),
++      completedTime: formatDateValue(timestamps.completedAt.value, language, "record unavailable"),
++      timeConfidence: timestamps.completedAt.confidence,
++      timeSource: timestamps.completedAt.source ?? timestamps.updatedAt.source,
+       activeTaskIds,
+       status,
+       detail: flowDetail(topic, flow),

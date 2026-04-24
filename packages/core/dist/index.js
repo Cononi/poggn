@@ -1186,15 +1186,16 @@ function toRelativePath(rootDir, absolutePath) {
     return path.relative(rootDir, absolutePath) || path.basename(absolutePath);
 }
 async function readWorkflowDetail(rootDir, topicDir, node) {
+    const existingDetail = node.data.detail ?? null;
     const diffPath = node.data.diffRef ? path.join(topicDir, node.data.diffRef) : null;
     const documentPath = node.data.path ? path.join(rootDir, node.data.path) : null;
     const targetPath = diffPath ?? documentPath;
     if (!targetPath) {
-        return null;
+        return existingDetail;
     }
     const content = await readTextIfExists(targetPath);
     if (content === null) {
-        return null;
+        return existingDetail;
     }
     const fileStat = await stat(targetPath).catch(() => null);
     const extension = path.extname(targetPath).toLowerCase();
@@ -1202,12 +1203,44 @@ async function readWorkflowDetail(rootDir, topicDir, node) {
     const contentType = kind === "diff" ? "text/x-diff" : kind === "markdown" ? "text/markdown" : "text/plain";
     return {
         kind,
-        title: node.data.label ?? path.basename(targetPath),
+        title: existingDetail?.title ?? node.data.label ?? path.basename(targetPath),
         sourcePath: toRelativePath(rootDir, targetPath),
         content,
         contentType,
-        updatedAt: fileStat?.mtime.toISOString() ?? null
+        startedAt: existingDetail?.startedAt ?? null,
+        updatedAt: existingDetail?.updatedAt ?? fileStat?.mtime.toISOString() ?? null,
+        completedAt: existingDetail?.completedAt ?? null,
+        summary: existingDetail?.summary ?? null,
+        status: existingDetail?.status ?? node.data.status ?? null
     };
+}
+function parseTopicHistoryEvents(raw) {
+    if (!raw) {
+        return [];
+    }
+    return raw
+        .split(/\n+/)
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .flatMap((line) => {
+        try {
+            const parsed = JSON.parse(line);
+            return [
+                {
+                    ts: typeof parsed.ts === "string" ? parsed.ts : null,
+                    stage: typeof parsed.stage === "string" ? parsed.stage : null,
+                    event: typeof parsed.event === "string" ? parsed.event : null,
+                    flow: typeof parsed.flow === "string" ? parsed.flow : null,
+                    task: typeof parsed.task === "string" ? parsed.task : null,
+                    summary: typeof parsed.summary === "string" ? parsed.summary : null,
+                    source: typeof parsed.source === "string" ? parsed.source : null
+                }
+            ];
+        }
+        catch {
+            return [];
+        }
+    });
 }
 function normalizeWorkflowNodePath(topicDir, node) {
     if (!node.data.path) {
@@ -1383,6 +1416,7 @@ async function listTopicSummaries(rootDir, bucket) {
         const statePath = path.join(topicDir, "state", "current.md");
         const proposalPath = path.join(topicDir, "proposal.md");
         const stateMarkdown = await readTextIfExists(statePath);
+        const historyEvents = parseTopicHistoryEvents(await readTextIfExists(path.join(topicDir, "state", "history.ndjson")));
         const proposalMarkdown = await readTextIfExists(proposalPath);
         const workflow = await readWorkflow(path.join(topicDir, "workflow.reactflow.json"), rootDir, topicDir);
         const release = await readTopicVersion(topicDir);
@@ -1431,6 +1465,7 @@ async function listTopicSummaries(rootDir, bucket) {
                 : "complete",
             health: stateMarkdown && workflow ? "ok" : "partial",
             userQuestionRecord,
+            historyEvents,
             files
         });
     }
