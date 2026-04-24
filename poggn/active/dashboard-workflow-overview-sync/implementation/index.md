@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T17:45:06Z"
+  updated_at: "2026-04-24T17:49:05Z"
   auto_mode: "on"
   archive_type: "fix"
   version_bump: "patch"
@@ -37,6 +37,7 @@ state:
 - Workflow Progress UI is more compact, removes the bordered time/status box, shows small caption text, prevents active clipping with visible rail overflow, and adds flow tooltip affordance.
 - Connector geometry now draws edge-to-edge between circle visuals at the circle center height so the line touches the next flow without crossing inside circles.
 - Connector geometry now includes the grid column gap in the end offset and uses circle-radius top alignment so `add-img/8.png` does not show broken or low connectors.
+- Workflow Progress title and donut percentage typography were reduced from `h5`/`h4` to `h6`/`h5` scale to fit the Overview density.
 - ko/en locale copy was updated for generated/current, update, count, and tooltip labels.
 - Restored the Workflow Progress header icon import and migrated compact Drawer paper styling from `PaperProps` to `slotProps.paper` to remove runtime console errors.
 
@@ -92,6 +93,7 @@ state:
 - source check for edge-to-edge connector geometry and removed center-to-center internal connector: pass
 - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
 - source check for connector gap-inclusive end offset and circle-radius top alignment: pass
+- source check for reduced Workflow Progress title and donut percentage typography: pass
 - source check for `workflowProgressTooltip`, `historyEvents`, `stage-started`, `stage-commit`: pass
 - source check for removed `minHeight: 48` bordered time/status box pattern: pass
 

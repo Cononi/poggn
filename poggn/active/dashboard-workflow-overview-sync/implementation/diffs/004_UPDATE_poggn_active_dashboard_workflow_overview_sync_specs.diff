@@ -1,36 +1,24 @@
 diff --git a/poggn/active/dashboard-workflow-overview-sync/spec/qa/workflow-overview-sync-acceptance.md b/poggn/active/dashboard-workflow-overview-sync/spec/qa/workflow-overview-sync-acceptance.md
-index 57c5d4a..fbaa2e6 100644
+index fbaa2e6..c7a329c 100644
 --- a/poggn/active/dashboard-workflow-overview-sync/spec/qa/workflow-overview-sync-acceptance.md
 +++ b/poggn/active/dashboard-workflow-overview-sync/spec/qa/workflow-overview-sync-acceptance.md
-@@ -15,7 +15,8 @@ Workflow Overview sync 변경의 visual, model, telemetry, i18n, accessibility a
+@@ -23,6 +23,7 @@ Workflow Overview sync 변경의 visual, model, telemetry, i18n, accessibility a
+ - flow 이름 아래 bordered time/status box가 없다.
+ - time/status는 small caption으로 표시된다.
+ - caption, circle, connector, donut, legend가 desktop/mobile에서 겹치지 않는다.
++- Workflow Progress title and donut center percentage do not feel oversized compared with surrounding Overview content.
  
- ## Visual Acceptance
+ ## Model Acceptance
  
--- `add-img/5.png`/`add-img/6.png`처럼 completed circle과 connector가 정확히 이어진다.
-+- `add-img/5.png`/`add-img/6.png`/`add-img/8.png`처럼 completed circle과 connector가 정확히 이어진다.
-+- connector는 grid gap 때문에 다음 circle 앞에서 끊기지 않고, circle 중심 높이에 정렬된다.
- - completed connector는 solid green, pending connector는 muted dotted line이다.
- - active/update glow, pulse, focus outline은 상단/좌우에서 잘리지 않는다.
- - `add-img/1.png`보다 살짝 큰 compact density로 보인다.
 diff --git a/poggn/active/dashboard-workflow-overview-sync/spec/ui/compact-workflow-progress-surface.md b/poggn/active/dashboard-workflow-overview-sync/spec/ui/compact-workflow-progress-surface.md
-index 500724e..ce1a310 100644
+index ce1a310..fa5b3e9 100644
 --- a/poggn/active/dashboard-workflow-overview-sync/spec/ui/compact-workflow-progress-surface.md
 +++ b/poggn/active/dashboard-workflow-overview-sync/spec/ui/compact-workflow-progress-surface.md
-@@ -11,7 +11,7 @@ Workflow Progress를 `add-img/5.png`의 connector/status 정확도와 `add-img/1
+@@ -38,6 +38,7 @@ Workflow Progress를 `add-img/5.png`의 connector/status 정확도와 `add-img/1
  
- ## Reference Contract
- 
--- connector/status reference: `add-img/5.png`, follow-up gap reference: `add-img/6.png`
-+- connector/status reference: `add-img/5.png`, follow-up gap reference: `add-img/6.png`, center/gap reference: `add-img/8.png`
- - density reference: `add-img/1.png`
- - component는 기존 Overview 안의 Workflow Progress surface에 한정해 변경한다.
- 
-@@ -20,6 +20,8 @@ Workflow Progress를 `add-img/5.png`의 connector/status 정확도와 `add-img/1
- - circle visual size, connector offset, connector top을 단일 token 또는 계산식으로 맞춘다.
- - connector는 circle 중심 높이에 놓이고 양쪽 circle 외곽 edge 사이만 이어야 한다.
- - connector는 circle 내부를 가로지르지 않아야 하며, edge와 connector 사이에 보이는 gap이 없어야 한다.
-+- connector 길이는 grid column gap까지 포함해 다음 circle edge까지 도달해야 한다.
-+- connector vertical position은 parent rail padding이 아니라 circle visual box 기준 radius에 맞춘다.
- - completed-to-completed connector는 solid green이다.
- - completed-to-pending connector는 muted dotted line이다.
- - active/update connector는 각 상태 accent를 따른다.
+ - Workflow Progress는 `add-img/1.png`보다 살짝 큰 정도로 제한한다.
+ - visual circle, connector thickness/top, flow label font, caption font, vertical spacing, donut size, count/legend spacing을 compact density로 조정한다.
++- section title and donut center percentage typography must stay visually subordinate to the surrounding Overview stats and not use hero-scale typography.
+ - visual size를 줄여도 click/tap target과 keyboard focus visibility는 유지한다.
+ - flow 이름 아래 bordered box는 제거한다.
+ - 완료 time 또는 status는 small caption typography로 표시한다.

@@ -367,7 +367,7 @@ function HistoryOverview(props: {
             >
               <AutoGraphRounded fontSize="small" />
             </Box>
-            <Typography variant="h5" sx={{ color: "#f8fbff", fontWeight: 900, lineHeight: 1.05 }}>
+            <Typography variant="h6" sx={{ color: "#f8fbff", fontWeight: 850, lineHeight: 1.08 }}>
               Workflow Progress
             </Typography>
           </Stack>
@@ -777,7 +777,7 @@ function WorkflowProgressChart(props: { completed: number; active: number; updat
       />
       <Box sx={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", pointerEvents: "none" }}>
         <Stack spacing={0.2} sx={{ alignItems: "center" }}>
-          <Typography variant="h4" sx={{ color: "#ffffff", fontWeight: 900, lineHeight: 1 }}>
+          <Typography variant="h5" sx={{ color: "#ffffff", fontWeight: 850, lineHeight: 1 }}>
             {props.completion}%
           </Typography>
           <Typography variant="caption" sx={{ color: alpha("#f8fbff", 0.84), fontWeight: 650 }}>

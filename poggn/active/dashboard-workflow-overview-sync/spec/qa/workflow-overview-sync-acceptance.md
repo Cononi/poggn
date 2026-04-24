@@ -23,6 +23,7 @@ Workflow Overview sync 변경의 visual, model, telemetry, i18n, accessibility a
 - flow 이름 아래 bordered time/status box가 없다.
 - time/status는 small caption으로 표시된다.
 - caption, circle, connector, donut, legend가 desktop/mobile에서 겹치지 않는다.
+- Workflow Progress title and donut center percentage do not feel oversized compared with surrounding Overview content.
 
 ## Model Acceptance
 

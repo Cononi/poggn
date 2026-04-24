@@ -38,6 +38,7 @@ Workflow Progress를 `add-img/5.png`의 connector/status 정확도와 `add-img/1
 
 - Workflow Progress는 `add-img/1.png`보다 살짝 큰 정도로 제한한다.
 - visual circle, connector thickness/top, flow label font, caption font, vertical spacing, donut size, count/legend spacing을 compact density로 조정한다.
+- section title and donut center percentage typography must stay visually subordinate to the surrounding Overview stats and not use hero-scale typography.
 - visual size를 줄여도 click/tap target과 keyboard focus visibility는 유지한다.
 - flow 이름 아래 bordered box는 제거한다.
 - 완료 time 또는 status는 small caption typography로 표시한다.

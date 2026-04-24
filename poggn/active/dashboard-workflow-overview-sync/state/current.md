@@ -78,6 +78,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - Historical update events on previous flows do not keep those previous flows in update state after the workflow has advanced.
 - Runtime follow-up fixed missing `AutoGraphRounded` import and replaced compact Drawer `PaperProps` with `slotProps.paper`.
 - `add-img/8.png` follow-up fixed connector end offset to include grid gap and connector top to align with the circle visual center.
+- Workflow Progress title and donut percentage typography were reduced to match surrounding Overview density.
 - Workflow Progress compact UI removes the bordered time/status box and uses caption typography.
 - Flow nodes expose hover/focus tooltip copy through locale keys.
 - Active/revision rail uses visible overflow and fixed visual sizing to avoid clipping while preserving click target.
@@ -176,6 +177,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - source check for edge-to-edge connector geometry and removed internal connector: pass
 - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
 - source check for connector gap-inclusive end offset and circle-radius top alignment: pass
+- source check for reduced Workflow Progress title and donut percentage typography: pass
 - source check for removed bordered time/status box pattern: pass
 
 ## Next Action
