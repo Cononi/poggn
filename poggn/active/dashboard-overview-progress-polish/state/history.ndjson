@@ -1,0 +1,6 @@
+{"ts":"2026-04-24T11:39:41Z","stage":"proposal","event":"topic-created"}
+{"ts":"2026-04-24T11:39:41Z","stage":"proposal","event":"proposal-reviewed","score":94}
+{"ts":"2026-04-24T11:39:41Z","stage":"plan","event":"plan-reviewed","score":95}
+{"ts":"2026-04-24T11:39:41Z","stage":"task","event":"task-reviewed","score":95}
+{"ts":"2026-04-24T12:09:33Z","stage":"implementation","event":"code-reviewed","score":95}
+{"ts":"2026-04-24T12:13:00Z","stage":"implementation","event":"stage-commit","archiveType":"fix","targetVersion":"2.2.1","projectLanguage":"ko","commitTitle":"fix: 2.2.1.Overview 진행 UI 정리","summary":"Overview 진행 UI 정리","why":"Workflow Progress가 원형 단계, refactor 흐름, modal 시간, 중복 없는 상태 표시, 무스크롤 반응형 배치로 보여야 한다","footer":"Refs: dashboard-overview-progress-polish"}

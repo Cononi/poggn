@@ -1,0 +1,145 @@
+diff --git a/apps/dashboard/src/features/history/historyModel.ts b/apps/dashboard/src/features/history/historyModel.ts
+index 654c7aa..cba9dfb 100644
+--- a/apps/dashboard/src/features/history/historyModel.ts
++++ b/apps/dashboard/src/features/history/historyModel.ts
+@@ -12,6 +12,8 @@ export type WorkflowStep = {
+   id: WorkflowFlowId;
+   label: string;
+   date: string;
++  startTime: string;
++  updatedTime: string;
+   status: WorkflowStatus;
+   detail: string;
+   command: string | null;
+@@ -93,7 +95,6 @@ const workflowFlowDefinitions: WorkflowFlowDefinition[] = [
+     id: "refactor",
+     label: "Refactor",
+     command: "pgg-refactor",
+-    optional: true,
+     pathPatterns: [/^reviews\/refactor\.review\.md$/, /^refactor\//, /^implementation\/.*refactor/i]
+   },
+   {
+@@ -211,6 +212,12 @@ function latestDate(values: Array<string | null | undefined>): string | null {
+     .sort((left, right) => new Date(right).getTime() - new Date(left).getTime())[0] ?? null;
+ }
+ 
++function earliestDate(values: Array<string | null | undefined>): string | null {
++  return values
++    .filter((value): value is string => Boolean(value))
++    .sort((left, right) => new Date(left).getTime() - new Date(right).getTime())[0] ?? null;
++}
++
+ function formatDateValue(value: string | null, language: HistoryLanguage, fallback = "Pending"): string {
+   return value ? formatDate(value, language) : fallback;
+ }
+@@ -238,29 +245,44 @@ function flowNodes(topic: TopicSummary, flow: WorkflowFlowDefinition): WorkflowN
+   });
+ }
+ 
+-function flowUpdatedAt(topic: TopicSummary, flow: WorkflowFlowDefinition): string | null {
++function flowArtifactUpdatedAt(topic: TopicSummary, flow: WorkflowFlowDefinition): string | null {
++  if (flow.id === "add") {
++    return topic.artifactSummary.lifecycleDocs.latestUpdatedAt;
++  }
++  if (flow.id === "plan") {
++    return latestDate([topic.artifactSummary.specDocs.latestUpdatedAt, topic.artifactSummary.lifecycleDocs.latestUpdatedAt]);
++  }
++  if (flow.id === "code" || flow.id === "refactor") {
++    return topic.artifactSummary.implementationDocs.latestUpdatedAt;
++  }
++  if (flow.id === "qa") {
++    return topic.artifactSummary.qaDocs.latestUpdatedAt;
++  }
++  if (flow.id === "done") {
++    return topic.archivedAt;
++  }
++  return null;
++}
++
++function flowTimeSources(topic: TopicSummary, flow: WorkflowFlowDefinition): Array<string | null | undefined> {
+   const files = flowFiles(topic, flow);
+   const nodes = flowNodes(topic, flow);
+-  const artifactUpdatedAt =
+-    flow.id === "add"
+-      ? topic.artifactSummary.lifecycleDocs.latestUpdatedAt
+-      : flow.id === "plan"
+-        ? latestDate([topic.artifactSummary.specDocs.latestUpdatedAt, topic.artifactSummary.lifecycleDocs.latestUpdatedAt])
+-        : flow.id === "code" || flow.id === "refactor"
+-          ? topic.artifactSummary.implementationDocs.latestUpdatedAt
+-          : flow.id === "qa"
+-            ? topic.artifactSummary.qaDocs.latestUpdatedAt
+-            : flow.id === "done"
+-              ? topic.archivedAt
+-              : null;
+-
+-  return latestDate([
++
++  return [
+     ...nodes.map((node) => node.data.detail?.updatedAt),
+     ...files.map((file) => file.updatedAt),
+-    artifactUpdatedAt,
++    flowArtifactUpdatedAt(topic, flow),
+     flow.id === normalizeFlowId(topic.stage) ? topic.updatedAt : null,
+     flow.id === "done" ? topic.archivedAt : null
+-  ]);
++  ];
++}
++
++function flowUpdatedAt(topic: TopicSummary, flow: WorkflowFlowDefinition): string | null {
++  return latestDate(flowTimeSources(topic, flow));
++}
++
++function flowStartedAt(topic: TopicSummary, flow: WorkflowFlowDefinition): string | null {
++  return earliestDate(flowTimeSources(topic, flow));
+ }
+ 
+ function flowDetail(topic: TopicSummary, flow: WorkflowFlowDefinition): string {
+@@ -303,28 +325,32 @@ export function buildWorkflowSteps(topic: TopicSummary, language: HistoryLanguag
+   const stageComplete = topicStageIsComplete(topic);
+   const nextIndex = stageComplete ? Math.min(currentIndex + 1, flows.length - 1) : currentIndex;
+ 
+-  return flows.map((flow, index) => ({
+-    id: flow.id,
+-    label: flow.label,
+-    date:
+-      index < currentIndex || topic.bucket === "archive" || (index === currentIndex && stageComplete)
+-        ? formatDateValue(flowUpdatedAt(topic, flow), language)
+-        : "Pending",
+-    status:
+-      topic.bucket === "archive" || index < currentIndex || (index === currentIndex && stageComplete)
++  return flows.map((flow, index) => {
++    const isComplete = topic.bucket === "archive" || index < currentIndex || (index === currentIndex && stageComplete);
++    const updatedAt = flowUpdatedAt(topic, flow);
++    const startedAt = flowStartedAt(topic, flow);
++
++    return {
++      id: flow.id,
++      label: flow.label,
++      date: isComplete ? formatDateValue(updatedAt, language) : "Pending",
++      startTime: formatDateValue(startedAt, language),
++      updatedTime: formatDateValue(updatedAt, language),
++      status: isComplete
+         ? "completed"
+         : index === nextIndex && stageComplete
+           ? "next"
+           : index === currentIndex
+             ? "current"
+             : "pending",
+-    detail: flowDetail(topic, flow),
+-    command: index === nextIndex && topic.bucket !== "archive" ? flow.command : null,
+-    files: flowFiles(topic, flow).map((file) => file.relativePath).slice(0, 5),
+-    refs: flowNodes(topic, flow).map((node) => sourcePathForNode(node)).slice(0, 5),
+-    events: flowEvents(topic, flow, language),
+-    blockingIssues: topic.blockingIssues
+-  }));
++      detail: flowDetail(topic, flow),
++      command: index === nextIndex && topic.bucket !== "archive" ? flow.command : null,
++      files: flowFiles(topic, flow).map((file) => file.relativePath).slice(0, 5),
++      refs: flowNodes(topic, flow).map((node) => sourcePathForNode(node)).slice(0, 5),
++      events: flowEvents(topic, flow, language),
++      blockingIssues: topic.blockingIssues
++    };
++  });
+ }
+ 
+ export function buildActivitySummary(topic: TopicSummary, language: HistoryLanguage): ActivitySummary {

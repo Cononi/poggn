@@ -19,7 +19,6 @@ import {
   TextField,
   Typography
 } from "@mui/material";
-import CheckCircleRounded from "@mui/icons-material/CheckCircleRounded";
 import ChevronRightRounded from "@mui/icons-material/ChevronRightRounded";
 import CloseRounded from "@mui/icons-material/CloseRounded";
 import DescriptionRounded from "@mui/icons-material/DescriptionRounded";
@@ -29,7 +28,6 @@ import ExpandMoreRounded from "@mui/icons-material/ExpandMoreRounded";
 import FilterListRounded from "@mui/icons-material/FilterListRounded";
 import FolderRounded from "@mui/icons-material/FolderRounded";
 import MoreVertRounded from "@mui/icons-material/MoreVertRounded";
-import RadioButtonUncheckedRounded from "@mui/icons-material/RadioButtonUncheckedRounded";
 import SearchRounded from "@mui/icons-material/SearchRounded";
 import TableRowsRounded from "@mui/icons-material/TableRowsRounded";
 import ViewListRounded from "@mui/icons-material/ViewListRounded";
@@ -349,20 +347,35 @@ function HistoryOverview(props: {
               alignItems: "center"
             }}
           >
-            <Box sx={{ overflowX: "auto", pb: 1 }}>
-              <Stack direction="row" spacing={1.2} sx={{ minWidth: 760, alignItems: "stretch" }}>
-                {steps.map((step, index) => (
-                  <WorkflowStepNode key={step.id} step={step} first={index === 0} onSelect={() => setSelectedStep(step)} />
-                ))}
-              </Stack>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: `repeat(${Math.max(steps.length, 1)}, minmax(0, 1fr))`,
+                gap: { xs: 0.35, sm: 0.75, md: 1 },
+                position: "relative",
+                minWidth: 0,
+                px: { xs: 0.3, sm: 0.6 },
+                "&::before": {
+                  content: "\"\"",
+                  position: "absolute",
+                  left: `calc(${50 / Math.max(steps.length, 1)}% + 2px)`,
+                  right: `calc(${50 / Math.max(steps.length, 1)}% + 2px)`,
+                  top: { xs: 26, sm: 31, md: 35 },
+                  borderTop: `2px solid ${alpha(theme.palette.divider, 0.9)}`
+                }
+              }}
+            >
+              {steps.map((step) => (
+                <WorkflowStepNode key={step.id} step={step} onSelect={() => setSelectedStep(step)} />
+              ))}
             </Box>
-            <Stack direction="row" spacing={2} sx={{ alignItems: "center", justifyContent: "center", minWidth: 0 }}>
+            <Stack
+              direction="row"
+              spacing={{ xs: 1.2, sm: 2 }}
+              sx={{ alignItems: "center", justifyContent: "center", minWidth: 0, flexWrap: "wrap" }}
+            >
               <WorkflowProgressChart completed={progress.completed} active={progress.active} pending={progress.pending} completion={progress.completion} />
-              <Stack spacing={1}>
-                <LegendDot color={theme.palette.success.main} label="Completed" value={progress.completed} />
-                <LegendDot color={theme.palette.primary.main} label="In Progress" value={progress.active} />
-                <LegendDot color={theme.palette.text.secondary} label="Pending" value={progress.pending} />
-              </Stack>
+              <WorkflowProgressCounts completed={progress.completed} active={progress.active} pending={progress.pending} />
             </Stack>
           </Box>
         </Stack>
@@ -475,24 +488,31 @@ function OverviewStat(props: {
   );
 }
 
-function WorkflowStepNode(props: { step: WorkflowStep; first: boolean; onSelect: () => void }) {
+function WorkflowStepNode(props: { step: WorkflowStep; onSelect: () => void }) {
   const theme = useTheme();
   const color = workflowStepColor(theme, props.step);
-  const Icon = props.step.status === "pending" ? RadioButtonUncheckedRounded : CheckCircleRounded;
 
   return (
-    <Stack direction="row" spacing={1} sx={{ alignItems: "center", minWidth: 124 }}>
-      {!props.first ? <Box sx={{ width: 48, borderTop: `2px solid ${alpha(color, 0.7)}` }} /> : null}
+    <Stack
+      spacing={0.55}
+      sx={{
+        alignItems: "center",
+        minWidth: 0,
+        position: "relative",
+        zIndex: 1
+      }}
+    >
       <ButtonBase
         onClick={props.onSelect}
+        aria-label={`${props.step.label} ${props.step.date}`}
         sx={{
-          borderRadius: 1,
-          width: 112,
-          minHeight: 112,
-          p: 0.75,
-          alignSelf: "stretch",
-          border: `1px solid ${props.step.status === "next" ? alpha(color, 0.72) : alpha(theme.palette.divider, 0.78)}`,
-          bgcolor: props.step.status === "next" ? alpha(color, 0.12) : "transparent",
+          width: { xs: 46, sm: 56, md: 64 },
+          height: { xs: 46, sm: 56, md: 64 },
+          borderRadius: "50%",
+          border: `2px solid ${props.step.status === "pending" ? alpha(theme.palette.text.secondary, 0.34) : color}`,
+          bgcolor: props.step.status === "next" ? alpha(color, 0.16) : theme.palette.background.paper,
+          boxShadow: props.step.status === "next" ? `0 0 0 4px ${alpha(color, 0.12)}` : "none",
+          color,
           textAlign: "center",
           "&:focus-visible": {
             outline: `2px solid ${alpha(color, 0.72)}`,
@@ -500,28 +520,25 @@ function WorkflowStepNode(props: { step: WorkflowStep; first: boolean; onSelect:
           }
         }}
       >
-        <Stack spacing={0.65} sx={{ alignItems: "center", minWidth: 0 }}>
-          <Box
-            sx={{
-              width: 28,
-              height: 28,
-              borderRadius: "50%",
-              display: "grid",
-              placeItems: "center",
-              bgcolor: alpha(color, 0.18),
-              color
-            }}
-          >
-            <Icon fontSize="small" />
-          </Box>
-          <Typography variant="caption" sx={{ fontWeight: 800 }}>{props.step.label}</Typography>
-          <Typography variant="caption" color="text.secondary" sx={{ width: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {props.step.detail}
-          </Typography>
-          <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: "nowrap" }}>{props.step.date}</Typography>
-          {props.step.command ? <Chip size="small" color="primary" label={props.step.command} sx={{ maxWidth: "100%" }} /> : null}
-        </Stack>
+        <Box sx={{ width: { xs: 10, sm: 12 }, height: { xs: 10, sm: 12 }, borderRadius: "50%", bgcolor: color }} />
       </ButtonBase>
+      <Typography variant="caption" sx={{ fontWeight: 800, lineHeight: 1.15, textAlign: "center", overflowWrap: "anywhere" }}>
+        {props.step.label}
+      </Typography>
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        sx={{
+          width: "100%",
+          maxWidth: { xs: 56, sm: 72, md: 88 },
+          lineHeight: 1.15,
+          minHeight: { xs: 28, sm: 32 },
+          textAlign: "center",
+          overflowWrap: "anywhere"
+        }}
+      >
+        {props.step.date}
+      </Typography>
     </Stack>
   );
 }
@@ -543,9 +560,9 @@ function workflowStepColor(theme: Theme, step: WorkflowStep): string {
 function WorkflowProgressChart(props: { completed: number; active: number; pending: number; completion: number }) {
   const theme = useTheme();
   const data = [
-    { id: "completed", value: props.completed, label: "Completed", color: theme.palette.success.main },
-    { id: "active", value: props.active, label: "In Progress", color: theme.palette.primary.main },
-    { id: "pending", value: props.pending, label: "Pending", color: theme.palette.text.secondary }
+    { id: "completed", value: props.completed, label: "Done", color: theme.palette.success.main },
+    { id: "active", value: props.active, label: "Active", color: theme.palette.primary.main },
+    { id: "pending", value: props.pending, label: "Waiting", color: theme.palette.text.secondary }
   ].filter((item) => item.value > 0);
 
   return (
@@ -562,8 +579,8 @@ function WorkflowProgressChart(props: { completed: number; active: number; pendi
             cornerRadius: 4
           }
         ]}
+        hideLegend
         margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
-        sx={workflowChartSx(theme)}
       />
       <Box sx={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", pointerEvents: "none" }}>
         <Stack spacing={0.2} sx={{ alignItems: "center" }}>
@@ -576,6 +593,26 @@ function WorkflowProgressChart(props: { completed: number; active: number; pendi
         </Stack>
       </Box>
     </Box>
+  );
+}
+
+function WorkflowProgressCounts(props: { completed: number; active: number; pending: number }) {
+  const theme = useTheme();
+  const counts = [
+    { id: "done", color: theme.palette.success.main, value: props.completed },
+    { id: "active", color: theme.palette.primary.main, value: props.active },
+    { id: "waiting", color: theme.palette.text.secondary, value: props.pending }
+  ];
+
+  return (
+    <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap", justifyContent: "center", minWidth: 0 }}>
+      {counts.map((item) => (
+        <Stack key={item.id} direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
+          <Box sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: item.color }} />
+          <Typography variant="body2" sx={{ fontWeight: 700 }}>{item.value}</Typography>
+        </Stack>
+      ))}
+    </Stack>
   );
 }
 
@@ -605,7 +642,8 @@ function WorkflowLogDialog(props: { step: WorkflowStep | null; onClose: () => vo
         {step ? (
           <Stack spacing={1.3}>
             <KeyValue label="Status" value={step.status} />
-            <KeyValue label="Completed" value={step.date} />
+            <KeyValue label="Start Time" value={step.startTime} />
+            <KeyValue label="Updated Time" value={step.updatedTime} />
             <KeyValue label="Detail" value={step.detail} />
             {step.command ? <KeyValue label="Next Command" value={step.command} strong /> : null}
             {step.blockingIssues ? <KeyValue label="Blocking" value={step.blockingIssues} /> : null}
@@ -631,26 +669,6 @@ function LogList(props: { title: string; values: string[]; empty?: string }) {
           {value}
         </Typography>
       ))}
-    </Stack>
-  );
-}
-
-function workflowChartSx(theme: Theme) {
-  return {
-    "& .MuiChartsLegend-label": {
-      fill: theme.palette.text.secondary
-    }
-  };
-}
-
-function LegendDot(props: { color: string; label: string; value: number }) {
-  return (
-    <Stack direction="row" spacing={1} sx={{ alignItems: "center", justifyContent: "space-between", minWidth: 150 }}>
-      <Stack direction="row" spacing={0.75} sx={{ alignItems: "center" }}>
-        <Box sx={{ width: 12, height: 12, borderRadius: "50%", bgcolor: props.color }} />
-        <Typography variant="body2">{props.label}</Typography>
-      </Stack>
-      <Typography variant="body2">{props.value}</Typography>
     </Stack>
   );
 }
