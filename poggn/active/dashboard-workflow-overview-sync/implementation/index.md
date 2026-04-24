@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T18:10:22Z"
+  updated_at: "2026-04-24T18:17:34Z"
   auto_mode: "on"
   archive_type: "fix"
   version_bump: "patch"
@@ -19,7 +19,7 @@ reactflow:
   node_type: "doc"
   label: "implementation/index.md"
 state:
-  summary: "Workflow Progress connector geometry, four-state status model, stage-specific timestamp fallback, compact caption UI, tooltip, i18n을 보강했다."
+  summary: "Workflow Progress connector geometry, four-state status model, stage-specific timestamp fallback, compact caption UI, tooltip, i18n, tab panel containment를 보강했다."
   next: "pgg-refactor"
 ---
 
@@ -43,6 +43,7 @@ state:
 - Status, Workflow Stage, Priority, Created, and Updated now live in the Workflow Progress title area as compact metadata; the Type card was removed from the Overview card row.
 - Created/Updated date lines now use fixed `YYYY.MM.DD` and `오전/오후 HH:MM:SS` formatting instead of locale strings split at punctuation.
 - Priority ignores non-blocking placeholder values such as `none` and uses score/workflow context as helper copy.
+- Overview, Timeline, and Relations content now renders inside the same tab panel surface as the topic header/tabs instead of detached sibling cards.
 - ko/en locale copy was updated for generated/current, update, count, and tooltip labels.
 - Restored the Workflow Progress header icon import and migrated compact Drawer paper styling from `PaperProps` to `slotProps.paper` to remove runtime console errors.
 
@@ -102,6 +103,7 @@ state:
 - source check for removed `High` / `by john.doe` Overview placeholders and real data summary helpers: pass
 - source check for Created/Updated date-time lines, hidden dot, and flow-context helpers: pass
 - source check for removed Type card, title-area metadata, fixed date/time formatter, and non-placeholder Priority helper: pass
+- source check for unified tab panel surface wrapping Overview, Timeline, and Relations content: pass
 - source check for `workflowProgressTooltip`, `historyEvents`, `stage-started`, `stage-commit`: pass
 - source check for removed `minHeight: 48` bordered time/status box pattern: pass
 

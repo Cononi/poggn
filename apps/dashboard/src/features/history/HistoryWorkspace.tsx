@@ -90,6 +90,15 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
     return <Alert severity="info">{props.dictionary.noTopics}</Alert>;
   }
 
+  const activePanel =
+    activeTab === "overview" ? (
+      <HistoryOverview topic={selectedTopic} language={language} dictionary={props.dictionary} />
+    ) : activeTab === "timeline" ? (
+      <HistoryTimeline topic={selectedTopic} language={language} dictionary={props.dictionary} />
+    ) : (
+      <HistoryRelations topic={selectedTopic} topics={allTopics} />
+    );
+
   return (
     <Box
       sx={{
@@ -110,17 +119,23 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
         onSelectTopic={props.onSelectTopic}
       />
 
-      <Stack spacing={1.5} sx={{ minWidth: 0 }}>
+      <Box sx={{ minWidth: 0 }}>
         <Paper
           sx={{
-            px: 1.5,
-            pt: 1.5,
+            overflow: "visible",
             borderRadius: 1,
             border: `1px solid ${alpha(theme.palette.primary.main, 0.18)}`,
             bgcolor: alpha(theme.palette.background.paper, 0.82)
           }}
         >
-          <Stack spacing={1}>
+          <Stack
+            spacing={1}
+            sx={{
+              px: 1.5,
+              pt: 1.5,
+              borderBottom: `1px solid ${alpha(theme.palette.divider, 0.7)}`
+            }}
+          >
             <Stack
               direction={{ xs: "column", md: "row" }}
               spacing={1}
@@ -153,23 +168,27 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
                 "& .MuiTabs-indicator": { height: 2 }
               }}
             >
-              <Tab value="overview" label="Overview" />
-              <Tab value="timeline" label="Timeline" />
-              <Tab value="relations" label="Relations" />
+              <Tab id="history-tab-overview" aria-controls="history-panel-overview" value="overview" label="Overview" />
+              <Tab id="history-tab-timeline" aria-controls="history-panel-timeline" value="timeline" label="Timeline" />
+              <Tab id="history-tab-relations" aria-controls="history-panel-relations" value="relations" label="Relations" />
             </Tabs>
           </Stack>
-        </Paper>
 
-        {activeTab === "overview" ? (
-          <HistoryOverview topic={selectedTopic} language={language} dictionary={props.dictionary} />
-        ) : null}
-        {activeTab === "timeline" ? (
-          <HistoryTimeline topic={selectedTopic} language={language} dictionary={props.dictionary} />
-        ) : null}
-        {activeTab === "relations" ? (
-          <HistoryRelations topic={selectedTopic} topics={allTopics} />
-        ) : null}
-      </Stack>
+          <Box
+            id={`history-panel-${activeTab}`}
+            aria-labelledby={`history-tab-${activeTab}`}
+            role="tabpanel"
+            sx={{
+              p: { xs: 1.2, md: 1.5 },
+              borderBottomLeftRadius: 1,
+              borderBottomRightRadius: 1,
+              bgcolor: alpha(theme.palette.background.default, theme.palette.mode === "dark" ? 0.18 : 0.34)
+            }}
+          >
+            {activePanel}
+          </Box>
+        </Paper>
+      </Box>
     </Box>
   );
 }

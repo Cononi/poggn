@@ -24,6 +24,7 @@ Workflow Overview sync 변경의 visual, model, telemetry, i18n, accessibility a
 - time/status는 small caption으로 표시된다.
 - caption, circle, connector, donut, legend가 desktop/mobile에서 겹치지 않는다.
 - Workflow Progress title and donut center percentage do not feel oversized compared with surrounding Overview content.
+- Overview, Timeline, and Relations tab content is rendered inside the same tab surface as the topic header/tabs, without detached sibling-card spacing.
 
 ## Model Acceptance
 
