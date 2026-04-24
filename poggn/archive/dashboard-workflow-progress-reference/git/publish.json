@@ -1,0 +1,32 @@
+{
+  "topic": "dashboard-workflow-progress-reference",
+  "version": "2.2.2",
+  "targetVersion": "2.2.2",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "commitTitle": "fix: 2.2.2.진행 디자인 기준 정합",
+  "commitSha": "7aa24d4f7c3daba8b64ff401055d94abea2a4a55",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/2.2.2-dashboard-progress-reference",
+  "workingBranch": "ai/fix/2.2.2-dashboard-progress-reference",
+  "releaseBranch": "release/2.2.2-dashboard-progress-reference",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-24T15:49:51Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/2.2.2-dashboard-progress-reference'. Remote ai branch was removed.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "not_attempted",
+  "branchRecoveryReason": null,
+  "branchRecoveryFrom": null,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/dashboard-workflow-progress-reference",
+    "versionFile": "poggn/archive/dashboard-workflow-progress-reference/version.json"
+  }
+}
