@@ -6,11 +6,11 @@ dashboard-overview-progress-polish
 
 ## Current Stage
 
-refactor
+qa
 
 ## Goal
 
-Project Workflow Overview 탭의 Workflow Progress polish 구현을 리팩터링하고 refactor review를 기록했다.
+Project Workflow Overview 탭의 Workflow Progress polish 구현과 refactor 결과를 검증하고 archive 가능 판정을 기록했다.
 
 ## Document Refs
 
@@ -23,6 +23,7 @@ Project Workflow Overview 탭의 Workflow Progress polish 구현을 리팩터링
 - implementation index: `poggn/active/dashboard-overview-progress-polish/implementation/index.md`
 - code review: `poggn/active/dashboard-overview-progress-polish/reviews/code.review.md`
 - refactor review: `poggn/active/dashboard-overview-progress-polish/reviews/refactor.review.md`
+- qa report: `poggn/active/dashboard-overview-progress-polish/qa/report.md`
 - spec:
   - `poggn/active/dashboard-overview-progress-polish/spec/model/workflow-step-time-and-visibility.md`
   - `poggn/active/dashboard-overview-progress-polish/spec/ui/circular-workflow-progress.md`
@@ -55,6 +56,7 @@ Project Workflow Overview 탭의 Workflow Progress polish 구현을 리팩터링
 - build verification은 `pnpm --filter @pgg/dashboard build`로 통과했다.
 - refactor는 `HistoryWorkspace.tsx`의 Progress track grid/connector style 계산을 `workflowProgressTrackSx` helper로 분리해 JSX 안의 반복 step-count math를 제거했다.
 - refactor build verification도 `pnpm --filter @pgg/dashboard build`로 통과했다.
+- QA decision은 `pass`이며 archive allowed 상태다.
 
 ## User Question Record
 
@@ -94,6 +96,7 @@ Project Workflow Overview 탭의 Workflow Progress polish 구현을 리팩터링
 - CREATE `poggn/active/dashboard-overview-progress-polish/implementation/diffs/003_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx_refactor.diff`
 - CREATE `poggn/active/dashboard-overview-progress-polish/reviews/code.review.md`
 - CREATE `poggn/active/dashboard-overview-progress-polish/reviews/refactor.review.md`
+- CREATE `poggn/active/dashboard-overview-progress-polish/qa/report.md`
 - UPDATE `poggn/active/dashboard-overview-progress-polish/implementation/index.md`
 - UPDATE `poggn/active/dashboard-overview-progress-polish/workflow.reactflow.json`
 - UPDATE `poggn/active/dashboard-overview-progress-polish/state/current.md`
@@ -103,13 +106,13 @@ Project Workflow Overview 탭의 Workflow Progress polish 구현을 리팩터링
 
 ## Last Expert Score
 
-- phase: refactor
-- score: 96
+- phase: qa
+- score: 97
 - blocking issues: none
 
 ## Open Items
 
-- status: ready for `pgg-qa`
+- status: pass
 
 ## Verification
 
@@ -118,11 +121,14 @@ Project Workflow Overview 탭의 Workflow Progress polish 구현을 리팩터링
 - plan/task document review: pass
 - `pnpm --filter @pgg/dashboard build`: pass
 - refactor `pnpm --filter @pgg/dashboard build`: pass
+- QA `pnpm --filter @pgg/dashboard build`: pass
+- `./.codex/sh/pgg-gate.sh pgg-code dashboard-overview-progress-polish`: pass
+- `./.codex/sh/pgg-gate.sh pgg-refactor dashboard-overview-progress-polish`: pass
 - implementation source checks for refactor visibility, modal time fields, removed Progress horizontal scroll, and status label de-duplication: pass
 
 ## Next Action
 
-Run `pgg-qa` for `dashboard-overview-progress-polish`.
+archive allowed
 
 ## Git Publish Message
 
