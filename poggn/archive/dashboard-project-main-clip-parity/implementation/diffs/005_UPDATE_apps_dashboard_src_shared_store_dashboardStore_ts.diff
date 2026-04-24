@@ -1,0 +1,84 @@
+diff --git a/apps/dashboard/src/shared/store/dashboardStore.ts b/apps/dashboard/src/shared/store/dashboardStore.ts
+index 888fdb6..a70aba4 100644
+--- a/apps/dashboard/src/shared/store/dashboardStore.ts
++++ b/apps/dashboard/src/shared/store/dashboardStore.ts
+@@ -16,7 +16,6 @@ type DashboardUiState = Pick<
+   | "activeSidebarItem"
+   | "projectDetailOpen"
+   | "activeDetailSection"
+-  | "workflowViewMode"
+   | "activeSettingsView"
+   | "selectedProjectId"
+   | "selectedTopicKey"
+@@ -32,10 +31,9 @@ const defaultWorkspaceFilterState: DashboardWorkspaceFilterState = {
+ 
+ const defaultUiState: DashboardUiState = {
+   activeTopMenu: "projects",
+-  activeSidebarItem: "board",
+-  projectDetailOpen: false,
++  activeSidebarItem: "category",
++  projectDetailOpen: true,
+   activeDetailSection: "main",
+-  workflowViewMode: "flow",
+   activeSettingsView: "main",
+   selectedProjectId: null,
+   selectedTopicKey: null,
+@@ -73,28 +71,13 @@ function readInitialUiState(): DashboardUiState {
+     }
+ 
+     const parsed = JSON.parse(raw) as Partial<DashboardUiState>;
+-    const rawActiveDetailSection =
+-      typeof (parsed as { activeDetailSection?: unknown }).activeDetailSection === "string"
+-        ? ((parsed as { activeDetailSection?: string }).activeDetailSection ?? null)
+-        : null;
+-    const activeSidebarItem =
+-      parsed.activeSidebarItem === "category" ? "category" : "board";
+-    const activeDetailSection =
+-      rawActiveDetailSection === "main" ||
+-      rawActiveDetailSection === "project-info" ||
+-      rawActiveDetailSection === "workflow" ||
+-      rawActiveDetailSection === "history" ||
+-      rawActiveDetailSection === "report" ||
+-      rawActiveDetailSection === "files"
+-        ? rawActiveDetailSection
+-        : "main";
+-    const workflowViewMode = parsed.workflowViewMode === "timeline" ? "timeline" : "flow";
++    const activeSidebarItem = "category";
+     return {
+       ...defaultUiState,
+       ...parsed,
+       activeSidebarItem,
+-      activeDetailSection: activeDetailSection === "project-info" ? "main" : activeDetailSection,
+-      workflowViewMode,
++      projectDetailOpen: true,
++      activeDetailSection: "main",
+       workspaceFilterState: {
+         ...defaultWorkspaceFilterState,
+         ...(parsed.workspaceFilterState ?? {})
+@@ -119,7 +102,6 @@ function toUiState(store: DashboardStore): DashboardUiState {
+     activeSidebarItem: store.activeSidebarItem,
+     projectDetailOpen: store.projectDetailOpen,
+     activeDetailSection: store.activeDetailSection,
+-    workflowViewMode: store.workflowViewMode,
+     activeSettingsView: store.activeSettingsView,
+     selectedProjectId: store.selectedProjectId,
+     selectedTopicKey: store.selectedTopicKey,
+@@ -148,7 +130,9 @@ export const useDashboardStore = create<DashboardStore>((set, get) => {
+ 
+       setAndPersist({
+         activeTopMenu: "projects",
+-        activeSidebarItem: get().activeSidebarItem ?? "board"
++        activeSidebarItem: "category",
++        projectDetailOpen: true,
++        activeDetailSection: "main"
+       });
+     },
+     setActiveSidebarItem: (value: DashboardSidebarItem) =>
+@@ -159,7 +143,6 @@ export const useDashboardStore = create<DashboardStore>((set, get) => {
+       }),
+     setProjectDetailOpen: (value) => setAndPersist({ projectDetailOpen: value }),
+     setActiveDetailSection: (value) => setAndPersist({ activeDetailSection: value }),
+-    setWorkflowViewMode: (value) => setAndPersist({ workflowViewMode: value }),
+     setActiveSettingsView: (value: DashboardSettingsView) =>
+       setAndPersist({
+         activeTopMenu: "settings",

@@ -1,0 +1,199 @@
+diff --git a/apps/dashboard/src/app/DashboardApp.tsx b/apps/dashboard/src/app/DashboardApp.tsx
+index edb09fe..86822ae 100644
+--- a/apps/dashboard/src/app/DashboardApp.tsx
++++ b/apps/dashboard/src/app/DashboardApp.tsx
+@@ -77,7 +77,6 @@ export default function DashboardApp() {
+   const topicFilter = useDashboardStore((state) => state.topicFilter);
+   const insightsRailOpen = useDashboardStore((state) => state.insightsRailOpen);
+   const setActiveTopMenu = useDashboardStore((state) => state.setActiveTopMenu);
+-  const setActiveSidebarItem = useDashboardStore((state) => state.setActiveSidebarItem);
+   const setProjectDetailOpen = useDashboardStore((state) => state.setProjectDetailOpen);
+   const setActiveDetailSection = useDashboardStore((state) => state.setActiveDetailSection);
+   const setActiveSettingsView = useDashboardStore((state) => state.setActiveSettingsView);
+@@ -531,6 +530,52 @@ export default function DashboardApp() {
+     focusProjectContext(projectId);
+   };
+ 
++  const resolveSelectionTopicKey = (entry: { sourcePath: string }): string | null =>
++    resolveTopicKeyFromSourcePath(entry.sourcePath) ?? (selectedTopic ? buildTopicKey(selectedTopic) : null);
++
++  const renderProjectDetailWorkspace = (section: DashboardDetailSection) => (
++    <ProjectDetailWorkspace
++      project={boardContextProject}
++      selectedTopic={selectedTopic}
++      activeTopics={activeTopics}
++      archivedTopics={archivedTopics}
++      selectedTopicKey={nextVisibleTopicKey}
++      topicFilter={topicFilter}
++      activeSection={section}
++      detailSelection={detailSelection}
++      fileSelection={fileSelection}
++      dictionary={dictionary}
++      isLiveMode={isLiveMode}
++      fileMutationPending={saveFileMutation.isPending || deleteFileMutation.isPending}
++      onTopicFilterChange={handleTopicFilterChange}
++      onSelectTopic={setSelectedTopicKey}
++      onSelectArtifact={(entry) => {
++        const topicKey = resolveSelectionTopicKey(entry);
++
++        if (!topicKey) {
++          return;
++        }
++
++        handleSelectArtifact(entry.sourcePath, createArtifactSelection(topicKey, entry));
++      }}
++      onOpenDetailDialog={() => {
++        markDashboardInteraction("detail-open", "start");
++        setDetailDialogOpen(true);
++      }}
++      onSelectFile={(entry) => {
++        const topicKey = resolveSelectionTopicKey(entry);
++
++        if (!topicKey) {
++          return;
++        }
++
++        setFileSelection(createArtifactSelection(topicKey, entry));
++      }}
++      onSaveSelection={(content) => saveFileMutation.mutate(content)}
++      onDeleteSelection={() => deleteFileMutation.mutate()}
++    />
++  );
++
+   const handleTopicFilterChange = (value: string) => {
+     markDashboardInteraction("topic-filter", "start");
+     setTopicFilter(value);
+@@ -662,100 +707,10 @@ export default function DashboardApp() {
+     }
+ 
+     if (projectDetailOpen) {
+-      return (
+-        <ProjectDetailWorkspace
+-          project={boardContextProject}
+-          selectedTopic={selectedTopic}
+-          activeTopics={activeTopics}
+-          archivedTopics={archivedTopics}
+-          selectedTopicKey={nextVisibleTopicKey}
+-          topicFilter={topicFilter}
+-          activeSection={activeDetailSection}
+-          detailSelection={detailSelection}
+-          fileSelection={fileSelection}
+-          dictionary={dictionary}
+-          isLiveMode={isLiveMode}
+-          fileMutationPending={saveFileMutation.isPending || deleteFileMutation.isPending}
+-          onTopicFilterChange={handleTopicFilterChange}
+-          onSelectTopic={setSelectedTopicKey}
+-          onSelectArtifact={(entry) => {
+-            const topicKey =
+-              resolveTopicKeyFromSourcePath(entry.sourcePath) ??
+-              (selectedTopic ? buildTopicKey(selectedTopic) : null);
+-
+-            if (!topicKey) {
+-              return;
+-            }
+-
+-            handleSelectArtifact(entry.sourcePath, createArtifactSelection(topicKey, entry));
+-          }}
+-          onOpenDetailDialog={() => {
+-            markDashboardInteraction("detail-open", "start");
+-            setDetailDialogOpen(true);
+-          }}
+-          onSelectFile={(entry) => {
+-            const topicKey =
+-              resolveTopicKeyFromSourcePath(entry.sourcePath) ??
+-              (selectedTopic ? buildTopicKey(selectedTopic) : null);
+-
+-            if (!topicKey) {
+-              return;
+-            }
+-
+-            setFileSelection(createArtifactSelection(topicKey, entry));
+-          }}
+-          onSaveSelection={(content) => saveFileMutation.mutate(content)}
+-          onDeleteSelection={() => deleteFileMutation.mutate()}
+-        />
+-      );
++      return renderProjectDetailWorkspace(activeDetailSection);
+     }
+ 
+-    return (
+-      <ProjectDetailWorkspace
+-        project={boardContextProject}
+-        selectedTopic={selectedTopic}
+-        activeTopics={activeTopics}
+-        archivedTopics={archivedTopics}
+-        selectedTopicKey={nextVisibleTopicKey}
+-        topicFilter={topicFilter}
+-        activeSection="main"
+-        detailSelection={detailSelection}
+-        fileSelection={fileSelection}
+-        dictionary={dictionary}
+-        isLiveMode={isLiveMode}
+-        fileMutationPending={saveFileMutation.isPending || deleteFileMutation.isPending}
+-        onTopicFilterChange={handleTopicFilterChange}
+-        onSelectTopic={setSelectedTopicKey}
+-        onSelectArtifact={(entry) => {
+-          const topicKey =
+-            resolveTopicKeyFromSourcePath(entry.sourcePath) ??
+-            (selectedTopic ? buildTopicKey(selectedTopic) : null);
+-
+-          if (!topicKey) {
+-            return;
+-          }
+-
+-          handleSelectArtifact(entry.sourcePath, createArtifactSelection(topicKey, entry));
+-        }}
+-        onOpenDetailDialog={() => {
+-          markDashboardInteraction("detail-open", "start");
+-          setDetailDialogOpen(true);
+-        }}
+-        onSelectFile={(entry) => {
+-          const topicKey =
+-            resolveTopicKeyFromSourcePath(entry.sourcePath) ??
+-            (selectedTopic ? buildTopicKey(selectedTopic) : null);
+-
+-          if (!topicKey) {
+-            return;
+-          }
+-
+-          setFileSelection(createArtifactSelection(topicKey, entry));
+-        }}
+-        onSaveSelection={(content) => saveFileMutation.mutate(content)}
+-        onDeleteSelection={() => deleteFileMutation.mutate()}
+-      />
+-    );
++    return renderProjectDetailWorkspace("main");
+   };
+ 
+   if (snapshotQuery.isLoading) {
+@@ -805,13 +760,11 @@ export default function DashboardApp() {
+           >
+             <ProjectContextSidebar
+               activeTopMenu={activeTopMenu}
+-              activeSidebarItem={activeSidebarItem}
+               projectDetailOpen={projectDetailOpen}
+               activeDetailSection={activeDetailSection}
+               activeSettingsView={activeSettingsView}
+               project={boardContextProject}
+               dictionary={dictionary}
+-              onSelectSidebarItem={setActiveSidebarItem}
+               onSelectDetailSection={openManagementSection}
+               onSelectSettingsView={openSettingsPanel}
+               onOpenProjectSelector={openProjectSelector}
+@@ -862,16 +815,11 @@ export default function DashboardApp() {
+       >
+         <ProjectContextSidebar
+           activeTopMenu={activeTopMenu}
+-          activeSidebarItem={activeSidebarItem}
+           projectDetailOpen={projectDetailOpen}
+           activeDetailSection={activeDetailSection}
+           activeSettingsView={activeSettingsView}
+           project={boardContextProject}
+           dictionary={dictionary}
+-          onSelectSidebarItem={(item) => {
+-            setActiveSidebarItem(item);
+-            setSidebarDrawerOpen(false);
+-          }}
+           onSelectDetailSection={(section) => {
+             openManagementSection(section);
+             setSidebarDrawerOpen(false);

@@ -1,0 +1,26 @@
+diff --git a/apps/dashboard/src/app/DashboardShellChrome.tsx b/apps/dashboard/src/app/DashboardShellChrome.tsx
+index 658160b..f1d794f 100644
+--- a/apps/dashboard/src/app/DashboardShellChrome.tsx
++++ b/apps/dashboard/src/app/DashboardShellChrome.tsx
+@@ -30,7 +30,6 @@ import type {
+   DashboardLocale,
+   DashboardPrimaryMenu,
+   DashboardSettingsView,
+-  DashboardSidebarItem,
+   ProjectCategory,
+   ProjectSnapshot
+ } from "../shared/model/dashboard";
+@@ -54,13 +53,11 @@ type TopNavigationProps = {
+ 
+ type ProjectContextSidebarProps = {
+   activeTopMenu: DashboardPrimaryMenu;
+-  activeSidebarItem: DashboardSidebarItem;
+   projectDetailOpen: boolean;
+   activeDetailSection: DashboardDetailSection;
+   activeSettingsView: DashboardSettingsView;
+   project: ProjectSnapshot | null;
+   dictionary: DashboardLocale;
+-  onSelectSidebarItem: (item: DashboardSidebarItem) => void;
+   onSelectDetailSection: (section: DashboardDetailSection) => void;
+   onSelectSettingsView: (view: DashboardSettingsView) => void;
+   onOpenProjectSelector: () => void;

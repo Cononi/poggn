@@ -1,0 +1,213 @@
+{
+  "topic": "dashboard-project-main-clip-parity",
+  "nodes": [
+    {
+      "id": "proposal",
+      "type": "doc",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "label": "proposal.md",
+        "stage": "proposal",
+        "status": "reviewed",
+        "score": 95
+      }
+    },
+    {
+      "id": "review",
+      "type": "review",
+      "position": {
+        "x": 280,
+        "y": 0
+      },
+      "data": {
+        "label": "proposal.review.md",
+        "stage": "proposal-review",
+        "status": "reviewed",
+        "score": 95
+      }
+    },
+    {
+      "id": "state",
+      "type": "state",
+      "position": {
+        "x": 560,
+        "y": 0
+      },
+      "data": {
+        "label": "state/current.md",
+        "stage": "handoff",
+        "status": "ready",
+        "next": "archive"
+      }
+    },
+    {
+      "id": "plan",
+      "type": "doc",
+      "position": {
+        "x": 0,
+        "y": 170
+      },
+      "data": {
+        "label": "plan.md",
+        "stage": "plan",
+        "status": "reviewed",
+        "score": 96
+      }
+    },
+    {
+      "id": "task",
+      "type": "task",
+      "position": {
+        "x": 280,
+        "y": 170
+      },
+      "data": {
+        "label": "task.md",
+        "stage": "task",
+        "status": "reviewed",
+        "score": 96
+      }
+    },
+    {
+      "id": "specs",
+      "type": "spec",
+      "position": {
+        "x": 560,
+        "y": 170
+      },
+      "data": {
+        "label": "spec/*/*.md",
+        "stage": "plan-spec",
+        "status": "ready",
+        "count": 6
+      }
+    },
+    {
+      "id": "implementation",
+      "type": "implementation",
+      "position": {
+        "x": 0,
+        "y": 340
+      },
+      "data": {
+        "label": "implementation/index.md",
+        "stage": "implementation",
+        "status": "reviewed",
+        "score": 95
+      }
+    },
+    {
+      "id": "code-review",
+      "type": "review",
+      "position": {
+        "x": 280,
+        "y": 340
+      },
+      "data": {
+        "label": "code.review.md",
+        "stage": "code-review",
+        "status": "reviewed",
+        "score": 95
+      }
+    },
+    {
+      "id": "refactor",
+      "type": "refactor",
+      "position": {
+        "x": 560,
+        "y": 340
+      },
+      "data": {
+        "label": "refactor.review.md",
+        "stage": "refactor",
+        "status": "reviewed",
+        "score": 96
+      }
+    },
+    {
+      "id": "qa",
+      "type": "qa",
+      "position": {
+        "x": 0,
+        "y": 510
+      },
+      "data": {
+        "label": "qa/report.md",
+        "stage": "qa",
+        "status": "done",
+        "score": 96,
+        "decision": "pass"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "proposal-review",
+      "source": "proposal",
+      "target": "review"
+    },
+    {
+      "id": "review-state",
+      "source": "review",
+      "target": "state"
+    },
+    {
+      "id": "proposal-plan",
+      "source": "proposal",
+      "target": "plan"
+    },
+    {
+      "id": "plan-task",
+      "source": "plan",
+      "target": "task"
+    },
+    {
+      "id": "task-specs",
+      "source": "task",
+      "target": "specs"
+    },
+    {
+      "id": "specs-state",
+      "source": "specs",
+      "target": "state"
+    },
+    {
+      "id": "task-implementation",
+      "source": "task",
+      "target": "implementation"
+    },
+    {
+      "id": "implementation-code-review",
+      "source": "implementation",
+      "target": "code-review"
+    },
+    {
+      "id": "code-review-state",
+      "source": "code-review",
+      "target": "state"
+    },
+    {
+      "id": "code-review-refactor",
+      "source": "code-review",
+      "target": "refactor"
+    },
+    {
+      "id": "refactor-state",
+      "source": "refactor",
+      "target": "state"
+    },
+    {
+      "id": "refactor-qa",
+      "source": "refactor",
+      "target": "qa"
+    },
+    {
+      "id": "qa-state",
+      "source": "qa",
+      "target": "state"
+    }
+  ]
+}

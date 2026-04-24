@@ -13,10 +13,8 @@ import {
   DialogTitle,
   Divider,
   IconButton,
-  InputAdornment,
   Paper,
   Stack,
-  TextField,
   Typography
 } from "@mui/material";
 import AddRounded from "@mui/icons-material/AddRounded";
@@ -24,17 +22,14 @@ import AssessmentRounded from "@mui/icons-material/AssessmentRounded";
 import ChevronRightRounded from "@mui/icons-material/ChevronRightRounded";
 import FolderRounded from "@mui/icons-material/FolderRounded";
 import HomeRounded from "@mui/icons-material/HomeRounded";
-import HubRounded from "@mui/icons-material/HubRounded";
 import HistoryRounded from "@mui/icons-material/HistoryRounded";
 import MenuRounded from "@mui/icons-material/MenuRounded";
-import SearchRounded from "@mui/icons-material/SearchRounded";
 import SettingsRounded from "@mui/icons-material/SettingsRounded";
 import type {
   DashboardDetailSection,
   DashboardLocale,
   DashboardPrimaryMenu,
   DashboardSettingsView,
-  DashboardSidebarItem,
   ProjectCategory,
   ProjectSnapshot
 } from "../shared/model/dashboard";
@@ -49,25 +44,20 @@ type TopNavigationProps = {
   dictionary: DashboardLocale;
   activeTopMenu: DashboardPrimaryMenu;
   compactShell: boolean;
-  showProjectControls: boolean;
-  projectSearchValue: string;
   onOpenProjects: () => void;
   onOpenSettings: () => void;
   onToggleSidebar: () => void;
   onToggleInsights: () => void;
-  onProjectSearchChange: (value: string) => void;
   onAddProject: () => void;
 };
 
 type ProjectContextSidebarProps = {
   activeTopMenu: DashboardPrimaryMenu;
-  activeSidebarItem: DashboardSidebarItem;
   projectDetailOpen: boolean;
   activeDetailSection: DashboardDetailSection;
   activeSettingsView: DashboardSettingsView;
   project: ProjectSnapshot | null;
   dictionary: DashboardLocale;
-  onSelectSidebarItem: (item: DashboardSidebarItem) => void;
   onSelectDetailSection: (section: DashboardDetailSection) => void;
   onSelectSettingsView: (view: DashboardSettingsView) => void;
   onOpenProjectSelector: () => void;
@@ -159,22 +149,8 @@ export function TopNavigation(props: TopNavigationProps) {
         </Stack>
 
         <Stack direction="row" spacing={1} sx={{ alignItems: "center", minWidth: 0 }}>
-          {props.showProjectControls ? (
+          {props.activeTopMenu === "projects" ? (
             <>
-              <TextField
-                size="small"
-                value={props.projectSearchValue}
-                onChange={(event) => props.onProjectSearchChange(event.target.value)}
-                placeholder={props.dictionary.searchProjectsPlaceholder}
-                sx={{ width: { xs: 180, md: 280 } }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchRounded fontSize="small" />
-                    </InputAdornment>
-                  )
-                }}
-              />
               {!props.compactShell ? (
                 <Button variant="contained" startIcon={<AddRounded />} onClick={props.onAddProject}>
                   {props.dictionary.addProject}
@@ -213,7 +189,6 @@ export function ProjectContextSidebar(props: ProjectContextSidebarProps) {
   const theme = useTheme();
   const detailItems = [
     { id: "main", label: props.dictionary.main, icon: <HomeRounded fontSize="small" /> },
-    { id: "workflow", label: props.dictionary.workflowSection, icon: <HubRounded fontSize="small" /> },
     { id: "history", label: props.dictionary.historySection, icon: <HistoryRounded fontSize="small" /> },
     { id: "report", label: props.dictionary.reportSection, icon: <AssessmentRounded fontSize="small" /> },
     { id: "files", label: props.dictionary.filesSection, icon: <FolderRounded fontSize="small" /> }

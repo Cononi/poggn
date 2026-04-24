@@ -1,0 +1,14 @@
+{
+  "topic": "dashboard-project-main-clip-parity",
+  "changeType": "feat",
+  "versionBump": "minor",
+  "version": "2.1.0",
+  "targetVersion": "2.1.0",
+  "previousVersion": "2.0.0",
+  "shortName": "dashboard-parity",
+  "workingBranch": "ai/feat/2.1.0-dashboard-parity",
+  "releaseBranch": "release/2.1.0-dashboard-parity",
+  "projectScope": "current-project",
+  "archivedAt": "2026-04-24T07:22:22Z",
+  "history": "poggn/version-history.ndjson"
+}

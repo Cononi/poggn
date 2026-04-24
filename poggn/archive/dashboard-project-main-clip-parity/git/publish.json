@@ -1,0 +1,32 @@
+{
+  "topic": "dashboard-project-main-clip-parity",
+  "version": "2.1.0",
+  "targetVersion": "2.1.0",
+  "changeType": "feat",
+  "versionBump": "minor",
+  "commitTitle": "feat: 2.1.0.Project 화면과 Clip 정리",
+  "commitSha": "af6c915ba648dd66074873f15f4f98c158afb8a5",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/2.1.0-dashboard-parity",
+  "workingBranch": "ai/feat/2.1.0-dashboard-parity",
+  "releaseBranch": "release/2.1.0-dashboard-parity",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-24T07:22:27Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/2.1.0-dashboard-parity'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "not_attempted",
+  "branchRecoveryReason": null,
+  "branchRecoveryFrom": null,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/dashboard-project-main-clip-parity",
+    "versionFile": "poggn/archive/dashboard-project-main-clip-parity/version.json"
+  }
+}
