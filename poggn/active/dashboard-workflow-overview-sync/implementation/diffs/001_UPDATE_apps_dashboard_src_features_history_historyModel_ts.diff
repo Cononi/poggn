@@ -1,38 +1,103 @@
 diff --git a/apps/dashboard/src/features/history/historyModel.ts b/apps/dashboard/src/features/history/historyModel.ts
-index da99ea9..da3ef4f 100644
+index da3ef4f..5967fb3 100644
 --- a/apps/dashboard/src/features/history/historyModel.ts
 +++ b/apps/dashboard/src/features/history/historyModel.ts
-@@ -494,6 +494,18 @@ function isRevisionEvent(event: TopicHistoryEventEntry): boolean {
-   return eventNameMatches(event, [/updated$/i, /revised$/i, /requirements-added/i]);
+@@ -506,6 +506,10 @@ function isCompletionEvent(event: TopicHistoryEventEntry): boolean {
+   return /verified|final|gate|qa|검증|최종/i.test(event.source ?? "");
  }
  
-+function isCompletionEvent(event: TopicHistoryEventEntry): boolean {
-+  if (eventNameMatches(event, [/stage-commit/i, /reviewed$/i, /archived$/i])) {
-+    return true;
-+  }
-+
-+  if (!eventNameMatches(event, [/stage-completed/i])) {
-+    return false;
-+  }
-+
-+  return /verified|final|gate|qa|검증|최종/i.test(event.source ?? "");
++function isRuntimeActiveEvent(event: TopicHistoryEventEntry): boolean {
++  return eventNameMatches(event, [/stage-started/i, /stage-progress/i]);
 +}
 +
  function flowRevisionEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition): TimestampEvidence[] {
    const eventEvidence = flowHistoryEvents(topic, flow)
      .filter((event) => event.ts && isRevisionEvent(event))
-@@ -590,7 +602,13 @@ function flowTimestampBundle(topic: TopicSummary, flow: WorkflowFlowDefinition):
-   const events = flowHistoryEvents(topic, flow);
-   const startEvents = timestampEvidenceFromEvents(events, [/stage-started/i, /topic-created/i], "state/history.ndjson");
-   const progressEvents = timestampEvidenceFromEvents(events, [/stage-progress/i, /stage-revised/i, /updated$/i, /requirements-added/i], "state/history.ndjson");
--  const completeEvents = timestampEvidenceFromEvents(events, [/stage-completed/i, /stage-commit/i, /reviewed$/i, /archived$/i], "state/history.ndjson");
-+  const completeEvents = events
-+    .filter((event) => event.ts && isCompletionEvent(event))
+@@ -563,6 +567,36 @@ function flowUpdatingTimestamp(topic: TopicSummary, flow: WorkflowFlowDefinition
+   return compareTimestamps(latestRevision, completedAt) > 0 ? latestRevision : null;
+ }
+ 
++function flowActiveTimestamp(topic: TopicSummary, flow: WorkflowFlowDefinition, completedAt: string | null): string | null {
++  if (topic.bucket === "archive") {
++    return null;
++  }
++
++  const eventEvidence = flowHistoryEvents(topic, flow)
++    .filter((event) => event.ts && isRuntimeActiveEvent(event))
 +    .map((event) => ({
 +      value: event.ts,
 +      confidence: "high" as const,
-+      source: `state/history.ndjson:${event.event ?? "event"}`
++      source: `state/history.ndjson:${event.event ?? "active"}`
 +    }));
-   const fileEvidence = fileTimestampEvidence(files);
-   const doneEvidence = flow.id === "done" ? [{ value: topic.archivedAt, confidence: "high" as const, source: "archive" }] : [];
-   const topicFallback =
++  const nodeEvidence = flowNodes(topic, flow)
++    .filter((node) => /current|generated|progress|running|in[-_\s]?progress|생성|진행/i.test(node.data.status ?? node.data.detail?.status ?? ""))
++    .map((node) => ({
++      value: node.data.detail?.updatedAt ?? node.data.detail?.startedAt ?? null,
++      confidence: "high" as const,
++      source: sourcePathForNode(node)
++    }));
++  const latestActive = latestEvidence([...eventEvidence, ...nodeEvidence]).value;
++
++  if (!latestActive) {
++    return null;
++  }
++  if (!completedAt) {
++    return latestActive;
++  }
++  return compareTimestamps(latestActive, completedAt) > 0 ? latestActive : null;
++}
++
+ function nodeTimestampEvidence(
+   nodes: WorkflowNodeEntry[],
+   field: "startedAt" | "updatedAt" | "completedAt"
+@@ -685,7 +719,6 @@ function flowEvents(topic: TopicSummary, flow: WorkflowFlowDefinition, language:
+ export function buildWorkflowSteps(topic: TopicSummary, language: HistoryLanguage): WorkflowStep[] {
+   const flows = visibleWorkflowFlows(topic);
+   const currentIndex = resolveStageIndex(topic, flows);
+-  const stageComplete = topicStageIsComplete(topic);
+   const entries = flows.map((flow, index) => {
+     const activeTaskIds = activeTaskIdsForFlow(topic, flow);
+     const timestamps = flowTimestampBundle(topic, flow);
+@@ -694,6 +727,7 @@ export function buildWorkflowSteps(topic: TopicSummary, language: HistoryLanguag
+       index,
+       activeTaskIds,
+       timestamps,
++      activeAt: flowActiveTimestamp(topic, flow, timestamps.completedAt.value),
+       updatingAt: flowUpdatingTimestamp(topic, flow, timestamps.completedAt.value)
+     };
+   });
+@@ -718,11 +752,31 @@ export function buildWorkflowSteps(topic: TopicSummary, language: HistoryLanguag
+     .filter((entry) => unresolvedRevisionEntries.includes(entry))
+     .sort((left, right) => compareTimestamps(left.updatingAt, right.updatingAt) || left.index - right.index)
+     .at(-1)?.index;
+-  const effectiveCurrentIndex = updatingIndex ?? currentIndex;
++  const unresolvedActiveEntries = entries.filter((entry) => {
++    if (!entry.activeAt) {
++      return false;
++    }
++
++    return !entries.some((candidate) => {
++      if (candidate.index <= entry.index) {
++        return false;
++      }
++      const laterEvidence = latestEvidence([
++        candidate.timestamps.startedAt,
++        candidate.timestamps.updatedAt,
++        candidate.timestamps.completedAt
++      ]).value;
++      return compareTimestamps(laterEvidence, entry.activeAt) > 0;
++    });
++  });
++  const activeIndex = entries
++    .filter((entry) => unresolvedActiveEntries.includes(entry))
++    .sort((left, right) => compareTimestamps(left.activeAt, right.activeAt) || left.index - right.index)
++    .at(-1)?.index;
++  const effectiveCurrentIndex = updatingIndex ?? activeIndex ?? currentIndex;
+ 
+   return entries.map(({ flow, index, activeTaskIds, timestamps }) => {
+-    const currentFlowIsComplete = stageComplete && activeTaskIds.length === 0;
+-    const completedByProgress = index < currentIndex || (index === currentIndex && currentFlowIsComplete);
++    const completedByProgress = index < currentIndex || index < effectiveCurrentIndex;
+     const completedByEvidence = Boolean(timestamps.completedAt.value && timestamps.completedAt.confidence !== "low");
+     const updating = updatingIndex === index;
+     const isComplete =

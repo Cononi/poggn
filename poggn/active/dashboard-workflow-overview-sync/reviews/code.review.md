@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T22:50:54Z"
+  updated_at: "2026-04-24T22:57:13Z"
 ---
 
 # code.review
@@ -46,6 +46,7 @@ pgg:
 | UI 정렬 리뷰어 | 96 | panel top border를 전체 선이 아니라 header padding과 tab inset을 반영한 좌우 segment로 다시 나눠 selected tab 아래에는 선이 그려지지 않게 했다. | none |
 | UI 정렬 리뷰어 | 96 | line segment overlap을 3px로 제한해 선 끝은 tab side border 뒤에 숨기되 selected tab bottom까지 넘어가지 않게 했다. | none |
 | 워크플로우 계약 리뷰어 | 96 | `pgg update`의 source of truth인 `packages/core/src/templates.ts` ko/en WOKR-FLOW template에 global workflow 3줄을 넣어 generated markdown만 수정되던 문제를 해소했다. | none |
+| 상태 모델 리뷰어 | 96 | `stage-started`/`stage-progress` 또는 current/generated node evidence가 completion 이후 최신이면 해당 flow를 `생성 중`으로 계산하고, 현재 flow는 `reviewed`만으로 완료되지 않게 했다. | none |
 
 ## Findings
 
@@ -66,6 +67,8 @@ pgg:
 - source check for immediate `requirements-added` live workflow status evidence: pass
 - source check for global pgg workflow `requirements-added` first rule: pass
 - source check for ko/en `pgg update` generator workflow rules: pass
+- source check for runtime active flow status from `stage-started`/`stage-progress`: pass
+- source check for current flow completion requiring completion evidence instead of `reviewed` alone: pass
 - source check for edge-to-edge connector geometry and removed internal connector: pass
 - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
 - source check for connector gap-inclusive end offset and circle-radius top alignment: pass

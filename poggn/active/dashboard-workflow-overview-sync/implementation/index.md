@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T22:50:54Z"
+  updated_at: "2026-04-24T22:57:13Z"
   auto_mode: "on"
   archive_type: "fix"
   version_bump: "patch"
@@ -65,6 +65,8 @@ state:
 - Dashboard completion evidence now ignores unverified `stage-completed`; actual completion requires governed `stage-commit` or verified/final `stage-completed` so work-in-progress follow-ups do not flip to `완료` too early.
 - `.codex/add/WOKR-FLOW.md` now requires in-progress work to use `stage-progress` and reserves `stage-completed` for verified final completion.
 - `pgg update` now preserves those three global workflow rules because the ko/en `WOKR-FLOW.md` generator template includes them instead of relying only on the generated markdown copy.
+- Runtime stage telemetry now affects workflow status directly: unresolved `stage-started` or `stage-progress` evidence moves that flow from pending to current.
+- The current flow no longer becomes completed from `status: reviewed` alone; completion requires trusted completion evidence or later-flow advancement.
 - Status/Workflow Stage/Progress/Priority/Created/Updated metadata now renders as a fixed six-column row under the workflow rail so it does not wrap or overlap.
 - ko/en locale copy was updated for generated/current, update, count, and tooltip labels.
 - Restored the Workflow Progress header icon import and migrated compact Drawer paper styling from `PaperProps` to `slotProps.paper` to remove runtime console errors.
@@ -136,6 +138,8 @@ state:
 - source check for immediate `requirements-added` live workflow status evidence: pass
 - source check for global pgg workflow `requirements-added` first rule: pass
 - source check for ko/en `pgg update` generator workflow rules: pass
+- source check for runtime active flow status from `stage-started`/`stage-progress`: pass
+- source check for current flow completion requiring completion evidence instead of `reviewed` alone: pass
 - source check for edge-to-edge connector geometry and removed center-to-center internal connector: pass
 - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
 - source check for connector gap-inclusive end offset and circle-radius top alignment: pass

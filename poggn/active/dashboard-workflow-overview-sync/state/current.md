@@ -12,6 +12,7 @@ implementation
 
 Project Workflow Overview의 progress rail 연결, compact density, caption style, flow tooltip, 진행 중 clipping 방지, 필요한 네 상태(`시작 전`, `생성 중`, `완료`, `추가 진행`), flow별 시간 독립성, stage telemetry 반영, 상태별 색 구분, tab panel containment, borderless tabs, unresolved revision status를 보강 구현했다.
 추가로 global workflow 규칙 3줄이 `pgg update` 후에도 유지되도록 generator template에 반영했다.
+추가로 `stage-started`/`stage-progress`가 들어온 flow가 실제 `진행 중`으로 표시되고, 현재 flow는 `stage-commit` 또는 verified/final completion evidence가 있어야 `완료`로 표시되도록 상태 계산을 보강했다.
 
 ## Document Refs
 
@@ -118,6 +119,8 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - Active/revision rail uses visible overflow and fixed visual sizing to avoid clipping while preserving click target.
 - `pgg update` regenerates `.codex/add/WOKR-FLOW.md` from `packages/core/src/templates.ts`, so global workflow rules must live in the generator template, not only in the generated markdown.
 - The three live workflow rules are now in both ko/en templates and `pgg update` leaves `.codex/add/WOKR-FLOW.md` unchanged while updating the manifest checksum.
+- Flow runtime telemetry now drives the active flow: `stage-started` and `stage-progress` evidence after the latest completion moves that flow from `시작 전` to `생성 중`.
+- Current-flow completion no longer relies on `status: reviewed` alone; it needs `stage-commit`, verified/final `stage-completed`, trusted node `completedAt`, archive completion, or advancement to a later flow.
 
 ## User Question Record
 
@@ -148,6 +151,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - `9.png 처럼 탭의 바텀에 선이 없어야 하는데 지금은 12.png 모양 입니다.`
 - `이제는 아예 라인을 넘어갔습니다. 9.png처럼 완벽하게 라인 끝처리도 깔끔하게 그냥 100% 똑같아야 합니다.`
 - `global workflow 규칙 3줄이 pgg update를 통해 반영되지 않는거 같습니다.`
+- `각 플로우 단계가 시작전 상태인데 시작하게 되면 진행 중으로 현재 바뀌지 않는거 같습니다. 완료되면 완료 상태로도 변경 되도록 되어 잇죠?`
 
 ## Audit Applicability
 
@@ -247,6 +251,8 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - `pnpm build`: pass
 - `node packages/cli/dist/index.js update`: pass; `.codex/add/WOKR-FLOW.md` remained unchanged and manifest checksum updated
 - source check for ko/en generator template workflow rules: pass
+- source check for runtime active flow status from `stage-started`/`stage-progress`: pass
+- source check for current flow completion requiring completion evidence instead of `reviewed` alone: pass
 - source check for edge-to-edge connector geometry and removed internal connector: pass
 - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
 - source check for connector gap-inclusive end offset and circle-radius top alignment: pass
