@@ -162,10 +162,27 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
             <Tabs
               value={activeTab}
               onChange={(_event, value: HistoryTab) => setActiveTab(value)}
+              TabIndicatorProps={{ sx: { display: "none" } }}
               sx={{
+                alignSelf: "flex-start",
                 minHeight: 38,
-                "& .MuiTab-root": { minHeight: 38, px: 2.25 },
-                "& .MuiTabs-indicator": { height: 2 }
+                p: 0.35,
+                borderRadius: 1,
+                border: `1px solid ${alpha(theme.palette.primary.main, 0.16)}`,
+                bgcolor: alpha(theme.palette.background.default, theme.palette.mode === "dark" ? 0.28 : 0.56),
+                "& .MuiTabs-flexContainer": { gap: 0.35 },
+                "& .MuiTab-root": {
+                  minHeight: 32,
+                  px: 2,
+                  borderRadius: 0.8,
+                  color: "text.secondary",
+                  fontWeight: 700
+                },
+                "& .Mui-selected": {
+                  color: "primary.main",
+                  bgcolor: alpha(theme.palette.background.paper, 0.92),
+                  boxShadow: `0 1px 0 ${alpha(theme.palette.common.white, 0.04)}, 0 8px 18px ${alpha(theme.palette.common.black, 0.08)}`
+                }
               }}
             >
               <Tab id="history-tab-overview" aria-controls="history-panel-overview" value="overview" label="Overview" />
@@ -366,35 +383,26 @@ function HistoryOverview(props: {
         }}
       >
         <Stack spacing={{ xs: 1.8, md: 2.2 }}>
-          <Stack direction={{ xs: "column", xl: "row" }} spacing={1.4} sx={{ alignItems: { xs: "stretch", xl: "flex-start" }, justifyContent: "space-between" }}>
-            <Stack direction="row" spacing={1.1} sx={{ alignItems: "center", minWidth: 0 }}>
-              <Box
-                sx={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 1.5,
-                  display: "grid",
-                  placeItems: "center",
-                  color: "#5ea2ff",
-                  border: `1px solid ${alpha("#75a9ff", 0.28)}`,
-                  bgcolor: alpha("#3b82f6", 0.16),
-                  boxShadow: `0 0 18px ${alpha("#3b82f6", 0.18)}`,
-                  flexShrink: 0
-                }}
-              >
-                <AutoGraphRounded fontSize="small" />
-              </Box>
-              <Typography variant="h6" sx={{ color: "#f8fbff", fontWeight: 850, lineHeight: 1.08, minWidth: 0 }}>
-                Workflow Progress
-              </Typography>
-            </Stack>
-            <Stack direction="row" spacing={0.8} useFlexGap sx={{ flexWrap: "wrap", justifyContent: { xs: "flex-start", xl: "flex-end" }, minWidth: 0 }}>
-              <OverviewMeta title="Status" value={topicStatus(props.topic)} helper={props.topic.bucket === "archive" ? props.dictionary.archive : props.dictionary.statusInProgress} tone="success" />
-              <OverviewMeta title="Workflow Stage" value={currentStageLabel} helper={currentStageHelper} tone="primary" />
-              <OverviewMeta title="Priority" value={priority.value} helper={priority.helper} tone={priority.tone} />
-              <OverviewMeta title="Created" value={created.value} lines={created.lines} helper={created.helper} />
-              <OverviewMeta title="Updated" value={updated.value} lines={updated.lines} helper={currentFlowLabel} />
-            </Stack>
+          <Stack direction="row" spacing={1.1} sx={{ alignItems: "center", minWidth: 0 }}>
+            <Box
+              sx={{
+                width: 36,
+                height: 36,
+                borderRadius: 1.5,
+                display: "grid",
+                placeItems: "center",
+                color: "#5ea2ff",
+                border: `1px solid ${alpha("#75a9ff", 0.28)}`,
+                bgcolor: alpha("#3b82f6", 0.16),
+                boxShadow: `0 0 18px ${alpha("#3b82f6", 0.18)}`,
+                flexShrink: 0
+              }}
+            >
+              <AutoGraphRounded fontSize="small" />
+            </Box>
+            <Typography variant="h6" sx={{ color: "#f8fbff", fontWeight: 850, lineHeight: 1.08, minWidth: 0 }}>
+              Workflow Progress
+            </Typography>
           </Stack>
           <Box
             sx={{
@@ -404,18 +412,37 @@ function HistoryOverview(props: {
               alignItems: "center"
             }}
           >
-            <Box sx={workflowProgressTrackSx(stepCount)}>
-              {steps.map((step, index) => (
-                <WorkflowStepNode
-                  key={step.id}
-                  step={step}
-                  dictionary={props.dictionary}
-                  isLast={index === steps.length - 1}
-                  nextStep={steps[index + 1] ?? null}
-                  onSelect={() => setSelectedStep(step)}
-                />
-              ))}
-            </Box>
+            <Stack spacing={1.25} sx={{ minWidth: 0 }}>
+              <Box sx={workflowProgressTrackSx(stepCount)}>
+                {steps.map((step, index) => (
+                  <WorkflowStepNode
+                    key={step.id}
+                    step={step}
+                    dictionary={props.dictionary}
+                    isLast={index === steps.length - 1}
+                    nextStep={steps[index + 1] ?? null}
+                    onSelect={() => setSelectedStep(step)}
+                  />
+                ))}
+              </Box>
+              <Stack
+                direction="row"
+                spacing={0.8}
+                useFlexGap
+                sx={{
+                  flexWrap: "wrap",
+                  minWidth: 0,
+                  pt: 1.1,
+                  borderTop: `1px solid ${alpha("#8aa4d6", 0.14)}`
+                }}
+              >
+                <OverviewMeta title="Status" value={topicStatus(props.topic)} helper={props.topic.bucket === "archive" ? props.dictionary.archive : props.dictionary.statusInProgress} tone="success" />
+                <OverviewMeta title="Workflow Stage" value={currentStageLabel} helper={currentStageHelper} tone="primary" />
+                <OverviewMeta title="Priority" value={priority.value} helper={priority.helper} tone={priority.tone} />
+                <OverviewMeta title="Created" value={created.value} lines={created.lines} helper={created.helper} />
+                <OverviewMeta title="Updated" value={updated.value} lines={updated.lines} helper={currentFlowLabel} />
+              </Stack>
+            </Stack>
             <Stack
               spacing={1.4}
               sx={{

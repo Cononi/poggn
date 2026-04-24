@@ -43,6 +43,7 @@ Workflow Progress를 `add-img/5.png`의 connector/status 정확도와 `add-img/1
 - flow 이름 아래 bordered box는 제거한다.
 - 완료 time 또는 status는 small caption typography로 표시한다.
 - caption은 1-2줄 안에서 줄바꿈하고 circle/connector와 겹치지 않아야 한다.
+- Status, Workflow Stage, Priority, Created, Updated metadata card bar is placed under the workflow rail inside the Workflow Progress surface, not beside the title.
 
 ## Tooltip Contract
 

@@ -1,13 +1,13 @@
 diff --git a/poggn/active/dashboard-workflow-overview-sync/implementation/index.md b/poggn/active/dashboard-workflow-overview-sync/implementation/index.md
-index ac786fa..106094b 100644
+index 106094b..5e17c59 100644
 --- a/poggn/active/dashboard-workflow-overview-sync/implementation/index.md
 +++ b/poggn/active/dashboard-workflow-overview-sync/implementation/index.md
 @@ -5,7 +5,7 @@ pgg:
    status: "reviewed"
    skill: "pgg-code"
    score: 96
--  updated_at: "2026-04-24T18:10:22Z"
-+  updated_at: "2026-04-24T18:17:34Z"
+-  updated_at: "2026-04-24T18:17:34Z"
++  updated_at: "2026-04-24T18:26:00Z"
    auto_mode: "on"
    archive_type: "fix"
    version_bump: "patch"
@@ -15,100 +15,100 @@ index ac786fa..106094b 100644
    node_type: "doc"
    label: "implementation/index.md"
  state:
--  summary: "Workflow Progress connector geometry, four-state status model, stage-specific timestamp fallback, compact caption UI, tooltip, i18n을 보강했다."
-+  summary: "Workflow Progress connector geometry, four-state status model, stage-specific timestamp fallback, compact caption UI, tooltip, i18n, tab panel containment를 보강했다."
+-  summary: "Workflow Progress connector geometry, four-state status model, stage-specific timestamp fallback, compact caption UI, tooltip, i18n, tab panel containment를 보강했다."
++  summary: "Workflow Progress connector geometry, four-state status model, stage-specific timestamp fallback, compact caption UI, tooltip, i18n, tab panel containment, contained tabs를 보강했다."
    next: "pgg-refactor"
  ---
  
-@@ -43,6 +43,7 @@ state:
- - Status, Workflow Stage, Priority, Created, and Updated now live in the Workflow Progress title area as compact metadata; the Type card was removed from the Overview card row.
+@@ -44,6 +44,7 @@ state:
  - Created/Updated date lines now use fixed `YYYY.MM.DD` and `오전/오후 HH:MM:SS` formatting instead of locale strings split at punctuation.
  - Priority ignores non-blocking placeholder values such as `none` and uses score/workflow context as helper copy.
-+- Overview, Timeline, and Relations content now renders inside the same tab panel surface as the topic header/tabs instead of detached sibling cards.
+ - Overview, Timeline, and Relations content now renders inside the same tab panel surface as the topic header/tabs instead of detached sibling cards.
++- Overview tabs now use a contained segmented treatment, and the Status/Workflow Stage/Priority/Created/Updated metadata card bar now sits under the workflow rail inside Workflow Progress.
  - ko/en locale copy was updated for generated/current, update, count, and tooltip labels.
  - Restored the Workflow Progress header icon import and migrated compact Drawer paper styling from `PaperProps` to `slotProps.paper` to remove runtime console errors.
  
-@@ -102,6 +103,7 @@ state:
- - source check for removed `High` / `by john.doe` Overview placeholders and real data summary helpers: pass
+@@ -104,6 +105,7 @@ state:
  - source check for Created/Updated date-time lines, hidden dot, and flow-context helpers: pass
  - source check for removed Type card, title-area metadata, fixed date/time formatter, and non-placeholder Priority helper: pass
-+- source check for unified tab panel surface wrapping Overview, Timeline, and Relations content: pass
+ - source check for unified tab panel surface wrapping Overview, Timeline, and Relations content: pass
++- source check for contained tabs and metadata card bar under the workflow rail: pass
  - source check for `workflowProgressTooltip`, `historyEvents`, `stage-started`, `stage-commit`: pass
  - source check for removed `minHeight: 48` bordered time/status box pattern: pass
  
 diff --git a/poggn/active/dashboard-workflow-overview-sync/reviews/code.review.md b/poggn/active/dashboard-workflow-overview-sync/reviews/code.review.md
-index 89461ac..885e460 100644
+index 885e460..c089b4d 100644
 --- a/poggn/active/dashboard-workflow-overview-sync/reviews/code.review.md
 +++ b/poggn/active/dashboard-workflow-overview-sync/reviews/code.review.md
 @@ -5,7 +5,7 @@ pgg:
    status: "reviewed"
    skill: "pgg-code"
    score: 96
--  updated_at: "2026-04-24T18:10:22Z"
-+  updated_at: "2026-04-24T18:17:34Z"
+-  updated_at: "2026-04-24T18:17:34Z"
++  updated_at: "2026-04-24T18:26:00Z"
  ---
  
  # code.review
-@@ -23,6 +23,7 @@ pgg:
- | 데이터 모델 리뷰어 | 96 | Overview summary의 Workflow Stage fallback을 latest completed/current flow로 보정했고, Priority/Created/Updated를 score, blocking, history event, file/artifact/timestamp evidence에서 계산하도록 placeholder를 제거했다. | none |
+@@ -24,6 +24,7 @@ pgg:
  | UX 밀도 리뷰어 | 96 | Created/Updated 카드는 날짜와 시간을 두 줄로 나누고 장식 점을 숨겼다. helper는 긴 source 대신 Created=Add, Updated=현재 flow label로 줄여 카드 밀도를 유지한다. | none |
  | UI 구조 리뷰어 | 96 | Type 카드를 제거하고 Status/Workflow Stage/Priority/Created/Updated를 Workflow Progress 타이틀 영역의 compact metadata로 옮겼다. 날짜는 `YYYY.MM.DD`와 `오전/오후 HH:MM:SS`로 고정 분리된다. | none |
-+| UI 통합 리뷰어 | 96 | Overview/Timeline/Relations 콘텐츠를 topic header와 tabs가 있는 같은 `Paper`의 `tabpanel` 안으로 이동해 분리된 sibling-card 간격을 제거했다. active glow clipping 방지를 위해 outer overflow는 visible로 유지했다. | none |
+ | UI 통합 리뷰어 | 96 | Overview/Timeline/Relations 콘텐츠를 topic header와 tabs가 있는 같은 `Paper`의 `tabpanel` 안으로 이동해 분리된 sibling-card 간격을 제거했다. active glow clipping 방지를 위해 outer overflow는 visible로 유지했다. | none |
++| UI 통합 리뷰어 | 96 | Tabs를 contained segmented treatment로 바꾸고, Status/Workflow Stage/Priority/Created/Updated 카드바를 Workflow Progress 제목 옆에서 rail 아래로 이동해 workflow 영역 내부 관계를 더 명확히 했다. | none |
  
  ## Findings
  
-@@ -41,6 +42,7 @@ pgg:
- - source check for Created/Updated date-time lines, hidden dot, and flow-context helpers: pass
+@@ -43,6 +44,7 @@ pgg:
  - source check for removed Type card, title-area metadata, fixed date/time formatter, and non-placeholder Priority helper: pass
  - source check for removed bordered time/status box pattern: pass
-+- source check for unified tab panel surface wrapping Overview, Timeline, and Relations content: pass
+ - source check for unified tab panel surface wrapping Overview, Timeline, and Relations content: pass
++- source check for contained tabs and metadata card bar under the workflow rail: pass
  
  ## Residual Risks
  
 diff --git a/poggn/active/dashboard-workflow-overview-sync/state/current.md b/poggn/active/dashboard-workflow-overview-sync/state/current.md
-index 767a1d7..395d81c 100644
+index 395d81c..9973bec 100644
 --- a/poggn/active/dashboard-workflow-overview-sync/state/current.md
 +++ b/poggn/active/dashboard-workflow-overview-sync/state/current.md
 @@ -10,7 +10,7 @@ implementation
  
  ## Goal
  
--Project Workflow Overview의 progress rail 연결, compact density, caption style, flow tooltip, 진행 중 clipping 방지, 필요한 네 상태(`시작 전`, `생성 중`, `완료`, `추가 진행`), flow별 시간 독립성, stage telemetry 반영, 상태별 색 구분을 보강 구현했다.
-+Project Workflow Overview의 progress rail 연결, compact density, caption style, flow tooltip, 진행 중 clipping 방지, 필요한 네 상태(`시작 전`, `생성 중`, `완료`, `추가 진행`), flow별 시간 독립성, stage telemetry 반영, 상태별 색 구분, tab panel containment를 보강 구현했다.
+-Project Workflow Overview의 progress rail 연결, compact density, caption style, flow tooltip, 진행 중 clipping 방지, 필요한 네 상태(`시작 전`, `생성 중`, `완료`, `추가 진행`), flow별 시간 독립성, stage telemetry 반영, 상태별 색 구분, tab panel containment를 보강 구현했다.
++Project Workflow Overview의 progress rail 연결, compact density, caption style, flow tooltip, 진행 중 clipping 방지, 필요한 네 상태(`시작 전`, `생성 중`, `완료`, `추가 진행`), flow별 시간 독립성, stage telemetry 반영, 상태별 색 구분, tab panel containment, contained tabs를 보강 구현했다.
  
  ## Document Refs
  
-@@ -84,6 +84,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
- - Status, Workflow Stage, Priority, Created, and Updated moved into the Workflow Progress title area; the Type card was removed.
+@@ -85,6 +85,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
  - Created/Updated now use fixed `YYYY.MM.DD` and `오전/오후 HH:MM:SS` two-line formatting.
  - Priority ignores placeholder blocking values such as `none` and uses score/workflow context helper copy.
-+- Overview/Timeline/Relations content should render inside the topic header/tab surface so the selected tab panel does not look detached from the tab area.
+ - Overview/Timeline/Relations content should render inside the topic header/tab surface so the selected tab panel does not look detached from the tab area.
++- Tabs should use a contained/segmented treatment, and Status/Workflow Stage/Priority/Created/Updated should sit under the workflow rail inside Workflow Progress.
  - Workflow Progress compact UI removes the bordered time/status box and uses caption typography.
  - Flow nodes expose hover/focus tooltip copy through locale keys.
  - Active/revision rail uses visible overflow and fixed visual sizing to avoid clipping while preserving click target.
-@@ -98,6 +99,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
- - `진행중일때 상단이 잘리는 경양이 있는거 같습니다. 그것도 추가해주실래요?`
+@@ -100,6 +101,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
  - `만약 이번 처럼 다시 추가하는 상태가 되면 다른 색상으로 추가 요소 반영중 같은 문고로 상태를 더 넣어주실 수 있나요?`
  - `추가 할 내용이 더 생겼습니다. 플로우 이름 밑에 시간이나 상태나타내는 박스 대신 작은 글시체로 표현해줄 수 없나요? 그리고 크기가 약간 add-img의 1.png에 워크플로우 프로그래스 크기보다 살짝 큰 정도 였음 좋겠습니다. 너무 커서 그런가 부담 스럽네요. plan 클릭시 진행 상태 확인 가능 이라는 tooltip 같은 문고도 있음 좋겠습니다.`
-+- `Overview, Timeline, Relations 에 하위 컴포넌트 들이 뭔가 분리되어 있으니 자연스럽지 않은거 같습니다. 탭영역안에 포함된 것 처럼 보여줄 수 없을까요?`
+ - `Overview, Timeline, Relations 에 하위 컴포넌트 들이 뭔가 분리되어 있으니 자연스럽지 않은거 같습니다. 탭영역안에 포함된 것 처럼 보여줄 수 없을까요?`
++- `Status, Workflow Stage, Priority,Created, Updated 카드바를 같은 영역에서 워크플로우 아래에 배치 해주세요. 그리고 탭이 좀더 자연스럽게 녹아들었으면 좋겟습니다. Contained Tabs 느낌 일까요?`
  
  ## Audit Applicability
  
-@@ -187,6 +189,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
- - source check for Created/Updated date-time lines, hidden dot, and flow-context helpers: pass
+@@ -190,6 +192,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
  - source check for removed Type card, title-area metadata, fixed date/time formatter, and non-placeholder Priority helper: pass
  - source check for removed bordered time/status box pattern: pass
-+- source check for unified tab panel surface wrapping Overview, Timeline, and Relations content: pass
+ - source check for unified tab panel surface wrapping Overview, Timeline, and Relations content: pass
++- source check for contained tabs and metadata card bar under the workflow rail: pass
  
  ## Next Action
  
 diff --git a/poggn/active/dashboard-workflow-overview-sync/state/history.ndjson b/poggn/active/dashboard-workflow-overview-sync/state/history.ndjson
-index da90ea1..465bec9 100644
+index 03e4fff..26fd10a 100644
 --- a/poggn/active/dashboard-workflow-overview-sync/state/history.ndjson
 +++ b/poggn/active/dashboard-workflow-overview-sync/state/history.ndjson
-@@ -30,3 +30,5 @@
- {"ts":"2026-04-24T17:56:26Z","stage":"implementation","event":"stage-commit","archiveType":"fix","targetVersion":"2.2.3","projectLanguage":"ko","commitTitle":"fix: 2.2.3.워크플로우 개요 데이터 반영","summary":"워크플로우 개요 데이터 반영","why":"Workflow Overview의 Stage Priority Created Updated 카드가 placeholder 대신 실제 workflow와 topic evidence를 반영해야 한다","footer":"Refs: dashboard-workflow-overview-sync"}
- {"ts":"2026-04-24T18:03:23Z","stage":"implementation","event":"stage-commit","archiveType":"fix","targetVersion":"2.2.3","projectLanguage":"ko","commitTitle":"fix: 2.2.3.워크플로우 날짜 카드 정리","summary":"워크플로우 날짜 카드 정리","why":"Created와 Updated 카드가 날짜와 시간을 줄바꿈하고 불필요한 점과 긴 source helper를 제거해 workflow 맥락을 더 명확히 보여야 한다","footer":"Refs: dashboard-workflow-overview-sync"}
- {"ts":"2026-04-24T18:12:37Z","stage":"implementation","event":"stage-commit","archiveType":"fix","targetVersion":"2.2.3","projectLanguage":"ko","commitTitle":"fix: 2.2.3.워크플로우 메타 영역 정리","summary":"워크플로우 메타 영역 정리","why":"Workflow Overview의 Type 카드를 제거하고 상태 우선순위 생성 수정 정보를 타이틀 영역에 배치하며 날짜와 시간 표시를 명확히 분리해야 한다","footer":"Refs: dashboard-workflow-overview-sync"}
-+{"ts":"2026-04-24T18:17:34Z","stage":"implementation","event":"requirements-added","summary":"follow-up requested Overview Timeline and Relations content to feel contained inside the tab area","score":96,"next":"pgg-code"}
-+{"ts":"2026-04-24T18:17:34Z","stage":"implementation","event":"stage-completed","summary":"moved Overview Timeline and Relations content into a unified tab panel surface with the topic header and tabs","score":96,"next":"pgg-refactor"}
+@@ -33,3 +33,5 @@
+ {"ts":"2026-04-24T18:17:34Z","stage":"implementation","event":"requirements-added","summary":"follow-up requested Overview Timeline and Relations content to feel contained inside the tab area","score":96,"next":"pgg-code"}
+ {"ts":"2026-04-24T18:17:34Z","stage":"implementation","event":"stage-completed","summary":"moved Overview Timeline and Relations content into a unified tab panel surface with the topic header and tabs","score":96,"next":"pgg-refactor"}
+ {"ts":"2026-04-24T18:20:10Z","stage":"implementation","event":"stage-commit","archiveType":"fix","targetVersion":"2.2.3","projectLanguage":"ko","commitTitle":"fix: 2.2.3.워크플로우 탭 패널 통합","summary":"워크플로우 탭 패널 통합","why":"Overview Timeline Relations 콘텐츠가 탭 영역과 분리되어 보여 하나의 패널 안에 포함되어야 한다","footer":"Refs: dashboard-workflow-overview-sync"}
++{"ts":"2026-04-24T18:26:00Z","stage":"implementation","event":"requirements-added","summary":"follow-up requested metadata card bar under workflow rail and more natural contained tabs","score":96,"next":"pgg-code"}
++{"ts":"2026-04-24T18:26:00Z","stage":"implementation","event":"stage-completed","summary":"moved metadata card bar below workflow rail and changed tabs to contained segmented treatment","score":96,"next":"pgg-refactor"}

@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T18:17:34Z"
+  updated_at: "2026-04-24T18:26:00Z"
 ---
 
 # code.review
@@ -24,6 +24,7 @@ pgg:
 | UX 밀도 리뷰어 | 96 | Created/Updated 카드는 날짜와 시간을 두 줄로 나누고 장식 점을 숨겼다. helper는 긴 source 대신 Created=Add, Updated=현재 flow label로 줄여 카드 밀도를 유지한다. | none |
 | UI 구조 리뷰어 | 96 | Type 카드를 제거하고 Status/Workflow Stage/Priority/Created/Updated를 Workflow Progress 타이틀 영역의 compact metadata로 옮겼다. 날짜는 `YYYY.MM.DD`와 `오전/오후 HH:MM:SS`로 고정 분리된다. | none |
 | UI 통합 리뷰어 | 96 | Overview/Timeline/Relations 콘텐츠를 topic header와 tabs가 있는 같은 `Paper`의 `tabpanel` 안으로 이동해 분리된 sibling-card 간격을 제거했다. active glow clipping 방지를 위해 outer overflow는 visible로 유지했다. | none |
+| UI 통합 리뷰어 | 96 | Tabs를 contained segmented treatment로 바꾸고, Status/Workflow Stage/Priority/Created/Updated 카드바를 Workflow Progress 제목 옆에서 rail 아래로 이동해 workflow 영역 내부 관계를 더 명확히 했다. | none |
 
 ## Findings
 
@@ -43,6 +44,7 @@ pgg:
 - source check for removed Type card, title-area metadata, fixed date/time formatter, and non-placeholder Priority helper: pass
 - source check for removed bordered time/status box pattern: pass
 - source check for unified tab panel surface wrapping Overview, Timeline, and Relations content: pass
+- source check for contained tabs and metadata card bar under the workflow rail: pass
 
 ## Residual Risks
 

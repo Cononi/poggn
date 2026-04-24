@@ -10,7 +10,7 @@ implementation
 
 ## Goal
 
-Project Workflow Overview의 progress rail 연결, compact density, caption style, flow tooltip, 진행 중 clipping 방지, 필요한 네 상태(`시작 전`, `생성 중`, `완료`, `추가 진행`), flow별 시간 독립성, stage telemetry 반영, 상태별 색 구분, tab panel containment를 보강 구현했다.
+Project Workflow Overview의 progress rail 연결, compact density, caption style, flow tooltip, 진행 중 clipping 방지, 필요한 네 상태(`시작 전`, `생성 중`, `완료`, `추가 진행`), flow별 시간 독립성, stage telemetry 반영, 상태별 색 구분, tab panel containment, contained tabs를 보강 구현했다.
 
 ## Document Refs
 
@@ -85,6 +85,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - Created/Updated now use fixed `YYYY.MM.DD` and `오전/오후 HH:MM:SS` two-line formatting.
 - Priority ignores placeholder blocking values such as `none` and uses score/workflow context helper copy.
 - Overview/Timeline/Relations content should render inside the topic header/tab surface so the selected tab panel does not look detached from the tab area.
+- Tabs should use a contained/segmented treatment, and Status/Workflow Stage/Priority/Created/Updated should sit under the workflow rail inside Workflow Progress.
 - Workflow Progress compact UI removes the bordered time/status box and uses caption typography.
 - Flow nodes expose hover/focus tooltip copy through locale keys.
 - Active/revision rail uses visible overflow and fixed visual sizing to avoid clipping while preserving click target.
@@ -100,6 +101,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - `만약 이번 처럼 다시 추가하는 상태가 되면 다른 색상으로 추가 요소 반영중 같은 문고로 상태를 더 넣어주실 수 있나요?`
 - `추가 할 내용이 더 생겼습니다. 플로우 이름 밑에 시간이나 상태나타내는 박스 대신 작은 글시체로 표현해줄 수 없나요? 그리고 크기가 약간 add-img의 1.png에 워크플로우 프로그래스 크기보다 살짝 큰 정도 였음 좋겠습니다. 너무 커서 그런가 부담 스럽네요. plan 클릭시 진행 상태 확인 가능 이라는 tooltip 같은 문고도 있음 좋겠습니다.`
 - `Overview, Timeline, Relations 에 하위 컴포넌트 들이 뭔가 분리되어 있으니 자연스럽지 않은거 같습니다. 탭영역안에 포함된 것 처럼 보여줄 수 없을까요?`
+- `Status, Workflow Stage, Priority,Created, Updated 카드바를 같은 영역에서 워크플로우 아래에 배치 해주세요. 그리고 탭이 좀더 자연스럽게 녹아들었으면 좋겟습니다. Contained Tabs 느낌 일까요?`
 
 ## Audit Applicability
 
@@ -190,6 +192,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - source check for removed Type card, title-area metadata, fixed date/time formatter, and non-placeholder Priority helper: pass
 - source check for removed bordered time/status box pattern: pass
 - source check for unified tab panel surface wrapping Overview, Timeline, and Relations content: pass
+- source check for contained tabs and metadata card bar under the workflow rail: pass
 
 ## Next Action
 
