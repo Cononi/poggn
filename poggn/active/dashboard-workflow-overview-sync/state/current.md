@@ -6,7 +6,7 @@ dashboard-workflow-overview-sync
 
 ## Current Stage
 
-implementation
+refactor
 
 ## Goal
 
@@ -22,6 +22,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - task review: `poggn/active/dashboard-workflow-overview-sync/reviews/task.review.md`
 - implementation index: `poggn/active/dashboard-workflow-overview-sync/implementation/index.md`
 - code review: `poggn/active/dashboard-workflow-overview-sync/reviews/code.review.md`
+- refactor review: `poggn/active/dashboard-workflow-overview-sync/reviews/refactor.review.md`
 - spec:
   - `poggn/active/dashboard-workflow-overview-sync/spec/model/flow-timestamp-and-status-source.md`
   - `poggn/active/dashboard-workflow-overview-sync/spec/model/revision-status-model.md`
@@ -103,6 +104,8 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - Selected tab mask overflow must stay visible so the add-img/10 shape is produced instead of the clipped add-img/12 shape.
 - Panel top line is drawn as left/right segments using header padding plus tab inset, so the selected tab bottom has no line while the outside lines remain connected.
 - Panel top-line segments overlap the selected tab side borders by only 3px, hiding caps without crossing into the selected tab bottom.
+- Refactor centralized HistoryWorkspace tab geometry constants and tab-bound calculation without changing visual behavior.
+- Refactor renders Workflow Progress metadata cards from one data array to remove repeated JSX declarations.
 - Content panel top border remains visible except under the selected tab segment, where the selected tab connects to the panel.
 - New dialogue requirements should append `requirements-added` before completion evidence so live dashboard refresh can show the current flow as `추가 진행`.
 - This `requirements-added` first rule is a global pgg workflow rule for future active topics, not a one-off behavior for this topic.
@@ -174,6 +177,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 | CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` | |
 | CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/005_UPDATE_poggn_active_dashboard_workflow_overview_sync_topic_state.diff` | |
 | CREATE | `poggn/active/dashboard-workflow-overview-sync/reviews/code.review.md` | |
+| CREATE | `poggn/active/dashboard-workflow-overview-sync/reviews/refactor.review.md` | |
 | UPDATE | `packages/core/src/index.ts` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/003_UPDATE_dashboard_core_workflow_telemetry_shared.diff` |
 | UPDATE | `packages/core/dist/index.d.ts` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/003_UPDATE_dashboard_core_workflow_telemetry_shared.diff` |
 | UPDATE | `packages/core/dist/index.js` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/003_UPDATE_dashboard_core_workflow_telemetry_shared.diff` |
@@ -200,13 +204,13 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 
 ## Last Expert Score
 
-- phase: implementation
+- phase: refactor
 - score: 96
 - blocking issues: none
 
 ## Open Items
 
-- status: ready_for_refactor
+- status: ready_for_qa
 
 ## Verification
 
@@ -222,6 +226,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - spec files created: pass
 - `pnpm build`: pass
 - `./.codex/sh/pgg-gate.sh pgg-code dashboard-workflow-overview-sync`: pass
+- `./.codex/sh/pgg-gate.sh pgg-refactor dashboard-workflow-overview-sync`: pass
 - source check for removed extra status stage and retained updating telemetry/status/tooltip keys: pass
 - source check for unresolved revision status overriding completed status across flow advancement: pass
 - source check for completed-flow preservation while unresolved revision is active: pass
@@ -248,10 +253,11 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - source check for visible selected-tab mask overflow matching add-img/10: pass
 - source check for header-inset-aware panel top segments with no selected-tab bottom line: pass
 - source check for constrained tab-side overlap with clean line ends: pass
+- source check for centralized HistoryWorkspace tab geometry constants and metadata card data rendering: pass
 
 ## Next Action
 
-`pgg-refactor`
+`pgg-qa`
 
 ## Git Publish Message
 

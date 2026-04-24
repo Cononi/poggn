@@ -1,67 +1,217 @@
 diff --git a/apps/dashboard/src/features/history/HistoryWorkspace.tsx b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
-index e4bce39..f5d1dec 100644
+index f5d1dec..dfc50d4 100644
 --- a/apps/dashboard/src/features/history/HistoryWorkspace.tsx
 +++ b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
-@@ -96,10 +96,21 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
+@@ -61,6 +61,28 @@ import {
+ } from "./historyModel";
+ 
+ type HistoryTab = "overview" | "timeline" | "relations";
++type OverviewMetaTone = "success" | "primary" | "danger";
++type OverviewMetaItem = {
++  title: string;
++  value: string;
++  lines?: string[];
++  helper: string;
++  tone?: OverviewMetaTone;
++};
++
++const HISTORY_TABS: HistoryTab[] = ["overview", "timeline", "relations"];
++const HISTORY_TAB_LABELS: Record<HistoryTab, string> = {
++  overview: "Overview",
++  timeline: "Timeline",
++  relations: "Relations"
++};
++const HISTORY_TAB_WIDTH = { xs: 98, sm: 128 } as const;
++const HISTORY_TAB_HEIGHT = { xs: 42, sm: 50 } as const;
++const HISTORY_TAB_INACTIVE_HEIGHT = { xs: 34, sm: 38 } as const;
++const HISTORY_TAB_GAP = 2;
++const HISTORY_TAB_INSET = 12;
++const HISTORY_HEADER_INSET = 12;
++const HISTORY_TAB_JOIN_OVERLAP = 3;
+ 
+ type HistoryWorkspaceProps = {
+   project: ProjectSnapshot;
+@@ -74,6 +96,24 @@ type HistoryWorkspaceProps = {
+   onSelectTopic: (topicKey: string) => void;
+ };
+ 
++function historyTabIndex(tab: HistoryTab): number {
++  return HISTORY_TABS.indexOf(tab);
++}
++
++function buildHistoryTabBounds(tab: HistoryTab) {
++  const index = historyTabIndex(tab);
++  return {
++    left: {
++      xs: `${HISTORY_HEADER_INSET + HISTORY_TAB_INSET + index * (HISTORY_TAB_WIDTH.xs + HISTORY_TAB_GAP)}px`,
++      sm: `${HISTORY_HEADER_INSET + HISTORY_TAB_INSET + index * (HISTORY_TAB_WIDTH.sm + HISTORY_TAB_GAP)}px`
++    },
++    right: {
++      xs: `${HISTORY_HEADER_INSET + HISTORY_TAB_INSET + index * (HISTORY_TAB_WIDTH.xs + HISTORY_TAB_GAP) + HISTORY_TAB_WIDTH.xs}px`,
++      sm: `${HISTORY_HEADER_INSET + HISTORY_TAB_INSET + index * (HISTORY_TAB_WIDTH.sm + HISTORY_TAB_GAP) + HISTORY_TAB_WIDTH.sm}px`
++    }
++  };
++}
++
+ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
+   const theme = useTheme();
+   const [activeTab, setActiveTab] = useState<HistoryTab>("overview");
+@@ -96,21 +136,7 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
      ) : (
        <HistoryRelations topic={selectedTopic} topics={allTopics} />
      );
-+  const historyTabIndex = activeTab === "overview" ? 0 : activeTab === "timeline" ? 1 : 2;
-   const historyTabWidth = { xs: 98, sm: 128 };
-   const historyTabHeight = { xs: 42, sm: 50 };
-   const historyTabGap = 2;
-   const historyTabInset = 12;
-+  const historyHeaderInset = 12;
-+  const historyTabJoinOverlap = 3;
-+  const historyTabLeft = {
-+    xs: `${historyHeaderInset + historyTabInset + historyTabIndex * (98 + historyTabGap)}px`,
-+    sm: `${historyHeaderInset + historyTabInset + historyTabIndex * (128 + historyTabGap)}px`
-+  };
-+  const historyTabRight = {
-+    xs: `${historyHeaderInset + historyTabInset + historyTabIndex * (98 + historyTabGap) + 98}px`,
-+    sm: `${historyHeaderInset + historyTabInset + historyTabIndex * (128 + historyTabGap) + 128}px`
-+  };
+-  const historyTabIndex = activeTab === "overview" ? 0 : activeTab === "timeline" ? 1 : 2;
+-  const historyTabWidth = { xs: 98, sm: 128 };
+-  const historyTabHeight = { xs: 42, sm: 50 };
+-  const historyTabGap = 2;
+-  const historyTabInset = 12;
+-  const historyHeaderInset = 12;
+-  const historyTabJoinOverlap = 3;
+-  const historyTabLeft = {
+-    xs: `${historyHeaderInset + historyTabInset + historyTabIndex * (98 + historyTabGap)}px`,
+-    sm: `${historyHeaderInset + historyTabInset + historyTabIndex * (128 + historyTabGap)}px`
+-  };
+-  const historyTabRight = {
+-    xs: `${historyHeaderInset + historyTabInset + historyTabIndex * (98 + historyTabGap) + 98}px`,
+-    sm: `${historyHeaderInset + historyTabInset + historyTabIndex * (128 + historyTabGap) + 128}px`
+-  };
++  const historyTabBounds = buildHistoryTabBounds(activeTab);
    const historyPanelBg = alpha(theme.palette.background.default, theme.palette.mode === "dark" ? 0.18 : 0.34);
    const historyPanelBorder = alpha(theme.palette.primary.light, theme.palette.mode === "dark" ? 0.62 : 0.42);
  
-@@ -243,12 +254,39 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
-               position: "relative",
-               p: { xs: 1.2, md: 1.5 },
-               border: `2px solid ${historyPanelBorder}`,
-+              borderTop: 0,
-               borderRadius: 1,
-               borderTopLeftRadius: 0,
-               borderTopRightRadius: 0,
-               borderBottomLeftRadius: 1,
-               borderBottomRightRadius: 1,
--              bgcolor: historyPanelBg
-+              bgcolor: historyPanelBg,
-+              "&::before": {
-+                content: '""',
-+                position: "absolute",
-+                top: 0,
-+                left: 0,
-+                width: {
-+                  xs: `calc(${historyTabLeft.xs} + ${historyTabJoinOverlap}px)`,
-+                  sm: `calc(${historyTabLeft.sm} + ${historyTabJoinOverlap}px)`
-+                },
-+                height: 2,
-+                bgcolor: historyPanelBorder,
-+                pointerEvents: "none"
-+              },
-+              "&::after": {
-+                content: '""',
-+                position: "absolute",
-+                top: 0,
-+                left: {
-+                  xs: `calc(${historyTabRight.xs} - ${historyTabJoinOverlap}px)`,
-+                  sm: `calc(${historyTabRight.sm} - ${historyTabJoinOverlap}px)`
-+                },
-+                right: 0,
-+                height: 2,
-+                bgcolor: historyPanelBorder,
-+                pointerEvents: "none"
-+              }
-             }}
-           >
-             {activePanel}
+@@ -179,17 +205,16 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
+               sx={{
+                 display: "flex",
+                 alignItems: "flex-end",
+-                gap: `${historyTabGap}px`,
++                gap: `${HISTORY_TAB_GAP}px`,
+                 mt: 0.4,
+-                pl: `${historyTabInset}px`,
+-                minHeight: historyTabHeight,
++                pl: `${HISTORY_TAB_INSET}px`,
++                minHeight: HISTORY_TAB_HEIGHT,
+                 overflow: "visible",
+                 mb: "-2px"
+               }}
+             >
+-              {(["overview", "timeline", "relations"] as const).map((tab) => {
++              {HISTORY_TABS.map((tab) => {
+                 const selected = activeTab === tab;
+-                const label = tab === "overview" ? "Overview" : tab === "timeline" ? "Timeline" : "Relations";
+                 return (
+                   <ButtonBase
+                     key={tab}
+@@ -199,9 +224,9 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
+                     role="tab"
+                     onClick={() => setActiveTab(tab)}
+                     sx={{
+-                      width: historyTabWidth,
+-                      minWidth: historyTabWidth,
+-                      height: selected ? historyTabHeight : { xs: 34, sm: 38 },
++                      width: HISTORY_TAB_WIDTH,
++                      minWidth: HISTORY_TAB_WIDTH,
++                      height: selected ? HISTORY_TAB_HEIGHT : HISTORY_TAB_INACTIVE_HEIGHT,
+                       px: 0,
+                       color: selected ? "text.primary" : "text.secondary",
+                       fontWeight: selected ? 850 : 720,
+@@ -238,7 +263,7 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
+                     }}
+                   >
+                     <Typography component="span" variant="button" sx={{ fontWeight: "inherit", lineHeight: 1, letterSpacing: 0 }}>
+-                      {label}
++                      {HISTORY_TAB_LABELS[tab]}
+                     </Typography>
+                   </ButtonBase>
+                 );
+@@ -267,8 +292,8 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
+                 top: 0,
+                 left: 0,
+                 width: {
+-                  xs: `calc(${historyTabLeft.xs} + ${historyTabJoinOverlap}px)`,
+-                  sm: `calc(${historyTabLeft.sm} + ${historyTabJoinOverlap}px)`
++                  xs: `calc(${historyTabBounds.left.xs} + ${HISTORY_TAB_JOIN_OVERLAP}px)`,
++                  sm: `calc(${historyTabBounds.left.sm} + ${HISTORY_TAB_JOIN_OVERLAP}px)`
+                 },
+                 height: 2,
+                 bgcolor: historyPanelBorder,
+@@ -279,8 +304,8 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
+                 position: "absolute",
+                 top: 0,
+                 left: {
+-                  xs: `calc(${historyTabRight.xs} - ${historyTabJoinOverlap}px)`,
+-                  sm: `calc(${historyTabRight.sm} - ${historyTabJoinOverlap}px)`
++                  xs: `calc(${historyTabBounds.right.xs} - ${HISTORY_TAB_JOIN_OVERLAP}px)`,
++                  sm: `calc(${historyTabBounds.right.sm} - ${HISTORY_TAB_JOIN_OVERLAP}px)`
+                 },
+                 right: 0,
+                 height: 2,
+@@ -457,6 +482,44 @@ function HistoryOverview(props: {
+     ? `${workflowStatusLabel(currentStage, props.dictionary)} · ${progress.position} of ${steps.length} steps`
+     : `0 of ${steps.length} steps`;
+   const currentFlowLabel = currentStage ? workflowFlowLabel(currentStage.id, props.dictionary) : props.dictionary.workflowProgressFlowAdd;
++  const overviewMetaItems: OverviewMetaItem[] = [
++    {
++      title: "Status",
++      value: topicStatus(props.topic),
++      helper: props.topic.bucket === "archive" ? props.dictionary.archive : props.dictionary.statusInProgress,
++      tone: "success"
++    },
++    {
++      title: "Workflow Stage",
++      value: currentStageLabel,
++      helper: currentStageHelper,
++      tone: "primary"
++    },
++    {
++      title: "Progress",
++      value: `${progress.completion}%`,
++      helper: `${progress.completed}/${steps.length}`,
++      tone: "primary"
++    },
++    {
++      title: "Priority",
++      value: priority.value,
++      helper: priority.helper,
++      tone: priority.tone
++    },
++    {
++      title: "Created",
++      value: created.value,
++      lines: created.lines,
++      helper: created.helper
++    },
++    {
++      title: "Updated",
++      value: updated.value,
++      lines: updated.lines,
++      helper: currentFlowLabel
++    }
++  ];
+ 
+   return (
+     <Stack spacing={1.5}>
+@@ -523,12 +586,9 @@ function HistoryOverview(props: {
+                   borderTop: `1px solid ${alpha("#8aa4d6", 0.14)}`
+                 }}
+               >
+-                <OverviewMeta title="Status" value={topicStatus(props.topic)} helper={props.topic.bucket === "archive" ? props.dictionary.archive : props.dictionary.statusInProgress} tone="success" />
+-                <OverviewMeta title="Workflow Stage" value={currentStageLabel} helper={currentStageHelper} tone="primary" />
+-                <OverviewMeta title="Progress" value={`${progress.completion}%`} helper={`${progress.completed}/${steps.length}`} tone="primary" />
+-                <OverviewMeta title="Priority" value={priority.value} helper={priority.helper} tone={priority.tone} />
+-                <OverviewMeta title="Created" value={created.value} lines={created.lines} helper={created.helper} />
+-                <OverviewMeta title="Updated" value={updated.value} lines={updated.lines} helper={currentFlowLabel} />
++                {overviewMetaItems.map((item) => (
++                  <OverviewMeta key={item.title} {...item} />
++                ))}
+               </Box>
+             </Stack>
+             <Stack
+@@ -665,7 +725,7 @@ function OverviewMeta(props: {
+   value: string;
+   lines?: string[];
+   helper: string;
+-  tone?: "success" | "primary" | "danger";
++  tone?: OverviewMetaTone;
+ }) {
+   const theme = useTheme();
+   const color =

@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T22:36:16Z"
+  updated_at: "2026-04-24T22:44:26Z"
   auto_mode: "on"
   archive_type: "fix"
   version_bump: "patch"
@@ -53,6 +53,8 @@ state:
 - Selected tab mask overflow is now explicitly visible so the add-img/10 inner mask is not clipped into the add-img/12 shape.
 - Panel top border is now drawn as header-inset-aware left/right segments, so no line is drawn under the selected tab while the remaining top line stays connected.
 - Panel top-line segment overlap is constrained to 3px so the cap is hidden by the tab side border without crossing into the selected tab bottom.
+- Refactor centralized HistoryWorkspace tab geometry constants and tab-bound calculation without changing visual behavior.
+- Refactor renders Workflow Progress metadata cards from one data array to remove repeated JSX declarations.
 - Selected tab and its content panel now share one framed surface while inactive tabs remain unboxed text controls.
 - Selected tabs now use the `add-img/9.png` tab shape with rounded top corners, top/side border, matching panel fill, and no bottom border.
 - History tabs now use a custom `ButtonBase` tablist instead of MUI `Tabs`/`Tab`, removing the built-in selected underline entirely.
@@ -92,6 +94,7 @@ state:
 | UPDATE | `poggn/active/dashboard-workflow-overview-sync/state/dirty-worktree-baseline.txt` | `implementation/diffs/005_UPDATE_poggn_active_dashboard_workflow_overview_sync_topic_state.diff` |
 | UPDATE | `poggn/active/dashboard-workflow-overview-sync/state/history.ndjson` | `implementation/diffs/005_UPDATE_poggn_active_dashboard_workflow_overview_sync_topic_state.diff` |
 | UPDATE | `poggn/active/dashboard-workflow-overview-sync/workflow.reactflow.json` | `implementation/diffs/005_UPDATE_poggn_active_dashboard_workflow_overview_sync_topic_state.diff` |
+| CREATE | `poggn/active/dashboard-workflow-overview-sync/reviews/refactor.review.md` | |
 | CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/index.md` | |
 | CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/001_UPDATE_apps_dashboard_src_features_history_historyModel_ts.diff` | |
 | CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/002_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.diff` | |
@@ -116,6 +119,7 @@ state:
 
 - `pnpm build`: pass
 - `./.codex/sh/pgg-gate.sh pgg-code dashboard-workflow-overview-sync`: pass
+- `./.codex/sh/pgg-gate.sh pgg-refactor dashboard-workflow-overview-sync`: pass
 - source check for removed extra status stage and retained `workflowProgressStatusUpdating`: pass
 - source check for unresolved revision status overriding completed status across flow advancement: pass
 - source check for completed-flow preservation while unresolved revision is active: pass
@@ -141,6 +145,7 @@ state:
 - source check for visible selected-tab mask overflow matching add-img/10: pass
 - source check for header-inset-aware panel top segments with no selected-tab bottom line: pass
 - source check for constrained tab-side overlap with clean line ends: pass
+- source check for centralized HistoryWorkspace tab geometry constants and metadata card data rendering: pass
 - source check for `workflowProgressTooltip`, `historyEvents`, `stage-started`, `stage-commit`: pass
 - source check for removed `minHeight: 48` bordered time/status box pattern: pass
 
