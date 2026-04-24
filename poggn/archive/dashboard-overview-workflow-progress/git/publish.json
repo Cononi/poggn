@@ -1,0 +1,32 @@
+{
+  "topic": "dashboard-overview-workflow-progress",
+  "version": "2.2.0",
+  "targetVersion": "2.2.0",
+  "changeType": "feat",
+  "versionBump": "minor",
+  "commitTitle": "feat: 2.2.0.Overview 진행 표시 개선",
+  "commitSha": "f4eb5f17d8f21a89d78779fef4292f5755b5260d",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/2.2.0-dashboard-overview-progress",
+  "workingBranch": "ai/feat/2.2.0-dashboard-overview-progress",
+  "releaseBranch": "release/2.2.0-dashboard-overview-progress",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-24T11:34:46Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/2.2.0-dashboard-overview-progress'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "not_attempted",
+  "branchRecoveryReason": null,
+  "branchRecoveryFrom": null,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/dashboard-overview-workflow-progress",
+    "versionFile": "poggn/archive/dashboard-overview-workflow-progress/version.json"
+  }
+}
