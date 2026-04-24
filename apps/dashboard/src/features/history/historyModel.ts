@@ -18,6 +18,8 @@ export type WorkflowStep = {
   detail: string;
   command: string | null;
   files: string[];
+  fileChanges: Array<{ path: string; kind: FileChangeKind }>;
+  commits: Array<{ hash: string; title: string; author: string; time: string }>;
   refs: string[];
   events: string[];
   blockingIssues: string | null;
@@ -187,8 +189,35 @@ function topicHasFlowEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition)
   );
 }
 
+function workflowFlowIndex(flowId: WorkflowFlowId): number {
+  return workflowFlowDefinitions.findIndex((flow) => flow.id === flowId);
+}
+
+function topicCurrentFlowIndex(topic: TopicSummary): number {
+  if (topic.bucket === "archive") {
+    return workflowFlowIndex("done");
+  }
+
+  return workflowFlowIndex(normalizeFlowId(topic.stage));
+}
+
 function visibleWorkflowFlows(topic: TopicSummary): WorkflowFlowDefinition[] {
-  return workflowFlowDefinitions.filter((flow) => !flow.optional || topicHasFlowEvidence(topic, flow));
+  const currentIndex = Math.max(topicCurrentFlowIndex(topic), 0);
+
+  return workflowFlowDefinitions.filter((flow) => {
+    const flowIndex = workflowFlowIndex(flow.id);
+    const hasEvidence = topicHasFlowEvidence(topic, flow);
+
+    if (flow.optional) {
+      return hasEvidence;
+    }
+
+    if (topic.bucket === "archive") {
+      return flowIndex <= currentIndex || hasEvidence;
+    }
+
+    return flowIndex <= currentIndex || hasEvidence;
+  });
 }
 
 function resolveStageIndex(topic: TopicSummary, flows = visibleWorkflowFlows(topic)): number {
@@ -218,7 +247,7 @@ function earliestDate(values: Array<string | null | undefined>): string | null {
     .sort((left, right) => new Date(left).getTime() - new Date(right).getTime())[0] ?? null;
 }
 
-function formatDateValue(value: string | null, language: HistoryLanguage, fallback = "Pending"): string {
+function formatDateValue(value: string | null, language: HistoryLanguage, fallback = "—"): string {
   return value ? formatDate(value, language) : fallback;
 }
 
@@ -243,6 +272,17 @@ function flowNodes(topic: TopicSummary, flow: WorkflowFlowDefinition): WorkflowN
     const nodeStage = normalizeFlowId(node.data.stage ?? null);
     return nodeStage === flow.id || matchesFlowPath(flow, sourcePathForNode(node));
   });
+}
+
+function normalizeFileChangeKind(value: string | null | undefined): FileChangeKind {
+  const normalized = (value ?? "").trim().toUpperCase();
+  if (normalized === "D" || normalized === "DELETE" || normalized === "DELETED") {
+    return "D";
+  }
+  if (normalized === "M" || normalized === "UPDATE" || normalized === "UPDATED" || normalized === "MODIFY" || normalized === "MODIFIED") {
+    return "M";
+  }
+  return "A";
 }
 
 function flowArtifactUpdatedAt(topic: TopicSummary, flow: WorkflowFlowDefinition): string | null {
@@ -307,6 +347,35 @@ function flowDetail(topic: TopicSummary, flow: WorkflowFlowDefinition): string {
   return "No stage artifact";
 }
 
+function flowFileChanges(topic: TopicSummary, flow: WorkflowFlowDefinition): Array<{ path: string; kind: FileChangeKind }> {
+  const nodes = flowNodes(topic, flow);
+  const nodeCrudByPath = new Map<string, FileChangeKind>();
+  for (const node of nodes) {
+    nodeCrudByPath.set(sourcePathForNode(node), normalizeFileChangeKind(node.data.crud));
+  }
+
+  return flowFiles(topic, flow)
+    .map((file) => ({
+      path: file.relativePath,
+      kind: nodeCrudByPath.get(file.relativePath) ?? nodeCrudByPath.get(file.sourcePath) ?? "M"
+    }))
+    .slice(0, 5);
+}
+
+function flowCommits(topic: TopicSummary, flow: WorkflowFlowDefinition, language: HistoryLanguage): WorkflowStep["commits"] {
+  const refs = flowNodes(topic, flow).filter((node) => node.type === "commit" || /^git\//.test(sourcePathForNode(node)));
+  const time = formatDateValue(flowUpdatedAt(topic, flow), language);
+
+  return refs
+    .map((node) => ({
+      hash: node.id.slice(0, 7),
+      title: node.data.label ?? sourcePathForNode(node),
+      author: "workspace",
+      time
+    }))
+    .slice(0, 3);
+}
+
 function flowEvents(topic: TopicSummary, flow: WorkflowFlowDefinition, language: HistoryLanguage): string[] {
   const updatedAt = flowUpdatedAt(topic, flow);
   const files = flowFiles(topic, flow);
@@ -333,7 +402,7 @@ export function buildWorkflowSteps(topic: TopicSummary, language: HistoryLanguag
     return {
       id: flow.id,
       label: flow.label,
-      date: isComplete ? formatDateValue(updatedAt, language) : "Pending",
+      date: isComplete ? formatDateValue(updatedAt, language) : formatDateValue(updatedAt, language),
       startTime: formatDateValue(startedAt, language),
       updatedTime: formatDateValue(updatedAt, language),
       status: isComplete
@@ -346,6 +415,8 @@ export function buildWorkflowSteps(topic: TopicSummary, language: HistoryLanguag
       detail: flowDetail(topic, flow),
       command: index === nextIndex && topic.bucket !== "archive" ? flow.command : null,
       files: flowFiles(topic, flow).map((file) => file.relativePath).slice(0, 5),
+      fileChanges: flowFileChanges(topic, flow),
+      commits: flowCommits(topic, flow, language),
       refs: flowNodes(topic, flow).map((node) => sourcePathForNode(node)).slice(0, 5),
       events: flowEvents(topic, flow, language),
       blockingIssues: topic.blockingIssues
