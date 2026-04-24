@@ -1,0 +1,5 @@
+{"ts":"2026-04-24T14:42:26Z","stage":"proposal","event":"topic-created"}
+{"ts":"2026-04-24T14:42:38Z","stage":"proposal","event":"proposal-reviewed","score":94,"next":"pgg-plan"}
+{"ts":"2026-04-24T14:55:55Z","stage":"plan","event":"plan-task-reviewed","score":95,"next":"pgg-code"}
+{"ts":"2026-04-24T15:32:00Z","stage":"implementation","event":"code-reviewed","score":95,"next":"pgg-refactor"}
+{"ts":"2026-04-24T15:34:04Z","stage":"implementation","event":"stage-commit","archiveType":"fix","targetVersion":"2.2.2","projectLanguage":"ko","commitTitle":"fix: 2.2.2.진행 기준 UI 정합","summary":"진행 기준 UI 정합","why":"Workflow Progress가 reference 디자인과 task-aware 상태, i18n 문구, 상태별 강조 효과를 함께 반영하도록 구현했다","footer":"Refs: dashboard-workflow-progress-reference"}

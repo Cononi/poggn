@@ -1,0 +1,66 @@
+{
+  "topic": "dashboard-workflow-progress-reference",
+  "nodes": [
+    {
+      "id": "proposal",
+      "type": "doc",
+      "data": {
+        "label": "proposal.md",
+        "stage": "proposal",
+        "status": "reviewed",
+        "path": "poggn/active/dashboard-workflow-progress-reference/proposal.md"
+      },
+      "position": { "x": 0, "y": 0 }
+    },
+    {
+      "id": "plan",
+      "type": "doc",
+      "data": {
+        "label": "plan.md",
+        "stage": "plan",
+        "status": "reviewed",
+        "path": "poggn/active/dashboard-workflow-progress-reference/plan.md"
+      },
+      "position": { "x": 220, "y": 0 }
+    },
+    {
+      "id": "task",
+      "type": "task",
+      "data": {
+        "label": "task.md",
+        "stage": "task",
+        "status": "reviewed",
+        "path": "poggn/active/dashboard-workflow-progress-reference/task.md"
+      },
+      "position": { "x": 440, "y": 0 }
+    },
+    {
+      "id": "implementation",
+      "type": "doc",
+      "data": {
+        "label": "implementation/index.md",
+        "stage": "implementation",
+        "status": "reviewed",
+        "path": "poggn/active/dashboard-workflow-progress-reference/implementation/index.md"
+      },
+      "position": { "x": 660, "y": 0 }
+    },
+    {
+      "id": "code-review",
+      "type": "review",
+      "data": {
+        "label": "code.review.md",
+        "stage": "implementation",
+        "status": "reviewed",
+        "path": "poggn/active/dashboard-workflow-progress-reference/reviews/code.review.md"
+      },
+      "position": { "x": 880, "y": 0 }
+    }
+  ],
+  "edges": [
+    { "id": "proposal-plan", "source": "proposal", "target": "plan" },
+    { "id": "plan-task", "source": "plan", "target": "task" },
+    { "id": "task-implementation", "source": "task", "target": "implementation" },
+    { "id": "implementation-code-review", "source": "implementation", "target": "code-review" }
+  ]
+}

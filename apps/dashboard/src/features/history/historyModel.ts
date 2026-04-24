@@ -14,6 +14,7 @@ export type WorkflowStep = {
   date: string;
   startTime: string;
   updatedTime: string;
+  activeTaskIds: string[];
   status: WorkflowStatus;
   detail: string;
   command: string | null;
@@ -172,12 +173,7 @@ function matchesFlowPath(flow: WorkflowFlowDefinition, value: string): boolean {
   return flow.pathPatterns.some((pattern) => pattern.test(value));
 }
 
-function topicHasFlowEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition): boolean {
-  const stage = normalizeFlowId(topic.stage);
-  if (stage === flow.id) {
-    return true;
-  }
-
+function topicHasFlowArtifactEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition): boolean {
   return (
     topic.files.some((file) => matchesFlowPath(flow, file.relativePath) || matchesFlowPath(flow, file.sourcePath)) ||
     (topic.workflow?.nodes ?? []).some((node) => {
@@ -187,8 +183,29 @@ function topicHasFlowEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition)
   );
 }
 
+function topicHasFlowEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition): boolean {
+  return normalizeFlowId(topic.stage) === flow.id || topicHasFlowArtifactEvidence(topic, flow);
+}
+
 function visibleWorkflowFlows(topic: TopicSummary): WorkflowFlowDefinition[] {
-  return workflowFlowDefinitions.filter((flow) => !flow.optional || topicHasFlowEvidence(topic, flow));
+  const flows = workflowFlowDefinitions.filter((flow) => !flow.optional || topicHasFlowEvidence(topic, flow));
+  if (topic.bucket === "archive") {
+    return flows;
+  }
+
+  const currentFlowId = normalizeFlowId(topic.stage);
+  const currentIndex = Math.max(flows.findIndex((flow) => flow.id === currentFlowId), 0);
+  const lastStartedIndex = flows.reduce((lastIndex, flow, index) => {
+    return topicHasFlowEvidence(topic, flow) ? Math.max(lastIndex, index) : lastIndex;
+  }, currentIndex);
+  const currentFlow = flows[currentIndex];
+  const currentFlowHasActiveTasks = currentFlow ? activeTaskIdsForFlow(topic, currentFlow).length > 0 : false;
+  const shouldShowNextFlow = topicStageIsComplete(topic) && !currentFlowHasActiveTasks;
+  const lastVisibleIndex = shouldShowNextFlow
+    ? Math.min(Math.max(lastStartedIndex, currentIndex) + 1, flows.length - 1)
+    : Math.max(lastStartedIndex, currentIndex);
+
+  return flows.filter((_flow, index) => index <= lastVisibleIndex);
 }
 
 function resolveStageIndex(topic: TopicSummary, flows = visibleWorkflowFlows(topic)): number {
@@ -220,6 +237,46 @@ function earliestDate(values: Array<string | null | undefined>): string | null {
 
 function formatDateValue(value: string | null, language: HistoryLanguage, fallback = "Pending"): string {
   return value ? formatDate(value, language) : fallback;
+}
+
+function extractTaskIdsFromText(value: string | null | undefined): string[] {
+  if (!value) {
+    return [];
+  }
+
+  const ids = new Set<string>();
+  const pattern = /(?:^|[^a-z0-9])t(?:ask)?[\s_-]*(\d+)(?=$|[^a-z0-9])/gi;
+  for (const match of value.matchAll(pattern)) {
+    ids.add(`t${match[1]}`);
+  }
+  return Array.from(ids);
+}
+
+function activeTaskIdsForFlow(topic: TopicSummary, flow: WorkflowFlowDefinition): string[] {
+  const isCurrentFlow = flow.id === normalizeFlowId(topic.stage);
+  const flowRefs = [
+    ...flowNodes(topic, flow).flatMap((node) => [
+      node.id,
+      node.data.label,
+      node.data.path,
+      node.data.diffRef,
+      node.data.detail?.title,
+      node.data.detail?.sourcePath
+    ]),
+    ...flowFiles(topic, flow).flatMap((file) => [file.relativePath, file.sourcePath])
+  ];
+  const currentRefs = isCurrentFlow
+    ? [topic.nextAction, topic.goal, topic.blockingIssues, topic.status, topic.stage]
+    : [];
+  const ids = new Set<string>();
+
+  for (const source of [...currentRefs, ...flowRefs]) {
+    for (const id of extractTaskIdsFromText(source)) {
+      ids.add(id);
+    }
+  }
+
+  return Array.from(ids).sort((left, right) => Number(left.slice(1)) - Number(right.slice(1)));
 }
 
 function byLatestUpdatedAt(left: TopicFileEntry, right: TopicFileEntry): number {
@@ -323,28 +380,25 @@ export function buildWorkflowSteps(topic: TopicSummary, language: HistoryLanguag
   const flows = visibleWorkflowFlows(topic);
   const currentIndex = resolveStageIndex(topic, flows);
   const stageComplete = topicStageIsComplete(topic);
-  const nextIndex = stageComplete ? Math.min(currentIndex + 1, flows.length - 1) : currentIndex;
 
   return flows.map((flow, index) => {
-    const isComplete = topic.bucket === "archive" || index < currentIndex || (index === currentIndex && stageComplete);
+    const activeTaskIds = activeTaskIdsForFlow(topic, flow);
+    const currentFlowIsComplete = stageComplete && activeTaskIds.length === 0;
+    const isComplete = topic.bucket === "archive" || index < currentIndex || (index === currentIndex && currentFlowIsComplete);
     const updatedAt = flowUpdatedAt(topic, flow);
     const startedAt = flowStartedAt(topic, flow);
+    const status: WorkflowStatus = isComplete ? "completed" : index === currentIndex ? "current" : "pending";
 
     return {
       id: flow.id,
       label: flow.label,
-      date: isComplete ? formatDateValue(updatedAt, language) : "Pending",
+      date: isComplete ? formatDateValue(updatedAt, language) : "",
       startTime: formatDateValue(startedAt, language),
       updatedTime: formatDateValue(updatedAt, language),
-      status: isComplete
-        ? "completed"
-        : index === nextIndex && stageComplete
-          ? "next"
-          : index === currentIndex
-            ? "current"
-            : "pending",
+      activeTaskIds,
+      status,
       detail: flowDetail(topic, flow),
-      command: index === nextIndex && topic.bucket !== "archive" ? flow.command : null,
+      command: status !== "completed" && topic.bucket !== "archive" ? flow.command : null,
       files: flowFiles(topic, flow).map((file) => file.relativePath).slice(0, 5),
       refs: flowNodes(topic, flow).map((node) => sourcePathForNode(node)).slice(0, 5),
       events: flowEvents(topic, flow, language),

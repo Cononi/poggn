@@ -1,0 +1,499 @@
+diff --git a/apps/dashboard/src/features/history/HistoryWorkspace.tsx b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
+index 7091cba..cef8427 100644
+--- a/apps/dashboard/src/features/history/HistoryWorkspace.tsx
++++ b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
+@@ -20,7 +20,10 @@ import {
+   Typography
+ } from "@mui/material";
+ import ChevronRightRounded from "@mui/icons-material/ChevronRightRounded";
++import AutoGraphRounded from "@mui/icons-material/AutoGraphRounded";
++import CheckRounded from "@mui/icons-material/CheckRounded";
+ import CloseRounded from "@mui/icons-material/CloseRounded";
++import CodeRounded from "@mui/icons-material/CodeRounded";
+ import DescriptionRounded from "@mui/icons-material/DescriptionRounded";
+ import DifferenceRounded from "@mui/icons-material/DifferenceRounded";
+ import DownloadRounded from "@mui/icons-material/DownloadRounded";
+@@ -310,7 +313,6 @@ function HistoryOverview(props: {
+   language: "ko" | "en";
+   dictionary: DashboardLocale;
+ }) {
+-  const theme = useTheme();
+   const [selectedStep, setSelectedStep] = useState<WorkflowStep | null>(null);
+   const steps = buildWorkflowSteps(props.topic, props.language);
+   const stepCount = Math.max(steps.length, 1);
+@@ -327,41 +329,84 @@ function HistoryOverview(props: {
+           gridTemplateColumns: { xs: "repeat(2, minmax(0, 1fr))", lg: "repeat(6, minmax(0, 1fr))" }
+         }}
+       >
+-        <OverviewStat title="Status" value={topicStatus(props.topic)} helper={props.topic.bucket === "archive" ? "Archived" : "In Progress"} tone="success" />
+-        <OverviewStat title="Workflow Stage" value={progress.current?.label ?? "Add"} helper={`${progress.position} of ${steps.length} steps`} tone="primary" />
++        <OverviewStat title="Status" value={topicStatus(props.topic)} helper={props.topic.bucket === "archive" ? props.dictionary.archive : props.dictionary.statusInProgress} tone="success" />
++        <OverviewStat title="Workflow Stage" value={progress.current ? workflowFlowLabel(progress.current.id, props.dictionary) : props.dictionary.workflowProgressFlowAdd} helper={`${progress.position} of ${steps.length} steps`} tone="primary" />
+         <OverviewStat title="Type" value={topicType(props.topic)} helper="Feature" tone="primary" />
+         <OverviewStat title="Priority" value="High" helper="" tone="danger" />
+         <OverviewStat title="Created" value={updatedLabel} helper="by john.doe" />
+         <OverviewStat title="Updated" value={updatedLabel} helper="by john.doe" />
+       </Box>
+ 
+-      <Paper sx={{ p: 1.8, borderRadius: 1 }}>
+-        <Stack spacing={2}>
+-          <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+-            Workflow Progress
+-          </Typography>
++      <Paper
++        sx={{
++          p: { xs: 1.6, md: 2.4 },
++          borderRadius: 2,
++          border: `1px solid ${alpha("#8aa4d6", 0.26)}`,
++          bgcolor: "#071428",
++          boxShadow: `inset 0 1px 0 ${alpha("#ffffff", 0.05)}, 0 18px 42px ${alpha("#020617", 0.28)}`
++        }}
++      >
++        <Stack spacing={{ xs: 2.4, md: 3 }}>
++          <Stack direction="row" spacing={1.4} sx={{ alignItems: "center" }}>
++            <Box
++              sx={{
++                width: 44,
++                height: 44,
++                borderRadius: 1.5,
++                display: "grid",
++                placeItems: "center",
++                color: "#5ea2ff",
++                border: `1px solid ${alpha("#75a9ff", 0.28)}`,
++                bgcolor: alpha("#3b82f6", 0.16),
++                boxShadow: `0 0 18px ${alpha("#3b82f6", 0.18)}`
++              }}
++            >
++              <AutoGraphRounded fontSize="small" />
++            </Box>
++            <Typography variant="h4" sx={{ color: "#f8fbff", fontWeight: 900, lineHeight: 1.05 }}>
++              Workflow Progress
++            </Typography>
++          </Stack>
+           <Box
+             sx={{
+               display: "grid",
+-              gap: 2,
+-              gridTemplateColumns: { xs: "1fr", xl: "minmax(0, 1fr) 280px" },
++              gap: { xs: 2.4, xl: 3 },
++              gridTemplateColumns: { xs: "1fr", xl: "minmax(0, 1fr) 312px" },
+               alignItems: "center"
+             }}
+           >
+-            <Box
+-              sx={workflowProgressTrackSx(theme, stepCount)}
+-            >
+-              {steps.map((step) => (
+-                <WorkflowStepNode key={step.id} step={step} onSelect={() => setSelectedStep(step)} />
++            <Box sx={workflowProgressTrackSx(stepCount)}>
++              {steps.map((step, index) => (
++                <WorkflowStepNode
++                  key={step.id}
++                  step={step}
++                  dictionary={props.dictionary}
++                  isLast={index === steps.length - 1}
++                  nextStep={steps[index + 1] ?? null}
++                  onSelect={() => setSelectedStep(step)}
++                />
+               ))}
+             </Box>
+             <Stack
+-              direction="row"
+-              spacing={{ xs: 1.2, sm: 2 }}
+-              sx={{ alignItems: "center", justifyContent: "center", minWidth: 0, flexWrap: "wrap" }}
++              spacing={2}
++              sx={{
++                alignItems: "center",
++                justifyContent: "center",
++                minWidth: 0,
++                borderLeft: { xs: 0, xl: `1px solid ${alpha("#8aa4d6", 0.16)}` },
++                pt: { xs: 2, xl: 0 },
++                pl: { xs: 0, xl: 3 },
++                borderTop: { xs: `1px solid ${alpha("#8aa4d6", 0.16)}`, xl: 0 }
++              }}
+             >
+-              <WorkflowProgressChart completed={progress.completed} active={progress.active} pending={progress.pending} completion={progress.completion} />
+-              <WorkflowProgressCounts completed={progress.completed} active={progress.active} pending={progress.pending} />
++              <WorkflowProgressChart
++                completed={progress.completed}
++                active={progress.active}
++                pending={progress.pending}
++                completion={progress.completion}
++                dictionary={props.dictionary}
++              />
++              <WorkflowProgressCounts completed={progress.completed} active={progress.active} pending={progress.pending} dictionary={props.dictionary} />
+             </Stack>
+           </Box>
+         </Stack>
+@@ -423,29 +468,20 @@ function HistoryOverview(props: {
+           </Box>
+         ))}
+       </SummaryPanel>
+-      <WorkflowLogDialog step={selectedStep} onClose={() => setSelectedStep(null)} />
++      <WorkflowLogDialog step={selectedStep} dictionary={props.dictionary} onClose={() => setSelectedStep(null)} />
+     </Stack>
+   );
+ }
+ 
+-function workflowProgressTrackSx(theme: Theme, stepCount: number) {
+-  const connectorInset = `${50 / stepCount}% + 2px`;
+-
++function workflowProgressTrackSx(stepCount: number) {
+   return {
+     display: "grid",
+     gridTemplateColumns: `repeat(${stepCount}, minmax(0, 1fr))`,
+-    gap: { xs: 0.35, sm: 0.75, md: 1 },
++    gap: { xs: 0.75, sm: 1, md: 1.3 },
+     position: "relative",
+     minWidth: 0,
+-    px: { xs: 0.3, sm: 0.6 },
+-    "&::before": {
+-      content: "\"\"",
+-      position: "absolute",
+-      left: `calc(${connectorInset})`,
+-      right: `calc(${connectorInset})`,
+-      top: { xs: 26, sm: 31, md: 35 },
+-      borderTop: `2px solid ${alpha(theme.palette.divider, 0.9)}`
+-    }
++    px: { xs: 0, md: 0.6 },
++    overflow: "hidden"
+   };
+ }
+ 
+@@ -495,57 +531,175 @@ function OverviewStat(props: {
+   );
+ }
+ 
+-function WorkflowStepNode(props: { step: WorkflowStep; onSelect: () => void }) {
++function workflowFlowLabel(id: WorkflowStep["id"], dictionary: DashboardLocale): string {
++  const labels: Record<WorkflowStep["id"], string> = {
++    add: dictionary.workflowProgressFlowAdd,
++    plan: dictionary.workflowProgressFlowPlan,
++    code: dictionary.workflowProgressFlowCode,
++    refactor: dictionary.workflowProgressFlowRefactor,
++    performance: dictionary.workflowProgressFlowPerformance,
++    qa: dictionary.workflowProgressFlowQa,
++    done: dictionary.workflowProgressFlowDone
++  };
++  return labels[id] ?? id;
++}
++
++function workflowStatusLabel(step: WorkflowStep, dictionary: DashboardLocale): string {
++  if (step.status === "completed") {
++    return dictionary.workflowProgressStatusCompleted;
++  }
++  if (isActiveWorkflowStep(step)) {
++    return dictionary.workflowProgressStatusCurrent;
++  }
++  return dictionary.workflowProgressStatusPending;
++}
++
++function workflowStepSurfaceLabel(step: WorkflowStep, dictionary: DashboardLocale): string {
++  const status = workflowStatusLabel(step, dictionary);
++  if (isActiveWorkflowStep(step) && step.activeTaskIds.length) {
++    return `${workflowFlowLabel(step.id, dictionary)} ${step.activeTaskIds.join(",")} ${status}`;
++  }
++  return status;
++}
++
++function workflowStepColors(theme: Theme, step: WorkflowStep) {
++  if (step.status === "completed") {
++    return {
++      main: theme.palette.success.main,
++      soft: alpha(theme.palette.success.main, 0.18),
++      border: alpha(theme.palette.success.light, 0.9),
++      shadow: alpha(theme.palette.success.main, 0.46)
++    };
++  }
++  if (isActiveWorkflowStep(step)) {
++    return {
++      main: theme.palette.primary.main,
++      soft: alpha(theme.palette.primary.main, 0.22),
++      border: alpha(theme.palette.primary.light, 0.95),
++      shadow: alpha(theme.palette.primary.main, 0.62)
++    };
++  }
++  return {
++    main: alpha("#b7c3d8", 0.86),
++    soft: alpha("#64748b", 0.18),
++    border: alpha("#7f8da4", 0.42),
++    shadow: alpha("#64748b", 0.1)
++  };
++}
++
++function connectorSx(theme: Theme, step: WorkflowStep, nextStep: WorkflowStep | null) {
++  if (!nextStep) {
++    return {};
++  }
++
++  const nextIsActive = isActiveWorkflowStep(nextStep);
++  const color = nextIsActive
++    ? theme.palette.primary.main
++    : step.status === "completed" && nextStep.status === "completed"
++      ? theme.palette.success.main
++      : alpha("#8b9ab1", 0.5);
++
++  return {
++    content: "\"\"",
++    position: "absolute",
++    left: "calc(50% + 34px)",
++    right: "calc(-50% + 34px)",
++    top: { xs: 28, sm: 35, md: 40 },
++    height: 4,
++    borderRadius: 999,
++    bgcolor: nextStep.status === "pending" && !nextIsActive ? "transparent" : color,
++    borderTop: nextStep.status === "pending" && !nextIsActive ? `4px dotted ${color}` : 0,
++    boxShadow: nextIsActive || step.status === "completed" ? `0 0 14px ${alpha(color, 0.42)}` : "none"
++  };
++}
++
++function WorkflowStepNode(props: {
++  step: WorkflowStep;
++  dictionary: DashboardLocale;
++  isLast: boolean;
++  nextStep: WorkflowStep | null;
++  onSelect: () => void;
++}) {
+   const theme = useTheme();
+-  const color = workflowStepColor(theme, props.step);
++  const colors = workflowStepColors(theme, props.step);
++  const label = workflowFlowLabel(props.step.id, props.dictionary);
++  const statusLabel = workflowStepSurfaceLabel(props.step, props.dictionary);
+ 
+   return (
+     <Stack
+-      spacing={0.55}
++      spacing={1}
+       sx={{
+         alignItems: "center",
+         minWidth: 0,
+         position: "relative",
+-        zIndex: 1
++        zIndex: 1,
++        "&::after": props.isLast ? {} : connectorSx(theme, props.step, props.nextStep)
+       }}
+     >
+       <ButtonBase
+         onClick={props.onSelect}
+-        aria-label={`${props.step.label} ${props.step.date}`}
++        aria-label={`${label} ${statusLabel}`}
+         sx={{
+-          width: { xs: 46, sm: 56, md: 64 },
+-          height: { xs: 46, sm: 56, md: 64 },
++          width: { xs: 56, sm: 70, md: 80 },
++          height: { xs: 56, sm: 70, md: 80 },
+           borderRadius: "50%",
+-          border: `2px solid ${props.step.status === "pending" ? alpha(theme.palette.text.secondary, 0.34) : color}`,
+-          bgcolor: props.step.status === "next" ? alpha(color, 0.16) : theme.palette.background.paper,
+-          boxShadow: props.step.status === "next" ? `0 0 0 4px ${alpha(color, 0.12)}` : "none",
+-          color,
++          border: `2px solid ${colors.border}`,
++          bgcolor: props.step.status === "pending" ? "#0b1729" : colors.soft,
++          boxShadow: [
++            `0 0 0 5px ${alpha(colors.main, isActiveWorkflowStep(props.step) ? 0.22 : 0.1)}`,
++            `0 0 28px ${colors.shadow}`,
++            isActiveWorkflowStep(props.step) ? `inset 0 0 20px ${alpha(colors.main, 0.34)}` : "none"
++          ].join(", "),
++          color: colors.main,
+           textAlign: "center",
++          position: "relative",
++          zIndex: 2,
++          animation: isActiveWorkflowStep(props.step) ? "workflowPulse 1.9s ease-in-out infinite" : "none",
+           "&:focus-visible": {
+-            outline: `2px solid ${alpha(color, 0.72)}`,
++            outline: `2px solid ${alpha(colors.main, 0.72)}`,
+             outlineOffset: 2
++          },
++          "@keyframes workflowPulse": {
++            "0%, 100%": { transform: "scale(1)", boxShadow: `0 0 0 5px ${alpha(colors.main, 0.18)}, 0 0 28px ${colors.shadow}` },
++            "50%": { transform: "scale(1.04)", boxShadow: `0 0 0 9px ${alpha(colors.main, 0.12)}, 0 0 34px ${colors.shadow}` }
++          },
++          "@media (prefers-reduced-motion: reduce)": {
++            animation: "none"
+           }
+         }}
+       >
+-        <Box sx={{ width: { xs: 10, sm: 12 }, height: { xs: 10, sm: 12 }, borderRadius: "50%", bgcolor: color }} />
++        {props.step.status === "completed" ? (
++          <CheckRounded sx={{ fontSize: { xs: 28, md: 34 } }} />
++        ) : isActiveWorkflowStep(props.step) ? (
++          <CodeRounded sx={{ fontSize: { xs: 28, md: 34 } }} />
++        ) : (
++          <Box sx={{ width: { xs: 12, md: 16 }, height: { xs: 12, md: 16 }, borderRadius: "50%", bgcolor: colors.main }} />
++        )}
+       </ButtonBase>
+-      <Typography variant="caption" sx={{ fontWeight: 800, lineHeight: 1.15, textAlign: "center", overflowWrap: "anywhere" }}>
+-        {props.step.label}
++      <Typography variant="subtitle1" sx={{ color: "#f8fbff", fontWeight: 900, lineHeight: 1.1, textAlign: "center", overflowWrap: "anywhere" }}>
++        {label}
+       </Typography>
+-      <Typography
+-        variant="caption"
+-        color="text.secondary"
++      <Box
+         sx={{
+-          width: "100%",
+-          maxWidth: { xs: 56, sm: 72, md: 88 },
+-          lineHeight: 1.15,
+-          minHeight: { xs: 28, sm: 32 },
++          minHeight: 48,
++          px: 1.1,
++          py: 0.7,
++          borderRadius: 1,
++          minWidth: { xs: 76, md: 96 },
++          maxWidth: 124,
+           textAlign: "center",
+-          overflowWrap: "anywhere"
++          color: props.step.status === "completed" ? alpha("#f8fbff", 0.78) : props.step.status === "pending" ? alpha("#d7deea", 0.78) : "#f8fbff",
++          border: `1px solid ${props.step.status === "completed" ? alpha("#7dd3a5", 0.18) : colors.border}`,
++          bgcolor: props.step.status === "completed" ? alpha("#0f1c31", 0.8) : colors.soft,
++          boxShadow: isActiveWorkflowStep(props.step) ? `0 0 18px ${alpha(colors.main, 0.18)}` : "none",
++          display: "grid",
++          placeItems: "center"
+         }}
+       >
+-        {props.step.date}
+-      </Typography>
++        <Typography variant="body2" sx={{ fontWeight: isActiveWorkflowStep(props.step) ? 800 : 600, lineHeight: 1.15, overflowWrap: "anywhere" }}>
++          {props.step.status === "completed" ? props.step.date || props.dictionary.unknown : statusLabel}
++        </Typography>
++      </Box>
+     </Stack>
+   );
+ }
+@@ -554,36 +708,26 @@ function isActiveWorkflowStep(step: WorkflowStep): boolean {
+   return step.status === "current" || step.status === "next";
+ }
+ 
+-function workflowStepColor(theme: Theme, step: WorkflowStep): string {
+-  if (step.status === "completed") {
+-    return theme.palette.success.main;
+-  }
+-  if (isActiveWorkflowStep(step)) {
+-    return theme.palette.primary.main;
+-  }
+-  return theme.palette.text.secondary;
+-}
+-
+-function WorkflowProgressChart(props: { completed: number; active: number; pending: number; completion: number }) {
++function WorkflowProgressChart(props: { completed: number; active: number; pending: number; completion: number; dictionary: DashboardLocale }) {
+   const theme = useTheme();
+   const data = [
+-    { id: "completed", value: props.completed, label: "Done", color: theme.palette.success.main },
+-    { id: "active", value: props.active, label: "Active", color: theme.palette.primary.main },
+-    { id: "pending", value: props.pending, label: "Waiting", color: theme.palette.text.secondary }
++    { id: "completed", value: props.completed, label: props.dictionary.workflowProgressStatusCompleted, color: theme.palette.success.main },
++    { id: "active", value: props.active, label: props.dictionary.workflowProgressStatusCurrent, color: theme.palette.primary.main },
++    { id: "pending", value: props.pending, label: props.dictionary.workflowProgressStatusPending, color: alpha("#94a3b8", 0.72) }
+   ].filter((item) => item.value > 0);
+ 
+   return (
+-    <Box sx={{ width: 136, height: 136, position: "relative", flexShrink: 0 }}>
++    <Box sx={{ width: 166, height: 166, position: "relative", flexShrink: 0 }}>
+       <PieChart
+-        width={136}
+-        height={136}
++        width={166}
++        height={166}
+         series={[
+           {
+-            data: data.length ? data : [{ id: "empty", value: 1, label: "Pending", color: alpha(theme.palette.text.secondary, 0.32) }],
+-            innerRadius: 45,
+-            outerRadius: 64,
+-            paddingAngle: 2,
+-            cornerRadius: 4
++            data: data.length ? data : [{ id: "empty", value: 1, label: props.dictionary.workflowProgressStatusPending, color: alpha("#94a3b8", 0.32) }],
++            innerRadius: 62,
++            outerRadius: 80,
++            paddingAngle: 4,
++            cornerRadius: 7
+           }
+         ]}
+         hideLegend
+@@ -591,11 +735,11 @@ function WorkflowProgressChart(props: { completed: number; active: number; pendi
+       />
+       <Box sx={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", pointerEvents: "none" }}>
+         <Stack spacing={0.2} sx={{ alignItems: "center" }}>
+-          <Typography variant="h4" sx={{ fontWeight: 800, lineHeight: 1 }}>
++          <Typography variant="h3" sx={{ color: "#ffffff", fontWeight: 900, lineHeight: 1 }}>
+             {props.completion}%
+           </Typography>
+-          <Typography variant="caption" color="text.secondary">
+-            {props.completed} completed
++          <Typography variant="body2" sx={{ color: alpha("#f8fbff", 0.84), fontWeight: 600 }}>
++            {props.completed} {props.dictionary.workflowProgressCompletedSummary}
+           </Typography>
+         </Stack>
+       </Box>
+@@ -603,27 +747,42 @@ function WorkflowProgressChart(props: { completed: number; active: number; pendi
+   );
+ }
+ 
+-function WorkflowProgressCounts(props: { completed: number; active: number; pending: number }) {
++function WorkflowProgressCounts(props: { completed: number; active: number; pending: number; dictionary: DashboardLocale }) {
+   const theme = useTheme();
+   const counts = [
+-    { id: "done", color: theme.palette.success.main, value: props.completed },
+-    { id: "active", color: theme.palette.primary.main, value: props.active },
+-    { id: "waiting", color: theme.palette.text.secondary, value: props.pending }
++    { id: "done", color: theme.palette.success.main, value: props.completed, label: props.dictionary.workflowProgressCountCompleted },
++    { id: "active", color: theme.palette.primary.main, value: props.active, label: props.dictionary.workflowProgressCountCurrent },
++    { id: "waiting", color: alpha("#94a3b8", 0.9), value: props.pending, label: props.dictionary.workflowProgressCountPending }
+   ];
+ 
+   return (
+     <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap", justifyContent: "center", minWidth: 0 }}>
+       {counts.map((item) => (
+-        <Stack key={item.id} direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
+-          <Box sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: item.color }} />
+-          <Typography variant="body2" sx={{ fontWeight: 700 }}>{item.value}</Typography>
++        <Stack
++          key={item.id}
++          spacing={0.35}
++          sx={{
++            minWidth: 74,
++            px: 1.2,
++            py: 1,
++            borderRadius: 1,
++            alignItems: "center",
++            border: `1px solid ${alpha(item.color, item.id === "done" ? 0.45 : 0.18)}`,
++            bgcolor: alpha(item.color, item.id === "done" ? 0.14 : 0.08)
++          }}
++        >
++          <Stack direction="row" spacing={0.65} sx={{ alignItems: "center" }}>
++            <Box sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: item.color }} />
++            <Typography variant="h6" sx={{ color: item.color, fontWeight: 900, lineHeight: 1 }}>{item.value}</Typography>
++          </Stack>
++          <Typography variant="caption" sx={{ color: alpha("#f8fbff", 0.76), fontWeight: 600 }}>{item.label}</Typography>
+         </Stack>
+       ))}
+     </Stack>
+   );
+ }
+ 
+-function WorkflowLogDialog(props: { step: WorkflowStep | null; onClose: () => void }) {
++function WorkflowLogDialog(props: { step: WorkflowStep | null; dictionary: DashboardLocale; onClose: () => void }) {
+   const open = Boolean(props.step);
+   const step = props.step;
+ 
+@@ -632,9 +791,9 @@ function WorkflowLogDialog(props: { step: WorkflowStep | null; onClose: () => vo
+       <DialogTitle sx={{ pr: 6 }}>
+         <Stack spacing={0.4}>
+           <Typography variant="h6" sx={{ fontWeight: 800 }}>
+-            {step?.label ?? "Workflow"} log
++            {step ? workflowFlowLabel(step.id, props.dictionary) : props.dictionary.workflow} log
+           </Typography>
+-          {step ? <Typography variant="body2" color="text.secondary">{step.status}</Typography> : null}
++          {step ? <Typography variant="body2" color="text.secondary">{workflowStatusLabel(step, props.dictionary)}</Typography> : null}
+         </Stack>
+         <IconButton
+           aria-label="Close"
+@@ -648,7 +807,7 @@ function WorkflowLogDialog(props: { step: WorkflowStep | null; onClose: () => vo
+       <DialogContent dividers>
+         {step ? (
+           <Stack spacing={1.3}>
+-            <KeyValue label="Status" value={step.status} />
++            <KeyValue label="Status" value={workflowStatusLabel(step, props.dictionary)} />
+             <KeyValue label="Start Time" value={step.startTime} />
+             <KeyValue label="Updated Time" value={step.updatedTime} />
+             <KeyValue label="Detail" value={step.detail} />
