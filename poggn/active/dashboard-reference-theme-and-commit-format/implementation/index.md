@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T05:52:32Z"
+  updated_at: "2026-04-24T06:26:09Z"
 ---
 
 # Implementation Index
@@ -36,6 +36,9 @@ pgg:
 | 022 | UPDATE | `packages/core/test/version-history.test.mjs` | `implementation/diffs/022_UPDATE_packages_core_test_version-history_test_mjs.diff` | `T4,T5` | State-pack publish message fixture now uses version-dot subject text. |
 | 023 | UPDATE | `pnpm-lock.yaml` | `implementation/diffs/023_UPDATE_pnpm-lock_yaml.diff` | `T3` | Lockfile updated for `@mui/x-charts`. |
 | 024 | UPDATE | `apps/dashboard/src/features/backlog/InsightsRail.tsx` | `implementation/diffs/024_UPDATE_apps_dashboard_src_features_backlog_InsightsRail_tsx.refactor.diff` | `T2,T3` | Refactored repeated rail panel styling and donut data/percentage helpers without changing the insights layout or data. |
+| 025 | CREATE | `poggn/active/dashboard-reference-theme-and-commit-format/token/report.md` | `implementation/diffs/025_CREATE_token_report_md.diff` | `T5` | Required `pgg-token` audit measured workflow/helper/template and handoff token contributors, confirming `pgg-state-pack.sh` output cuts naive full-doc handoff by about 88.3%. |
+| 026 | CREATE | `poggn/active/dashboard-reference-theme-and-commit-format/performance/report.md` | `implementation/diffs/026_CREATE_performance_report_md.diff` | `T3,T5` | Required `pgg-performance` audit measured dashboard build time, JS/CSS/static asset sizes, chart layout stability, visualization dependency scope, and manual browser latency deferrals. |
+| 027 | CREATE | `poggn/active/dashboard-reference-theme-and-commit-format/qa/report.md` | `implementation/diffs/027_CREATE_qa_report_md.diff` | `T5` | Final QA recorded build/test/gate evidence, audit applicability, expert judgment, pass decision, Git Publish Message, and residual JS chunk/manual browser verification risks. |
 
 ## Verification
 

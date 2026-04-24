@@ -1,0 +1,83 @@
+diff --git a/poggn/active/dashboard-reference-theme-and-commit-format/performance/report.md b/poggn/active/dashboard-reference-theme-and-commit-format/performance/report.md
+new file mode 100644
+index 0000000..3516a24
+--- /dev/null
++++ b/poggn/active/dashboard-reference-theme-and-commit-format/performance/report.md
+@@ -0,0 +1,77 @@
++---
++pgg:
++  topic: "dashboard-reference-theme-and-commit-format"
++  stage: "performance"
++  status: "reviewed"
++  skill: "pgg-performance"
++  score: 88
++  updated_at: "2026-04-24T06:14:31Z"
++state:
++  summary: "dashboard build는 통과했지만 MUI chart 도입 후 단일 JS chunk가 2,006.87kB raw / 640.18kB gzip으로 커져 code splitting 후속 개선이 필요하다."
++  next: "pgg-qa"
++---
++
++# performance.report
++
++## Expert Notes
++
++| Expert | Score | Summary | Blocking |
++|---|---:|---|---|
++| QA/테스트 엔지니어 | 88 | production build는 4회 모두 통과했고 chart surface는 고정 치수로 배치 안정성을 확보했다. 브라우저 profiler가 없어 실제 interaction latency는 manual verification required로 남긴다. | 없음 |
++| 시니어 백엔드 엔지니어 | 88 | `@mui/x-charts`가 d3 계열 transitive dependency를 끌고 들어오며 단일 JS chunk가 2MB raw까지 커졌다. route/feature split 없이 한 chunk로 묶이는 점이 가장 큰 병목이다. | 없음 |
++| SRE / 운영 엔지니어 | 88 | runtime server/DB 성능 항목은 범위 밖이다. 정적 `dashboard-data.json`도 1.69MB raw라 static fallback 환경의 initial data transfer 비용을 QA residual risk로 유지해야 한다. | 없음 |
++
++## Environment
++
++- project scope: `current-project`
++- verification mode: `manual`
++- manual reason: `.pgg/project.json` verification mode is `manual` and no commands are declared.
++- measured commands:
++  - `pnpm --filter @pgg/dashboard build` via Node timing loop, 3회
++  - `pnpm --filter @pgg/dashboard build` via `spawnSync`, 1회 warning capture
++  - `find apps/dashboard/dist -type f -maxdepth 3 -printf '%p %s bytes\n'`
++  - `node --input-type=module -e <dist raw/gzip byte measurement>`
++  - `rg -n "BarChart|PieChart|height=|width=|useMemo|memo" apps/dashboard/src/...`
++- run count:
++  - dashboard build: 4회
++  - dist size measurement: 2회
++  - source scan: 2회
++- measurement method:
++  - build wall time: Node `performance.now()`로 `pnpm --filter @pgg/dashboard build` 3회 반복 측정
++  - bundle size: Vite build output, filesystem byte size, Node `zlib.gzipSync` size
++  - chart/render structure: `InsightsRail.tsx`, `ProjectListBoard.tsx`, `DashboardApp.tsx` source inspection
++
++## Applicable Measurements
++
++| Item | Applicability | Baseline | Target | Actual Result | Measurement Method |
++|---|---|---|---|---|---|
++| production build wall time | applicable | 첫 측정 1967.58ms | build pass, local average 2500ms 이하 | 평균 1795.09ms, 3회 모두 target 충족 | Node `performance.now()` timing loop |
++| Vite production build result | applicable | audit 시작 시 final artifact 재검증 필요 | exit code 0 | pass, 4회 모두 exit code 0 | `pnpm --filter @pgg/dashboard build` |
++| JS bundle size | applicable | 이전 dashboard audit의 tracked warning chunk는 638.04kB raw였고, 이번 audit 첫 측정은 2,006.87kB raw | Vite 500kB chunk warning 해소 또는 증가 원인 기록 | target 미충족. 단일 JS chunk 2,006.87kB raw / 640.18kB gzip, Vite chunk warning 발생 | Vite output + file stat 2,006,877 bytes / gzip 635,566 bytes |
++| CSS bundle size | applicable | audit 첫 측정 15.39kB raw | raw 20kB 이하 | pass. 15.39kB raw / 2.55kB gzip | Vite output + file stat 15,395 bytes / gzip 2,536 bytes |
++| static fallback data size | applicable | audit 첫 측정 1,693,554 bytes raw | growth 원인 기록, QA residual risk로 유지 | 1,693,554 bytes raw / 313,776 bytes gzip. 리스킨 자체 변경은 아니지만 static fallback initial transfer 비용이 큼 | `dashboard-data.json` file stat + gzip measurement |
++| MUI chart surface layout stability | applicable | chart 도입 전 manual svg-like visual surface | fixed dimensions and no layout shift-prone dynamic chart sizing | pass. `BarChart` wrapper and chart height are 178px, `PieChart` is 120x120 with fixed container and text overlay | `InsightsRail.tsx` source inspection |
++| render fan-out containment | applicable | dashboard already relies on local memoization and memoized board cards | chart work should stay in insights rail and not alter board memoization | pass with residual risk. `ProjectListBoard` still uses `useMemo` and memoized sections/cards; chart data mapping is limited to insights widgets. Browser render count is deferred. | source scan for `useMemo`, `memo`, `BarChart`, `PieChart` |
++| visualization dependency scope | applicable | existing `@xyflow/react`; no MUI chart dependency | only `@mui/x-charts` added unless justified | pass. `@mui/x-charts` added; no extra graph library added. d3 packages are transitive via MUI charts and existing xyflow. | `apps/dashboard/package.json` and `pnpm-lock.yaml` scan |
++
++## Non-Applicable Or Deferred Items
++
++| Item | Status | Reason |
++|---|---|---|
++| Browser first paint / first interaction latency | deferred | workspace has no declared browser automation/profiler verification contract, so reproducible browser timeline numbers would be manual-only. |
++| Chart hover/tooltip latency | deferred | chart renders are present, but no Playwright/Profiler runner is declared for timeline capture. |
++| Mobile viewport frame budget | deferred | visual QA requires manual/screenshot check; this performance audit can only confirm stable source dimensions and production build artifacts. |
++| React render count per dashboard interaction | deferred | source memoization boundaries are visible, but actual render count requires React Profiler or instrumentation not declared in the project contract. |
++| Server TPS/TPM | not_applicable | audit target is a local dashboard frontend bundle and static/API snapshot fetch path, not a request-processing server runtime. |
++| DB query latency | not_applicable | dashboard audit scope does not include a database layer. |
++| connection pool / concurrency limit | not_applicable | app is a frontend dashboard; no multi-user backend pool is changed by this topic. |
++| failure injection / recovery time | not_applicable | no runtime resilience or failover path changed by the visual reskin or commit contract migration. |
++
++## Result Summary
++
++- `@pgg/dashboard` production build passes consistently, but Vite reports a chunk warning because the single JS bundle is 2,006.87kB raw / 640.18kB gzip.
++- The large JS bundle is the main performance risk introduced by the MUI chart adoption path. `@mui/x-charts` and its d3 transitive dependencies are likely contributors, and route/component code splitting should be the next optimization candidate.
++- CSS remains small at 15.39kB raw / 2.55kB gzip, so the dark navy/cyan visual skin itself is not the dominant artifact-size cost.
++- Chart dimensions are stable in source: backlog bar chart uses a fixed 178px height and sprint donut uses a 120x120 fixed container, reducing layout shift risk.
++- Static fallback data remains large at 1,693,554 bytes raw / 313,776 bytes gzip. This was not introduced by the visual reskin, but QA should keep it as residual initial-load risk for static fallback mode.
++- Because verification mode is manual, browser interaction latency and React render count remain deferred to manual QA rather than invented numeric results.

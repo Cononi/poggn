@@ -6,11 +6,11 @@ dashboard-reference-theme-and-commit-format
 
 ## Current Stage
 
-refactor
+qa
 
 ## Goal
 
-`add-img/1.png`, `add-img/2.png`, `add-img/3.png`의 dark navy/cyan dashboard visual language를 전체 dashboard에 적용하고, pgg commit 제목 규격을 `{convention}: {version}.{commit message}`로 변경한 구현을 리팩터링했다.
+`add-img/1.png`, `add-img/2.png`, `add-img/3.png`의 dark navy/cyan dashboard visual language를 전체 dashboard에 적용하고, pgg commit 제목 규격을 `{convention}: {version}.{commit message}`로 변경한 구현을 QA pass로 판정했다.
 
 ## Constraints
 
@@ -39,6 +39,9 @@ refactor
 - `@mui/x-charts` is installed for dashboard charts.
 - Runtime helpers and generated templates now generate/validate version-dot commit subjects.
 - Refactor extracted repeated Insights rail panel styling and pie chart data/percentage helpers without changing placement or data semantics.
+- Token audit uses `estimated tokens = ceil(characters / 4)` and confirms `pgg-state-pack.sh` handoff is the preferred next-stage context surface.
+- Performance audit confirms dashboard production build passes, while the MUI chart adoption path leaves a large single JS chunk warning for follow-up optimization.
+- QA confirms dashboard/core/workspace builds and core tests pass, required audits are present, and archive is allowed with residual JS chunk/manual browser verification risks.
 
 ## Scope
 
@@ -63,6 +66,9 @@ refactor
 - `implementation/diffs/*.diff`
 - `reviews/code.review.md`
 - `reviews/refactor.review.md`
+- `token/report.md`
+- `performance/report.md`
+- `qa/report.md`
 
 ## Active Specs
 
@@ -94,6 +100,13 @@ refactor
 - evidence: `pnpm build` passed
 - evidence: refactor `pnpm --filter @pgg/dashboard build` passed
 - evidence: old bracket commit subject search has one intentional rejection fixture in `packages/core/test/git-publish.test.mjs`
+- evidence: `token/report.md` records measured workflow/helper/template/token handoff contributors and 88.3% estimated saving for `pgg-state-pack.sh` output vs naive full-doc bundle
+- evidence: `performance/report.md` records 4 passing dashboard production builds, 1795.09ms average measured build wall time, 2,006.87kB raw / 640.18kB gzip JS chunk warning, 15.39kB raw CSS, fixed chart dimensions, and manual browser latency deferrals
+- evidence: QA `pnpm --filter @pgg/dashboard build` passed with known Vite chunk warning
+- evidence: QA `pnpm test:core` passed with 37 tests
+- evidence: QA `pnpm build` passed
+- evidence: QA source commit contract search found only the intentional old bracket rejection fixture in `packages/core/test/git-publish.test.mjs`
+- evidence: QA `./.codex/sh/pgg-gate.sh pgg-qa dashboard-reference-theme-and-commit-format` passed
 
 ## Changed Files
 
@@ -123,6 +136,9 @@ refactor
 | UPDATE | `packages/core/test/version-history.test.mjs` | `implementation/diffs/022_UPDATE_packages_core_test_version-history_test_mjs.diff` |
 | UPDATE | `pnpm-lock.yaml` | `implementation/diffs/023_UPDATE_pnpm-lock_yaml.diff` |
 | UPDATE | `apps/dashboard/src/features/backlog/InsightsRail.tsx` | `implementation/diffs/024_UPDATE_apps_dashboard_src_features_backlog_InsightsRail_tsx.refactor.diff` |
+| CREATE | `poggn/active/dashboard-reference-theme-and-commit-format/token/report.md` | `implementation/diffs/025_CREATE_token_report_md.diff` |
+| CREATE | `poggn/active/dashboard-reference-theme-and-commit-format/performance/report.md` | `implementation/diffs/026_CREATE_performance_report_md.diff` |
+| CREATE | `poggn/active/dashboard-reference-theme-and-commit-format/qa/report.md` | `implementation/diffs/027_CREATE_qa_report_md.diff` |
 
 ## Dirty Worktree Baseline
 
@@ -142,8 +158,8 @@ refactor
 
 ## Next
 
-`pgg-token`
+`archive`
 
 ## Next Action
 
-Run required `pgg-token` audit first, then required `pgg-performance` audit before `pgg-qa`.
+Archive the topic with `.codex/sh/pgg-archive.sh dashboard-reference-theme-and-commit-format`.

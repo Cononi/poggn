@@ -65,7 +65,7 @@
       "id": "state",
       "type": "state",
       "position": { "x": 1400, "y": 0 },
-      "data": { "label": "state/current.md", "stage": "refactor", "status": "ready_for_token" }
+      "data": { "label": "state/current.md", "stage": "qa", "status": "ready_for_archive" }
     },
     {
       "id": "implementation",
@@ -84,6 +84,24 @@
       "type": "review",
       "position": { "x": 1960, "y": 130 },
       "data": { "label": "reviews/refactor.review.md", "stage": "refactor", "status": "reviewed", "score": 96 }
+    },
+    {
+      "id": "token-report",
+      "type": "audit",
+      "position": { "x": 2240, "y": 130 },
+      "data": { "label": "token/report.md", "stage": "token", "status": "reviewed", "score": 96 }
+    },
+    {
+      "id": "performance-report",
+      "type": "audit",
+      "position": { "x": 2520, "y": 130 },
+      "data": { "label": "performance/report.md", "stage": "performance", "status": "reviewed", "score": 88 }
+    },
+    {
+      "id": "qa-report",
+      "type": "review",
+      "position": { "x": 2800, "y": 130 },
+      "data": { "label": "qa/report.md", "stage": "qa", "status": "done", "score": 90 }
     }
   ],
   "edges": [
@@ -99,6 +117,9 @@
     { "id": "reviews-to-state", "source": "task-review", "target": "state" },
     { "id": "state-to-implementation", "source": "state", "target": "implementation" },
     { "id": "implementation-to-code-review", "source": "implementation", "target": "code-review" },
-    { "id": "code-review-to-refactor-review", "source": "code-review", "target": "refactor-review" }
+    { "id": "code-review-to-refactor-review", "source": "code-review", "target": "refactor-review" },
+    { "id": "refactor-review-to-token-report", "source": "refactor-review", "target": "token-report" },
+    { "id": "token-report-to-performance-report", "source": "token-report", "target": "performance-report" },
+    { "id": "performance-report-to-qa-report", "source": "performance-report", "target": "qa-report" }
   ]
 }
