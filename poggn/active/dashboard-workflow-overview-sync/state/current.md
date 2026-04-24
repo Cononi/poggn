@@ -81,6 +81,9 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - Workflow Progress title and donut percentage typography were reduced to match surrounding Overview density.
 - Overview summary cards now derive Workflow Stage, Priority, Created, and Updated from real topic workflow/timestamp/score/blocking data instead of placeholders.
 - Created and Updated cards split date/time into separate lines, hide the decorative dot, and use `Add` / current flow labels as concise helpers.
+- Status, Workflow Stage, Priority, Created, and Updated moved into the Workflow Progress title area; the Type card was removed.
+- Created/Updated now use fixed `YYYY.MM.DD` and `오전/오후 HH:MM:SS` two-line formatting.
+- Priority ignores placeholder blocking values such as `none` and uses score/workflow context helper copy.
 - Workflow Progress compact UI removes the bordered time/status box and uses caption typography.
 - Flow nodes expose hover/focus tooltip copy through locale keys.
 - Active/revision rail uses visible overflow and fixed visual sizing to avoid clipping while preserving click target.
@@ -182,6 +185,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - source check for reduced Workflow Progress title and donut percentage typography: pass
 - source check for removed `High` / `by john.doe` Overview placeholders and real data summary helpers: pass
 - source check for Created/Updated date-time lines, hidden dot, and flow-context helpers: pass
+- source check for removed Type card, title-area metadata, fixed date/time formatter, and non-placeholder Priority helper: pass
 - source check for removed bordered time/status box pattern: pass
 
 ## Next Action

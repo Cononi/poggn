@@ -311,21 +311,27 @@ export function topicUpdatedSummary(topic: TopicSummary, language: HistoryLangua
 }
 
 export function topicPrioritySummary(topic: TopicSummary): OverviewStatSummary {
-  if (topic.blockingIssues) {
+  const blockingIssues = topic.blockingIssues?.trim();
+  const hasBlockingIssue = Boolean(blockingIssues && !/^(none|no|없음|n\/a)$/i.test(blockingIssues));
+  if (hasBlockingIssue) {
     return { value: "Blocked", helper: topic.blockingIssues, tone: "danger" };
   }
 
   if (typeof topic.score === "number") {
     if (topic.score >= 95) {
-      return { value: "High", helper: `Score ${topic.score}`, tone: "primary" };
+      return { value: "High", helper: `Score ${topic.score} · clear`, tone: "primary" };
     }
     if (topic.score >= 85) {
-      return { value: "Medium", helper: `Score ${topic.score}`, tone: "primary" };
+      return { value: "Medium", helper: `Score ${topic.score} · review`, tone: "primary" };
     }
-    return { value: "Low", helper: `Score ${topic.score}`, tone: "danger" };
+    return { value: "Low", helper: `Score ${topic.score} · needs check`, tone: "danger" };
   }
 
-  return { value: topic.bucket === "archive" ? "Done" : "Normal", helper: topic.nextAction ?? topic.stage ?? "No score", tone: "primary" };
+  return {
+    value: topic.bucket === "archive" ? "Done" : "Normal",
+    helper: topic.nextAction ?? (topic.stage ? `Stage ${topic.stage}` : "Score pending"),
+    tone: "primary"
+  };
 }
 
 function latestDate(values: Array<string | null | undefined>): string | null {
@@ -349,14 +355,26 @@ function formatDateTimeLines(value: string | null, language: HistoryLanguage, fa
     return [fallback];
   }
 
-  const formatted = formatDate(value, language);
-  const marker = language === "ko" ? ". " : ", ";
-  const splitIndex = formatted.indexOf(marker);
-  if (splitIndex < 0) {
-    return [formatted];
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return [formatDate(value, language)];
   }
 
-  return [formatted.slice(0, splitIndex + marker.length).trim(), formatted.slice(splitIndex + marker.length).trim()].filter(Boolean);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours24 = date.getHours();
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const seconds = String(date.getSeconds()).padStart(2, "0");
+
+  if (language === "ko") {
+    const period = hours24 < 12 ? "오전" : "오후";
+    const hours12 = String(hours24 % 12 || 12).padStart(2, "0");
+    return [`${year}.${month}.${day}`, `${period} ${hours12}:${minutes}:${seconds}`];
+  }
+
+  const hours = String(hours24).padStart(2, "0");
+  return [`${year}.${month}.${day}`, `${hours}:${minutes}:${seconds}`];
 }
 
 function latestEvidence(evidence: TimestampEvidence[]): TimestampEvidence {

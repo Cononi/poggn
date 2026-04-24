@@ -337,21 +337,6 @@ function HistoryOverview(props: {
 
   return (
     <Stack spacing={1.5}>
-      <Box
-        sx={{
-          display: "grid",
-          gap: 1.2,
-          gridTemplateColumns: { xs: "repeat(2, minmax(0, 1fr))", lg: "repeat(6, minmax(0, 1fr))" }
-        }}
-      >
-        <OverviewStat title="Status" value={topicStatus(props.topic)} helper={props.topic.bucket === "archive" ? props.dictionary.archive : props.dictionary.statusInProgress} tone="success" />
-        <OverviewStat title="Workflow Stage" value={currentStageLabel} helper={currentStageHelper} tone="primary" />
-        <OverviewStat title="Type" value={topicType(props.topic)} helper="Feature" tone="primary" />
-        <OverviewStat title="Priority" value={priority.value} helper={priority.helper} tone={priority.tone} />
-        <OverviewStat title="Created" value={created.value} lines={created.lines} helper={created.helper} hideDot />
-        <OverviewStat title="Updated" value={updated.value} lines={updated.lines} helper={currentFlowLabel} hideDot />
-      </Box>
-
       <Paper
         sx={{
           p: { xs: 1.35, md: 1.8 },
@@ -362,25 +347,35 @@ function HistoryOverview(props: {
         }}
       >
         <Stack spacing={{ xs: 1.8, md: 2.2 }}>
-          <Stack direction="row" spacing={1.1} sx={{ alignItems: "center" }}>
-            <Box
-              sx={{
-                width: 36,
-                height: 36,
-                borderRadius: 1.5,
-                display: "grid",
-                placeItems: "center",
-                color: "#5ea2ff",
-                border: `1px solid ${alpha("#75a9ff", 0.28)}`,
-                bgcolor: alpha("#3b82f6", 0.16),
-                boxShadow: `0 0 18px ${alpha("#3b82f6", 0.18)}`
-              }}
-            >
-              <AutoGraphRounded fontSize="small" />
-            </Box>
-            <Typography variant="h6" sx={{ color: "#f8fbff", fontWeight: 850, lineHeight: 1.08 }}>
-              Workflow Progress
-            </Typography>
+          <Stack direction={{ xs: "column", xl: "row" }} spacing={1.4} sx={{ alignItems: { xs: "stretch", xl: "flex-start" }, justifyContent: "space-between" }}>
+            <Stack direction="row" spacing={1.1} sx={{ alignItems: "center", minWidth: 0 }}>
+              <Box
+                sx={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 1.5,
+                  display: "grid",
+                  placeItems: "center",
+                  color: "#5ea2ff",
+                  border: `1px solid ${alpha("#75a9ff", 0.28)}`,
+                  bgcolor: alpha("#3b82f6", 0.16),
+                  boxShadow: `0 0 18px ${alpha("#3b82f6", 0.18)}`,
+                  flexShrink: 0
+                }}
+              >
+                <AutoGraphRounded fontSize="small" />
+              </Box>
+              <Typography variant="h6" sx={{ color: "#f8fbff", fontWeight: 850, lineHeight: 1.08, minWidth: 0 }}>
+                Workflow Progress
+              </Typography>
+            </Stack>
+            <Stack direction="row" spacing={0.8} useFlexGap sx={{ flexWrap: "wrap", justifyContent: { xs: "flex-start", xl: "flex-end" }, minWidth: 0 }}>
+              <OverviewMeta title="Status" value={topicStatus(props.topic)} helper={props.topic.bucket === "archive" ? props.dictionary.archive : props.dictionary.statusInProgress} tone="success" />
+              <OverviewMeta title="Workflow Stage" value={currentStageLabel} helper={currentStageHelper} tone="primary" />
+              <OverviewMeta title="Priority" value={priority.value} helper={priority.helper} tone={priority.tone} />
+              <OverviewMeta title="Created" value={created.value} lines={created.lines} helper={created.helper} />
+              <OverviewMeta title="Updated" value={updated.value} lines={updated.lines} helper={currentFlowLabel} />
+            </Stack>
           </Stack>
           <Box
             sx={{
@@ -531,13 +526,12 @@ function buildProgressOverview(steps: WorkflowStep[]) {
   };
 }
 
-function OverviewStat(props: {
+function OverviewMeta(props: {
   title: string;
   value: string;
   lines?: string[];
   helper: string;
   tone?: "success" | "primary" | "danger";
-  hideDot?: boolean;
 }) {
   const theme = useTheme();
   const color =
@@ -550,20 +544,32 @@ function OverviewStat(props: {
           : theme.palette.text.secondary;
 
   return (
-    <Paper sx={{ p: 1.5, borderRadius: 1, minHeight: 96 }}>
-      <Typography variant="caption" color="text.secondary">{props.title}</Typography>
-      <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", mt: 1 }}>
-        {props.hideDot ? null : <Box sx={{ width: 12, height: 12, borderRadius: "50%", bgcolor: color, flexShrink: 0 }} />}
-        <Stack spacing={0.1} sx={{ minWidth: 0 }}>
-          {(props.lines?.length ? props.lines : [props.value]).map((line) => (
-            <Typography key={line} variant="subtitle2" sx={{ fontWeight: 800, lineHeight: 1.12, overflowWrap: "anywhere" }}>
-              {line}
-            </Typography>
-          ))}
-        </Stack>
+    <Box
+      sx={{
+        minWidth: { xs: 118, sm: 128 },
+        px: 1,
+        py: 0.75,
+        borderRadius: 1,
+        border: `1px solid ${alpha(color, 0.18)}`,
+        bgcolor: alpha(color, 0.07)
+      }}
+    >
+      <Typography variant="caption" color="text.secondary" sx={{ display: "block", lineHeight: 1.1 }}>
+        {props.title}
+      </Typography>
+      <Stack spacing={0.1} sx={{ minWidth: 0, mt: 0.45 }}>
+        {(props.lines?.length ? props.lines : [props.value]).map((line) => (
+          <Typography key={line} variant="caption" sx={{ color: "#f8fbff", fontWeight: 850, lineHeight: 1.12, overflowWrap: "anywhere" }}>
+            {line}
+          </Typography>
+        ))}
       </Stack>
-      {props.helper ? <Typography variant="caption" color="text.secondary" sx={{ overflowWrap: "anywhere" }}>{props.helper}</Typography> : null}
-    </Paper>
+      {props.helper ? (
+        <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.35, lineHeight: 1.15, overflowWrap: "anywhere" }}>
+          {props.helper}
+        </Typography>
+      ) : null}
+    </Box>
   );
 }
 

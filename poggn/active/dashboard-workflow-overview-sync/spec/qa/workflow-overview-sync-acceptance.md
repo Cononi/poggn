@@ -33,6 +33,7 @@ Workflow Overview sync 변경의 visual, model, telemetry, i18n, accessibility a
 - `추가 진행`은 generated/current/completed/pending과 구분되는 status로 표현 가능하다.
 - Overview summary cards for Workflow Stage, Priority, Created, and Updated are derived from real topic data rather than placeholders such as fixed `High` or `by john.doe`.
 - Created and Updated summary cards split date and time into separate lines, hide the decorative dot, and use concise workflow context helpers.
+- Overview metadata is rendered in the Workflow Progress title area, omits the Type card, and formats date/time as `YYYY.MM.DD` plus `AM/PM HH:MM:SS` on the next line.
 
 ## Telemetry Acceptance
 

@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T17:59:46Z"
+  updated_at: "2026-04-24T18:10:22Z"
 ---
 
 # code.review
@@ -22,6 +22,7 @@ pgg:
 | UX 밀도 리뷰어 | 96 | Workflow Progress title을 `h6`, donut center percentage를 `h5`로 낮춰 Overview 주변 카드와 비교했을 때 과도하게 튀지 않도록 조정했다. | none |
 | 데이터 모델 리뷰어 | 96 | Overview summary의 Workflow Stage fallback을 latest completed/current flow로 보정했고, Priority/Created/Updated를 score, blocking, history event, file/artifact/timestamp evidence에서 계산하도록 placeholder를 제거했다. | none |
 | UX 밀도 리뷰어 | 96 | Created/Updated 카드는 날짜와 시간을 두 줄로 나누고 장식 점을 숨겼다. helper는 긴 source 대신 Created=Add, Updated=현재 flow label로 줄여 카드 밀도를 유지한다. | none |
+| UI 구조 리뷰어 | 96 | Type 카드를 제거하고 Status/Workflow Stage/Priority/Created/Updated를 Workflow Progress 타이틀 영역의 compact metadata로 옮겼다. 날짜는 `YYYY.MM.DD`와 `오전/오후 HH:MM:SS`로 고정 분리된다. | none |
 
 ## Findings
 
@@ -38,6 +39,7 @@ pgg:
 - source check for reduced Workflow Progress title and donut percentage typography: pass
 - source check for removed `High` / `by john.doe` Overview placeholders and real data summary helpers: pass
 - source check for Created/Updated date-time lines, hidden dot, and flow-context helpers: pass
+- source check for removed Type card, title-area metadata, fixed date/time formatter, and non-placeholder Priority helper: pass
 - source check for removed bordered time/status box pattern: pass
 
 ## Residual Risks
