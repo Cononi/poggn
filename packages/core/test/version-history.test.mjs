@@ -281,7 +281,7 @@ test("pgg new-topic computes a major target and state-pack preserves semver meta
     const state = await readFile(statePath, "utf8");
     await writeFile(
       statePath,
-      `${state}\n\n## Git Publish Message\n\n- title: \`fix: [1.0.0]major bump contract\`\n- why: \`Breaking change needs a major target.\`\n- footer: \`Refs: major-proof\`\n`,
+      `${state}\n\n## Git Publish Message\n\n- title: \`fix: 1.0.0.major bump contract\`\n- why: \`Breaking change needs a major target.\`\n- footer: \`Refs: major-proof\`\n`,
       "utf8"
     );
 
@@ -295,7 +295,7 @@ test("pgg new-topic computes a major target and state-pack preserves semver meta
     assert.match(handoff, /working_branch: ai\/fix\/1\.0\.0-major-proof/);
     assert.match(handoff, /release_branch: release\/1\.0\.0-major-proof/);
     assert.match(handoff, /git_publish_message_ref: poggn\/active\/major-proof\/state\/current\.md#Git Publish Message/);
-    assert.match(handoff, /- title: `fix: \[1\.0\.0\]major bump contract`/);
+    assert.match(handoff, /- title: `fix: 1\.0\.0\.major bump contract`/);
   } finally {
     if (previousPggHome === undefined) {
       delete process.env.PGG_HOME;

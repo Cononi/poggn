@@ -1,0 +1,97 @@
+{
+  "topic": "dashboard-reference-theme-and-commit-format",
+  "nodes": [
+    {
+      "id": "proposal",
+      "type": "doc",
+      "position": { "x": 0, "y": 0 },
+      "data": { "label": "proposal.md", "stage": "proposal", "status": "reviewed", "score": 96 }
+    },
+    {
+      "id": "plan",
+      "type": "doc",
+      "position": { "x": 280, "y": 0 },
+      "data": { "label": "plan.md", "stage": "plan", "status": "reviewed", "score": 96 }
+    },
+    {
+      "id": "task",
+      "type": "task",
+      "position": { "x": 560, "y": 0 },
+      "data": { "label": "task.md", "stage": "task", "status": "reviewed", "score": 96 }
+    },
+    {
+      "id": "s1",
+      "type": "spec",
+      "position": { "x": 840, "y": -180 },
+      "data": { "label": "S1 dashboard function preservation", "path": "spec/ui/dashboard-function-preservation.md" }
+    },
+    {
+      "id": "s2",
+      "type": "spec",
+      "position": { "x": 840, "y": -90 },
+      "data": { "label": "S2 reference visual theme", "path": "spec/ui/reference-visual-theme.md" }
+    },
+    {
+      "id": "s3",
+      "type": "spec",
+      "position": { "x": 840, "y": 0 },
+      "data": { "label": "S3 MUI chart adoption", "path": "spec/charts/mui-chart-adoption.md" }
+    },
+    {
+      "id": "s4",
+      "type": "spec",
+      "position": { "x": 840, "y": 90 },
+      "data": { "label": "S4 version-dot commit contract", "path": "spec/git/version-dot-commit-contract.md" }
+    },
+    {
+      "id": "s5",
+      "type": "spec",
+      "position": { "x": 840, "y": 180 },
+      "data": { "label": "S5 visual regression and audit gates", "path": "spec/qa/visual-regression-and-audit-gates.md" }
+    },
+    {
+      "id": "plan-review",
+      "type": "review",
+      "position": { "x": 1120, "y": -60 },
+      "data": { "label": "reviews/plan.review.md", "stage": "plan", "status": "reviewed", "score": 96 }
+    },
+    {
+      "id": "task-review",
+      "type": "review",
+      "position": { "x": 1120, "y": 60 },
+      "data": { "label": "reviews/task.review.md", "stage": "task", "status": "reviewed", "score": 96 }
+    },
+    {
+      "id": "state",
+      "type": "state",
+      "position": { "x": 1400, "y": 0 },
+      "data": { "label": "state/current.md", "stage": "implementation", "status": "ready_for_refactor" }
+    },
+    {
+      "id": "implementation",
+      "type": "doc",
+      "position": { "x": 1400, "y": 130 },
+      "data": { "label": "implementation/index.md", "stage": "implementation", "status": "reviewed", "score": 96 }
+    },
+    {
+      "id": "code-review",
+      "type": "review",
+      "position": { "x": 1680, "y": 130 },
+      "data": { "label": "reviews/code.review.md", "stage": "implementation", "status": "reviewed", "score": 96 }
+    }
+  ],
+  "edges": [
+    { "id": "proposal-to-plan", "source": "proposal", "target": "plan" },
+    { "id": "plan-to-task", "source": "plan", "target": "task" },
+    { "id": "task-to-s1", "source": "task", "target": "s1" },
+    { "id": "task-to-s2", "source": "task", "target": "s2" },
+    { "id": "task-to-s3", "source": "task", "target": "s3" },
+    { "id": "task-to-s4", "source": "task", "target": "s4" },
+    { "id": "task-to-s5", "source": "task", "target": "s5" },
+    { "id": "specs-to-plan-review", "source": "s5", "target": "plan-review" },
+    { "id": "task-to-task-review", "source": "task", "target": "task-review" },
+    { "id": "reviews-to-state", "source": "task-review", "target": "state" },
+    { "id": "state-to-implementation", "source": "state", "target": "implementation" },
+    { "id": "implementation-to-code-review", "source": "implementation", "target": "code-review" }
+  ]
+}

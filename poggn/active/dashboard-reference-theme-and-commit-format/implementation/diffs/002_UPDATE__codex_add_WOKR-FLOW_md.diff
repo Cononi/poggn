@@ -1,0 +1,13 @@
+diff --git a/.codex/add/WOKR-FLOW.md b/.codex/add/WOKR-FLOW.md
+index 33ee121..d5c90b1 100644
+--- a/.codex/add/WOKR-FLOW.md
++++ b/.codex/add/WOKR-FLOW.md
+@@ -41,7 +41,7 @@ pgg는 core workflow와 필요할 때만 여는 optional audit로 delivery를 
+    - `qa/report.md`가 pass면 `.codex/sh/pgg-archive.sh <topic|topic_dir>` 실행
+    - `pgg git=on`이고 QA 산출물 뒤 변경이 있으면 archive helper가 release publish 전에 `qa completion` commit을 먼저 남긴다
+    - archive helper가 `version.json`과 append-only `poggn/version-history.ndjson` ledger를 기록하고, `pgg git=on`이면 필요 시 governed `working_branch` auto-checkout recovery를 거쳐 topic 시작 전에 기록된 dirty baseline을 무시한 상태로 `ai/<archive_type>/<target-version>-<short-name>`에서 `release/<target-version>-<short-name>`으로 승격하는 git publish helper까지 이어진다
+-   - `pgg git=on`이면 `state/current.md` 또는 `qa/report.md`의 `## Git Publish Message`에서 `- title:`, `- why:`, `- footer:`를 읽고 `{convention}: [{version}]{commit message}` 형식, `pgg lang` 기반 메시지 언어, 제목 50자 이하, 명령형 금지, 마침표 금지, 상세 body, 한 커밋 = 하나의 의도 규칙을 검증한다
++   - `pgg git=on`이면 `state/current.md` 또는 `qa/report.md`의 `## Git Publish Message`에서 `- title:`, `- why:`, `- footer:`를 읽고 `{convention}: {version}.{commit message}` 형식, `pgg lang` 기반 메시지 언어, 제목 50자 이하, 명령형 금지, 마침표 금지, 상세 body, 한 커밋 = 하나의 의도 규칙을 검증한다
+ 
+ ### Optional Audits
+ 

@@ -12,6 +12,7 @@
     "@emotion/styled": "latest",
     "@mui/icons-material": "^9.0.0",
     "@mui/material": "latest",
+    "@mui/x-charts": "^9.0.2",
     "@tanstack/react-query": "latest",
     "@xyflow/react": "latest",
     "axios": "latest",

@@ -1,0 +1,228 @@
+diff --git a/apps/dashboard/src/features/backlog/InsightsRail.tsx b/apps/dashboard/src/features/backlog/InsightsRail.tsx
+index f65f952..200f818 100644
+--- a/apps/dashboard/src/features/backlog/InsightsRail.tsx
++++ b/apps/dashboard/src/features/backlog/InsightsRail.tsx
+@@ -1,12 +1,13 @@
+ import type { ReactNode } from "react";
+-import { alpha, useTheme } from "@mui/material/styles";
++import { alpha, useTheme, type Theme } from "@mui/material/styles";
+ import { Avatar, Box, Button, IconButton, Paper, Stack, Typography } from "@mui/material";
++import { BarChart, PieChart } from "@mui/x-charts";
+ import AutoGraphRounded from "@mui/icons-material/AutoGraphRounded";
+ import BarChartRounded from "@mui/icons-material/BarChartRounded";
+ import CloseRounded from "@mui/icons-material/CloseRounded";
+ import DonutLargeRounded from "@mui/icons-material/DonutLargeRounded";
+ import type { DashboardLocale, ProjectSnapshot } from "../../shared/model/dashboard";
+-import { resolveDashboardToneAccent } from "../../shared/theme/dashboardTone";
++import { dashboardPanelSx, resolveDashboardToneAccent } from "../../shared/theme/dashboardTone";
+ import type { InsightsSummaryModel } from "../../app/dashboardShell";
+ 
+ type InsightsRailProps = {
+@@ -22,7 +23,6 @@ type InsightsRailProps = {
+ export function InsightsRail(props: InsightsRailProps) {
+   const theme = useTheme();
+   const backlogWidget = props.summary.widgets.find((widget) => widget.id === "workload") ?? props.summary.widgets[0] ?? null;
+-  const maxBacklogValue = Math.max(...(backlogWidget?.items.map((item) => item.value) ?? [0]), 1);
+   const quickStats = [
+     {
+       id: "workflow",
+@@ -41,7 +41,7 @@ export function InsightsRail(props: InsightsRailProps) {
+ 
+   return (
+     <Stack spacing={1.5}>
+-      <Paper sx={{ p: 1.5, borderRadius: 1 }}>
++      <Paper sx={{ p: 1.5, borderRadius: 1, ...dashboardPanelSx(theme) }}>
+         <Stack spacing={1.5}>
+           <Stack direction="row" spacing={1} sx={{ justifyContent: "space-between", alignItems: "center" }}>
+             <Typography variant="overline" color="text.secondary">
+@@ -53,7 +53,7 @@ export function InsightsRail(props: InsightsRailProps) {
+           </Stack>
+ 
+           {props.project ? (
+-            <Paper sx={{ p: 1.5, borderRadius: 1, bgcolor: alpha(theme.palette.background.default, 0.34) }}>
++            <Paper sx={{ p: 1.5, borderRadius: 1, bgcolor: alpha(theme.palette.background.default, 0.48) }}>
+               <Stack direction="row" spacing={1.15} sx={{ alignItems: "center" }}>
+                 <Avatar
+                   variant="rounded"
+@@ -85,7 +85,7 @@ export function InsightsRail(props: InsightsRailProps) {
+         </Stack>
+       </Paper>
+ 
+-      <Paper sx={{ p: 1.5, borderRadius: 1 }}>
++      <Paper sx={{ p: 1.5, borderRadius: 1, ...dashboardPanelSx(theme) }}>
+         <Stack spacing={1.2}>
+           <RailSectionTitle icon={<BarChartRounded fontSize="small" />} title={props.dictionary.quickStatsTitle} />
+           <Box sx={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 1 }}>
+@@ -107,43 +107,40 @@ export function InsightsRail(props: InsightsRailProps) {
+       </Paper>
+ 
+       {backlogWidget ? (
+-        <Paper sx={{ p: 1.5, borderRadius: 1 }}>
++        <Paper sx={{ p: 1.5, borderRadius: 1, ...dashboardPanelSx(theme) }}>
+           <Stack spacing={1.2}>
+             <RailSectionTitle icon={<AutoGraphRounded fontSize="small" />} title={props.dictionary.backlogInsightsTitle} />
+-            {backlogWidget.items.map((item) => (
+-              <Stack key={item.id} direction="row" spacing={1.2} sx={{ alignItems: "center" }}>
+-                <Typography variant="body2" sx={{ minWidth: 72 }}>
+-                  {item.label}
+-                </Typography>
+-                <Box
+-                  sx={{
+-                    flex: 1,
+-                    height: 8,
+-                    borderRadius: 999,
+-                    overflow: "hidden",
+-                    bgcolor: alpha(theme.palette.text.secondary, 0.16)
+-                  }}
+-                >
+-                  <Box
+-                    sx={{
+-                      width: `${Math.max((item.value / maxBacklogValue) * 100, item.value > 0 ? 10 : 0)}%`,
+-                      height: "100%",
+-                      borderRadius: 999,
+-                      bgcolor: resolveDashboardToneAccent(theme, item.tone)
+-                    }}
+-                  />
+-                </Box>
+-                <Typography variant="body2" color="text.secondary" sx={{ minWidth: 12, textAlign: "right" }}>
+-                  {item.value}
+-                </Typography>
+-              </Stack>
+-            ))}
++            <Box sx={{ width: "100%", height: 178 }}>
++              <BarChart
++                height={178}
++                xAxis={[
++                  {
++                    scaleType: "band",
++                    data: backlogWidget.items.map((item) => item.label)
++                  }
++                ]}
++                yAxis={[{ min: 0 }]}
++                series={[
++                  {
++                    data: backlogWidget.items.map((item) => item.value),
++                    color: theme.palette.primary.main
++                  }
++                ]}
++                margin={{ top: 8, right: 8, bottom: 48, left: 28 }}
++                sx={chartSx(theme)}
++              />
++            </Box>
++            <Stack spacing={0.75}>
++              {backlogWidget.items.map((item) => (
++                <MetricLegendRow key={item.id} label={item.label} value={item.displayValue} color={resolveDashboardToneAccent(theme, item.tone)} />
++              ))}
++            </Stack>
+           </Stack>
+         </Paper>
+       ) : null}
+ 
+       {progressWidget ? (
+-        <Paper sx={{ p: 1.5, borderRadius: 1 }}>
++        <Paper sx={{ p: 1.5, borderRadius: 1, ...dashboardPanelSx(theme) }}>
+           <Stack spacing={1.2}>
+             <RailSectionTitle icon={<DonutLargeRounded fontSize="small" />} title={props.dictionary.sprintProgressTitle} />
+             <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
+@@ -224,45 +221,77 @@ function ProgressDonut(props: {
+ }) {
+   const theme = useTheme();
+   const total = Math.max(props.items.reduce((sum, item) => sum + item.value, 0), 1);
+-  let offset = 0;
+-  const gradient = props.items
+-    .map((item) => {
+-      const color = resolveDashboardToneAccent(theme, item.tone);
+-      const start = (offset / total) * 100;
+-      offset += item.value;
+-      const end = (offset / total) * 100;
+-      return `${color} ${start}% ${end}%`;
+-    })
+-    .join(", ");
++  const completed = Math.round((props.items.find((item) => item.tone === "success")?.value ?? props.items[0]?.value ?? 0) / total * 100);
+ 
+   return (
+     <Box
+       sx={{
+         width: 120,
+         height: 120,
+-        borderRadius: "50%",
+-        background: `conic-gradient(${gradient})`,
+-        display: "grid",
+-        placeItems: "center",
+         position: "relative",
+-        flexShrink: 0,
+-        "&::after": {
+-          content: '""',
+-          position: "absolute",
+-          inset: 16,
+-          borderRadius: "50%",
+-          backgroundColor: "background.paper"
+-        }
++        flexShrink: 0
+       }}
+     >
+-      <Box sx={{ position: "relative", zIndex: 1, textAlign: "center" }}>
++      <PieChart
++        width={120}
++        height={120}
++        series={[
++          {
++            data: props.items.map((item) => ({
++              id: item.id,
++              value: item.value,
++              label: item.label,
++              color: resolveDashboardToneAccent(theme, item.tone)
++            })),
++            innerRadius: 42,
++            outerRadius: 58,
++            paddingAngle: 2,
++            cornerRadius: 4
++          }
++        ]}
++        margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
++        sx={chartSx(theme)}
++      />
++      <Box sx={{ position: "absolute", inset: 0, zIndex: 1, display: "grid", placeItems: "center", textAlign: "center", pointerEvents: "none" }}>
++        <Box>
+         <Typography variant="h4" sx={{ lineHeight: 1 }}>
+-          100%
++          {completed}%
+         </Typography>
+         <Typography variant="body2" color="text.secondary">
+           {props.items.length > 0 ? props.totalLabel : "-"}
+         </Typography>
++        </Box>
+       </Box>
+     </Box>
+   );
+ }
++
++function MetricLegendRow(props: { label: string; value: string; color: string }) {
++  return (
++    <Stack direction="row" spacing={1} sx={{ justifyContent: "space-between", alignItems: "center" }}>
++      <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", minWidth: 0 }}>
++        <Box sx={{ width: 9, height: 9, borderRadius: "50%", bgcolor: props.color, flexShrink: 0 }} />
++        <Typography variant="body2" sx={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
++          {props.label}
++        </Typography>
++      </Stack>
++      <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>
++        {props.value}
++      </Typography>
++    </Stack>
++  );
++}
++
++function chartSx(theme: Theme) {
++  return {
++    "& .MuiChartsAxis-line, & .MuiChartsAxis-tick": {
++      stroke: alpha(theme.palette.primary.main, 0.28)
++    },
++    "& .MuiChartsAxis-tickLabel, & .MuiChartsLegend-label": {
++      fill: theme.palette.text.secondary
++    },
++    "& .MuiChartsGrid-line": {
++      stroke: alpha(theme.palette.primary.main, 0.12)
++    }
++  };
++}

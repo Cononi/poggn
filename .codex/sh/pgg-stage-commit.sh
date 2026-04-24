@@ -86,7 +86,7 @@ build_commit_title() {
 const archiveType = String(process.env.ARCHIVE_TYPE_VALUE ?? "").trim();
 const targetVersion = String(process.env.TARGET_VERSION_VALUE ?? "").trim();
 const summary = String(process.env.SUMMARY_VALUE ?? "").trim();
-process.stdout.write(`${archiveType}: [${targetVersion}]${summary}`.trim());
+process.stdout.write(`${archiveType}: ${targetVersion}.${summary}`.trim());
 NODE
 }
 
@@ -101,7 +101,7 @@ const why = (process.env.WHY_SUMMARY_VALUE ?? "").trim();
 const footer = (process.env.FOOTER_VALUE ?? "").trim();
 const errors = [];
 const titleLength = Array.from(title).length;
-const prefix = `${archiveType}: [${targetVersion}]`;
+const prefix = `${archiveType}: ${targetVersion}.`;
 const imperativePattern = /^(add|update|fix|remove|refactor|create|implement|support|use|change|allow|make|introduce|improve|rename|move|convert|delete|enable|disable|publish|archive)\b/i;
 const koreanImperativePattern = /(하라|해라|하세요|하십시오|해요)$/;
 const hasHangul = (value) => /[가-힣]/.test(value);

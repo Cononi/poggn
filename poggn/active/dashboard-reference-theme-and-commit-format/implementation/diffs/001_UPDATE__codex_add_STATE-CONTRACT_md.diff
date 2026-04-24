@@ -1,0 +1,22 @@
+diff --git a/.codex/add/STATE-CONTRACT.md b/.codex/add/STATE-CONTRACT.md
+index 6171827..3b2a13e 100644
+--- a/.codex/add/STATE-CONTRACT.md
++++ b/.codex/add/STATE-CONTRACT.md
+@@ -22,7 +22,7 @@
+ ## Git Publish Message Contract
+ 
+ - `pgg git=on`이면 `state/current.md` 또는 `qa/report.md` 중 적어도 하나에 아래 섹션을 유지한다.
+-- 제목은 `{convention}: [{version}]{commit message}` 형식을 따르며 50자 이하, 명령형 금지, 마침표 금지, 제목만 봐도 의도를 이해할 수 있어야 한다.
++- 제목은 `{convention}: {version}.{commit message}` 형식을 따르며 50자 이하, 명령형 금지, 마침표 금지, 제목만 봐도 의도를 이해할 수 있어야 한다.
+ - `{convention}`은 `archive_type`, `{version}`은 archive 전 `target_version`과 archive 후 실제 version을 사용한다.
+ - commit message text는 `pgg lang=ko`이면 한글, `pgg lang=en`이면 영어를 사용한다.
+ - 본문 source인 `why`는 commit body의 Why 설명을 담당하고, 제목 summary는 `Changes` body section에 반복되어 무엇이 바뀌었는지 남긴다.
+@@ -30,7 +30,7 @@
+ 
+ ```md
+ ## Git Publish Message
+-- title: <convention>: [<version>]<commit message>
++- title: <convention>: <version>.<commit message>
+ - why: <detailed why and changed-content summary>
+ - footer: <tracker link or Refs: <topic>>
+ ```

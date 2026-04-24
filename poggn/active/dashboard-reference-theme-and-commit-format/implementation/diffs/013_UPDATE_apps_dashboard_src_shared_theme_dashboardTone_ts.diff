@@ -1,0 +1,70 @@
+diff --git a/apps/dashboard/src/shared/theme/dashboardTone.ts b/apps/dashboard/src/shared/theme/dashboardTone.ts
+index 59828ab..33e99d0 100644
+--- a/apps/dashboard/src/shared/theme/dashboardTone.ts
++++ b/apps/dashboard/src/shared/theme/dashboardTone.ts
+@@ -1,6 +1,19 @@
+ import { alpha, type Theme } from "@mui/material/styles";
+ import type { DashboardTone } from "../model/dashboard";
+ 
++export const dashboardReferencePalette = {
++  shell: "#031827",
++  surface: "#092235",
++  surfaceSoft: "#0d2b42",
++  border: "#16445f",
++  cyan: "#1d9bf0",
++  cyanBright: "#22d3ee",
++  green: "#2fd07f",
++  purple: "#8b5cf6",
++  orange: "#ff8a3d",
++  slate: "#8fa3b8"
++} as const;
++
+ export function resolveDashboardToneAccent(theme: Theme, tone: DashboardTone): string {
+   if (tone === "success") {
+     return theme.palette.success.main;
+@@ -12,7 +25,7 @@ export function resolveDashboardToneAccent(theme: Theme, tone: DashboardTone): s
+     return theme.palette.error.main;
+   }
+   if (tone === "neutral") {
+-    return alpha(theme.palette.primary.light, 0.66);
++    return theme.palette.mode === "dark" ? dashboardReferencePalette.slate : alpha(theme.palette.primary.light, 0.66);
+   }
+ 
+   return theme.palette.primary.main;
+@@ -20,7 +33,7 @@ export function resolveDashboardToneAccent(theme: Theme, tone: DashboardTone): s
+ 
+ export function resolveDashboardToneDot(theme: Theme, tone: DashboardTone): string {
+   if (tone === "neutral") {
+-    return alpha(theme.palette.text.secondary, 0.78);
++    return theme.palette.mode === "dark" ? dashboardReferencePalette.slate : alpha(theme.palette.text.secondary, 0.78);
+   }
+ 
+   return resolveDashboardToneAccent(theme, tone);
+@@ -31,6 +44,12 @@ export function resolveDashboardToneChip(theme: Theme, tone: DashboardTone): {
+   background: string;
+ } {
+   if (tone === "primary") {
++    if (theme.palette.mode === "dark") {
++      return {
++        color: dashboardReferencePalette.cyanBright,
++        background: alpha(dashboardReferencePalette.cyan, 0.18)
++      };
++    }
+     return {
+       color: theme.palette.primary.contrastText,
+       background: theme.palette.primary.main
+@@ -57,6 +76,13 @@ export function resolveDashboardToneChip(theme: Theme, tone: DashboardTone): {
+ 
+   return {
+     color: theme.palette.text.primary,
+-    background: alpha(theme.palette.text.secondary, 0.18)
++    background: alpha(theme.palette.text.secondary, theme.palette.mode === "dark" ? 0.14 : 0.18)
++  };
++}
++
++export function dashboardPanelSx(theme: Theme) {
++  return {
++    border: `1px solid ${alpha(theme.palette.primary.main, theme.palette.mode === "dark" ? 0.18 : 0.12)}`,
++    backgroundColor: alpha(theme.palette.background.paper, theme.palette.mode === "dark" ? 0.88 : 0.96)
+   };
+ }

@@ -47,9 +47,9 @@ test("initializeProject and updateProject keep the standalone pgg-status skill m
 
       assert.match(initialSkill, /name: "pgg-status"/);
       assert.match(initialSkill, /현재 active topic 상태를 읽고/);
-      assert.match(initialWorkflow, /\{convention\}: \[\{version\}\]\{commit message\}/);
+      assert.match(initialWorkflow, /\{convention\}: \{version\}\.\{commit message\}/);
       assert.match(initialStateContract, /pgg lang=ko/);
-      assert.match(initialReadme, /\{convention\}: \[\{version\}\]\{commit message\}/);
+      assert.match(initialReadme, /\{convention\}: \{version\}\.\{commit message\}/);
       assert.equal(initialManifest.managedFiles.some((entry) => entry.path === STANDALONE_SKILL_PATH), true);
 
       await writeFile(

@@ -29,6 +29,7 @@ import SwapVertRounded from "@mui/icons-material/SwapVertRounded";
 import TroubleshootRounded from "@mui/icons-material/TroubleshootRounded";
 import { resolveDashboardStageLabel } from "../../shared/locale/dashboardLocale";
 import type { DashboardLocale, ProjectCategory, ProjectSnapshot } from "../../shared/model/dashboard";
+import { dashboardPanelSx } from "../../shared/theme/dashboardTone";
 import { formatDate } from "../../shared/utils/dashboard";
 import { buildProjectBoardSections, filterProjectsByQuery, type ProjectBoardSection } from "./projectBoard";
 
@@ -156,7 +157,7 @@ export function ProjectListBoard(props: ProjectListBoardProps) {
         sx={{
           p: 1.2,
           borderRadius: 1,
-          bgcolor: alpha(theme.palette.background.paper, 0.78)
+          ...dashboardPanelSx(theme)
         }}
       >
         <Stack direction={{ xs: "column", md: "row" }} spacing={1.1}>
@@ -256,12 +257,15 @@ type CategorySectionProps = ProjectBoardSection & {
 };
 
 function CategorySection(props: CategorySectionProps) {
+  const theme = useTheme();
+
   return (
     <Paper
       sx={{
         p: 1.35,
         borderRadius: 1,
-        minHeight: 520
+        minHeight: 520,
+        ...dashboardPanelSx(theme)
       }}
     >
       <Stack spacing={1.2}>
@@ -367,7 +371,7 @@ function ProjectCard(props: ProjectCardProps) {
           p: 1.35,
           borderRadius: 1,
           borderColor: props.isSelected ? "primary.main" : alpha(theme.palette.text.primary, 0.12),
-          backgroundColor: alpha(theme.palette.background.paper, 0.92),
+          backgroundColor: alpha(theme.palette.background.paper, theme.palette.mode === "dark" ? 0.84 : 0.92),
           boxShadow: props.isSelected ? `0 0 0 1px ${alpha(theme.palette.primary.main, 0.24)}` : "none"
         }}
       >
@@ -446,7 +450,7 @@ function BoardMetricCard(props: {
         : theme.palette.primary.main;
 
   return (
-    <Paper variant="outlined" sx={{ p: 1.45, borderRadius: 1 }}>
+    <Paper variant="outlined" sx={{ p: 1.45, borderRadius: 1, ...dashboardPanelSx(theme) }}>
       <Stack direction="row" spacing={1.1} sx={{ alignItems: "flex-start" }}>
         <Avatar
           variant="rounded"

@@ -1,0 +1,28 @@
+diff --git a/apps/dashboard/src/app/DashboardApp.tsx b/apps/dashboard/src/app/DashboardApp.tsx
+index fb45a16..77b356e 100644
+--- a/apps/dashboard/src/app/DashboardApp.tsx
++++ b/apps/dashboard/src/app/DashboardApp.tsx
+@@ -793,7 +793,13 @@ export default function DashboardApp() {
+         }}
+       >
+         {!isCompactShell ? (
+-          <Box sx={{ borderRight: `1px solid ${theme.palette.divider}`, minHeight: "100%" }}>
++          <Box
++            sx={{
++              borderRight: `1px solid ${theme.palette.divider}`,
++              minHeight: "100%",
++              backgroundColor: alpha(theme.palette.background.paper, theme.palette.mode === "dark" ? 0.72 : 0.86)
++            }}
++          >
+             <ProjectContextSidebar
+               activeTopMenu={activeTopMenu}
+               activeSidebarItem={activeSidebarItem}
+@@ -825,7 +831,7 @@ export default function DashboardApp() {
+             sx={{
+               p: 1.5,
+               borderLeft: `1px solid ${theme.palette.divider}`,
+-              backgroundColor: alpha(theme.palette.background.paper, 0.4)
++              backgroundColor: alpha(theme.palette.background.paper, theme.palette.mode === "dark" ? 0.72 : 0.4)
+             }}
+           >
+             <InsightsRail

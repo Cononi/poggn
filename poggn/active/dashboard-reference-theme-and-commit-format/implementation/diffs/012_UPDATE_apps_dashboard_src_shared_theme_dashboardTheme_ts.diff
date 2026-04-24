@@ -1,0 +1,182 @@
+diff --git a/apps/dashboard/src/shared/theme/dashboardTheme.ts b/apps/dashboard/src/shared/theme/dashboardTheme.ts
+index fdeeb28..c011975 100644
+--- a/apps/dashboard/src/shared/theme/dashboardTheme.ts
++++ b/apps/dashboard/src/shared/theme/dashboardTheme.ts
+@@ -3,74 +3,74 @@ import type { DashboardThemeMode } from "../model/dashboard";
+ 
+ export function createDashboardTheme(mode: DashboardThemeMode) {
+   const isDark = mode === "dark";
+-  const primary = isDark ? "#579dff" : "#2467d6";
+-  const secondary = isDark ? "#9fadbc" : "#5e6c84";
+-  const backgroundDefault = isDark ? "#1d2125" : "#eef2f8";
+-  const backgroundPaper = isDark ? "#22272b" : "#ffffff";
+-  const navSurface = isDark ? "#1a1f24" : "#f7f9fc";
+-  const surfaceBorder = isDark ? alpha("#f8fafc", 0.08) : alpha("#091e42", 0.12);
++  const primary = isDark ? "#1d9bf0" : "#1677d2";
++  const secondary = isDark ? "#9fb3c8" : "#5e6c84";
++  const backgroundDefault = isDark ? "#031827" : "#eaf1f8";
++  const backgroundPaper = isDark ? "#092235" : "#ffffff";
++  const navSurface = isDark ? "#061c2d" : "#f6faff";
++  const surfaceBorder = isDark ? alpha("#38bdf8", 0.18) : alpha("#0f4c81", 0.16);
+ 
+   return createTheme({
+     palette: {
+       mode,
+       primary: {
+         main: primary,
+-        light: isDark ? "#8fbaff" : "#3f7ce8",
+-        dark: isDark ? "#2555b3" : "#1b4fa8",
+-        contrastText: isDark ? "#091e42" : "#ffffff"
++        light: isDark ? "#4db8ff" : "#3f9af5",
++        dark: isDark ? "#0b73c6" : "#0c5da8",
++        contrastText: isDark ? "#00111f" : "#ffffff"
+       },
+       secondary: {
+         main: secondary
+       },
+       error: {
+-        main: isDark ? "#f87168" : "#d92d20",
++        main: isDark ? "#f25767" : "#d92d20",
+         contrastText: "#ffffff"
+       },
+       success: {
+-        main: isDark ? "#6ccb8f" : "#2c7a4b",
+-        contrastText: isDark ? "#0f2419" : "#ffffff"
++        main: isDark ? "#2fd07f" : "#2c7a4b",
++        contrastText: isDark ? "#001f13" : "#ffffff"
+       },
+       warning: {
+-        main: isDark ? "#d9b45d" : "#b26b00",
+-        contrastText: isDark ? "#23190a" : "#ffffff"
++        main: isDark ? "#ff8a3d" : "#b26b00",
++        contrastText: isDark ? "#251000" : "#ffffff"
+       },
+       info: {
+-        main: isDark ? "#6ea8fe" : "#2467d6"
++        main: isDark ? "#22d3ee" : "#2467d6"
+       },
+       background: {
+         default: backgroundDefault,
+         paper: backgroundPaper
+       },
+       text: {
+-        primary: isDark ? "#f8fafc" : "#171717",
+-        secondary: isDark ? "#94a3b8" : "#5b6472"
++        primary: isDark ? "#f3f8ff" : "#172033",
++        secondary: isDark ? "#a6b7c9" : "#5b6472"
+       },
+       divider: surfaceBorder
+     },
+     shape: {
+       borderRadius: 1
+     },
+-      typography: {
++    typography: {
+       fontFamily: '"IBM Plex Sans", "Sora", "Avenir Next", sans-serif',
+       h1: {
+         fontWeight: 700,
+-        letterSpacing: "-0.05em"
++        letterSpacing: 0
+       },
+       h2: {
+         fontWeight: 700,
+-        letterSpacing: "-0.03em"
++        letterSpacing: 0
+       },
+       h3: {
+         fontWeight: 700,
+-        letterSpacing: "-0.02em"
++        letterSpacing: 0
+       },
+       overline: {
+         fontWeight: 700,
+-        letterSpacing: "0.18em"
++        letterSpacing: "0.08em"
+       },
+       h6: {
+         fontWeight: 600,
+-        letterSpacing: "-0.01em"
++        letterSpacing: 0
+       },
+       body1: {
+         lineHeight: 1.4
+@@ -99,7 +99,9 @@ export function createDashboardTheme(mode: DashboardThemeMode) {
+           body: {
+             minWidth: 320,
+             minHeight: "100vh",
+-            background: backgroundDefault
++            background: isDark
++              ? `linear-gradient(180deg, ${backgroundDefault} 0%, #02121f 100%)`
++              : backgroundDefault
+           },
+           "#root": {
+             minHeight: "100vh"
+@@ -114,7 +116,7 @@ export function createDashboardTheme(mode: DashboardThemeMode) {
+           },
+           ".react-flow__controls": {
+             boxShadow: isDark
+-              ? "0 12px 24px rgba(0, 0, 0, 0.36)"
++              ? "0 12px 24px rgba(0, 0, 0, 0.34)"
+               : "0 12px 24px rgba(17, 24, 39, 0.12)",
+             borderRadius: 1,
+             overflow: "hidden",
+@@ -135,7 +137,8 @@ export function createDashboardTheme(mode: DashboardThemeMode) {
+           root: {
+             backgroundImage: "none",
+             border: `1px solid ${surfaceBorder}`,
+-            backgroundColor: backgroundPaper
++            backgroundColor: backgroundPaper,
++            boxShadow: isDark ? "inset 0 1px 0 rgba(255, 255, 255, 0.03)" : "none"
+           }
+         }
+       },
+@@ -147,7 +150,7 @@ export function createDashboardTheme(mode: DashboardThemeMode) {
+           head: {
+             color: isDark ? "#9fadbc" : "#4f5b72",
+             fontWeight: 700,
+-            backgroundColor: alpha(navSurface, isDark ? 0.72 : 0.45)
++            backgroundColor: alpha(navSurface, isDark ? 0.9 : 0.45)
+           }
+         }
+       },
+@@ -155,10 +158,19 @@ export function createDashboardTheme(mode: DashboardThemeMode) {
+         styleOverrides: {
+           root: {
+             borderRadius: 1,
+-            paddingInline: 14
++            paddingInline: 14,
++            minHeight: 34
+           },
+           contained: {
+-            boxShadow: "none"
++            boxShadow: "none",
++            backgroundColor: primary,
++            "&:hover": {
++              boxShadow: `0 0 0 1px ${alpha(primary, 0.35)}`
++            }
++          },
++          outlined: {
++            borderColor: alpha(primary, isDark ? 0.55 : 0.42),
++            backgroundColor: alpha(primary, isDark ? 0.05 : 0.02)
+           }
+         }
+       },
+@@ -166,7 +178,8 @@ export function createDashboardTheme(mode: DashboardThemeMode) {
+         styleOverrides: {
+           root: {
+             borderRadius: 1,
+-            height: 28
++            height: 26,
++            fontWeight: 700
+           }
+         }
+       },
+@@ -181,7 +194,7 @@ export function createDashboardTheme(mode: DashboardThemeMode) {
+         styleOverrides: {
+           root: {
+             borderRadius: 1,
+-            backgroundColor: alpha(navSurface, isDark ? 0.72 : 0.55)
++            backgroundColor: alpha(navSurface, isDark ? 0.82 : 0.55)
+           }
+         }
+       },
