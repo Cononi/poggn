@@ -1,0 +1,14 @@
+{
+  "topic": "dashboard-overview-progress-polish",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "version": "2.2.1",
+  "targetVersion": "2.2.1",
+  "previousVersion": "2.2.0",
+  "shortName": "dashboard-polish",
+  "workingBranch": "ai/fix/2.2.1-dashboard-polish",
+  "releaseBranch": "release/2.2.1-dashboard-polish",
+  "projectScope": "current-project",
+  "archivedAt": "2026-04-24T12:27:29Z",
+  "history": "poggn/version-history.ndjson"
+}
