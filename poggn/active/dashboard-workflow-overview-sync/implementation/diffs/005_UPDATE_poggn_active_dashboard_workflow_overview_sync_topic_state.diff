@@ -1,132 +1,82 @@
-diff --git a/poggn/active/dashboard-workflow-overview-sync/implementation/index.md b/poggn/active/dashboard-workflow-overview-sync/implementation/index.md
-index a724f67..491f027 100644
---- a/poggn/active/dashboard-workflow-overview-sync/implementation/index.md
-+++ b/poggn/active/dashboard-workflow-overview-sync/implementation/index.md
-@@ -5,7 +5,7 @@ pgg:
-   status: "reviewed"
-   skill: "pgg-code"
-   score: 96
--  updated_at: "2026-04-24T22:36:16Z"
-+  updated_at: "2026-04-24T22:44:26Z"
-   auto_mode: "on"
-   archive_type: "fix"
-   version_bump: "patch"
-@@ -53,6 +53,8 @@ state:
- - Selected tab mask overflow is now explicitly visible so the add-img/10 inner mask is not clipped into the add-img/12 shape.
- - Panel top border is now drawn as header-inset-aware left/right segments, so no line is drawn under the selected tab while the remaining top line stays connected.
- - Panel top-line segment overlap is constrained to 3px so the cap is hidden by the tab side border without crossing into the selected tab bottom.
-+- Refactor centralized HistoryWorkspace tab geometry constants and tab-bound calculation without changing visual behavior.
-+- Refactor renders Workflow Progress metadata cards from one data array to remove repeated JSX declarations.
- - Selected tab and its content panel now share one framed surface while inactive tabs remain unboxed text controls.
- - Selected tabs now use the `add-img/9.png` tab shape with rounded top corners, top/side border, matching panel fill, and no bottom border.
- - History tabs now use a custom `ButtonBase` tablist instead of MUI `Tabs`/`Tab`, removing the built-in selected underline entirely.
-@@ -92,6 +94,7 @@ state:
- | UPDATE | `poggn/active/dashboard-workflow-overview-sync/state/dirty-worktree-baseline.txt` | `implementation/diffs/005_UPDATE_poggn_active_dashboard_workflow_overview_sync_topic_state.diff` |
- | UPDATE | `poggn/active/dashboard-workflow-overview-sync/state/history.ndjson` | `implementation/diffs/005_UPDATE_poggn_active_dashboard_workflow_overview_sync_topic_state.diff` |
- | UPDATE | `poggn/active/dashboard-workflow-overview-sync/workflow.reactflow.json` | `implementation/diffs/005_UPDATE_poggn_active_dashboard_workflow_overview_sync_topic_state.diff` |
-+| CREATE | `poggn/active/dashboard-workflow-overview-sync/reviews/refactor.review.md` | |
- | CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/index.md` | |
- | CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/001_UPDATE_apps_dashboard_src_features_history_historyModel_ts.diff` | |
- | CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/002_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.diff` | |
-@@ -116,6 +119,7 @@ state:
- 
- - `pnpm build`: pass
- - `./.codex/sh/pgg-gate.sh pgg-code dashboard-workflow-overview-sync`: pass
-+- `./.codex/sh/pgg-gate.sh pgg-refactor dashboard-workflow-overview-sync`: pass
- - source check for removed extra status stage and retained `workflowProgressStatusUpdating`: pass
- - source check for unresolved revision status overriding completed status across flow advancement: pass
- - source check for completed-flow preservation while unresolved revision is active: pass
-@@ -141,6 +145,7 @@ state:
- - source check for visible selected-tab mask overflow matching add-img/10: pass
- - source check for header-inset-aware panel top segments with no selected-tab bottom line: pass
- - source check for constrained tab-side overlap with clean line ends: pass
-+- source check for centralized HistoryWorkspace tab geometry constants and metadata card data rendering: pass
- - source check for `workflowProgressTooltip`, `historyEvents`, `stage-started`, `stage-commit`: pass
- - source check for removed `minHeight: 48` bordered time/status box pattern: pass
- 
 diff --git a/poggn/active/dashboard-workflow-overview-sync/state/current.md b/poggn/active/dashboard-workflow-overview-sync/state/current.md
-index bd0506f..1d5fda4 100644
+index 1d5fda4..d2aaea7 100644
 --- a/poggn/active/dashboard-workflow-overview-sync/state/current.md
 +++ b/poggn/active/dashboard-workflow-overview-sync/state/current.md
-@@ -6,7 +6,7 @@ dashboard-workflow-overview-sync
+@@ -6,11 +6,12 @@ dashboard-workflow-overview-sync
  
  ## Current Stage
  
--implementation
-+refactor
+-refactor
++implementation
  
  ## Goal
  
-@@ -22,6 +22,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
- - task review: `poggn/active/dashboard-workflow-overview-sync/reviews/task.review.md`
- - implementation index: `poggn/active/dashboard-workflow-overview-sync/implementation/index.md`
- - code review: `poggn/active/dashboard-workflow-overview-sync/reviews/code.review.md`
-+- refactor review: `poggn/active/dashboard-workflow-overview-sync/reviews/refactor.review.md`
- - spec:
-   - `poggn/active/dashboard-workflow-overview-sync/spec/model/flow-timestamp-and-status-source.md`
-   - `poggn/active/dashboard-workflow-overview-sync/spec/model/revision-status-model.md`
-@@ -103,6 +104,8 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
- - Selected tab mask overflow must stay visible so the add-img/10 shape is produced instead of the clipped add-img/12 shape.
- - Panel top line is drawn as left/right segments using header padding plus tab inset, so the selected tab bottom has no line while the outside lines remain connected.
- - Panel top-line segments overlap the selected tab side borders by only 3px, hiding caps without crossing into the selected tab bottom.
-+- Refactor centralized HistoryWorkspace tab geometry constants and tab-bound calculation without changing visual behavior.
-+- Refactor renders Workflow Progress metadata cards from one data array to remove repeated JSX declarations.
- - Content panel top border remains visible except under the selected tab segment, where the selected tab connects to the panel.
- - New dialogue requirements should append `requirements-added` before completion evidence so live dashboard refresh can show the current flow as `추가 진행`.
- - This `requirements-added` first rule is a global pgg workflow rule for future active topics, not a one-off behavior for this topic.
-@@ -174,6 +177,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
- | CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` | |
- | CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/005_UPDATE_poggn_active_dashboard_workflow_overview_sync_topic_state.diff` | |
- | CREATE | `poggn/active/dashboard-workflow-overview-sync/reviews/code.review.md` | |
-+| CREATE | `poggn/active/dashboard-workflow-overview-sync/reviews/refactor.review.md` | |
- | UPDATE | `packages/core/src/index.ts` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/003_UPDATE_dashboard_core_workflow_telemetry_shared.diff` |
- | UPDATE | `packages/core/dist/index.d.ts` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/003_UPDATE_dashboard_core_workflow_telemetry_shared.diff` |
- | UPDATE | `packages/core/dist/index.js` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/003_UPDATE_dashboard_core_workflow_telemetry_shared.diff` |
-@@ -200,13 +204,13 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
+ Project Workflow Overview의 progress rail 연결, compact density, caption style, flow tooltip, 진행 중 clipping 방지, 필요한 네 상태(`시작 전`, `생성 중`, `완료`, `추가 진행`), flow별 시간 독립성, stage telemetry 반영, 상태별 색 구분, tab panel containment, borderless tabs, unresolved revision status를 보강 구현했다.
++추가로 global workflow 규칙 3줄이 `pgg update` 후에도 유지되도록 generator template에 반영했다.
+ 
+ ## Document Refs
+ 
+@@ -115,6 +116,8 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
+ - Workflow Progress compact UI removes the bordered time/status box and uses caption typography.
+ - Flow nodes expose hover/focus tooltip copy through locale keys.
+ - Active/revision rail uses visible overflow and fixed visual sizing to avoid clipping while preserving click target.
++- `pgg update` regenerates `.codex/add/WOKR-FLOW.md` from `packages/core/src/templates.ts`, so global workflow rules must live in the generator template, not only in the generated markdown.
++- The three live workflow rules are now in both ko/en templates and `pgg update` leaves `.codex/add/WOKR-FLOW.md` unchanged while updating the manifest checksum.
+ 
+ ## User Question Record
+ 
+@@ -144,6 +147,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
+ - `add-img애서 탭을 10.png로만들어야 하나 지금 12.png 모양입니다.`
+ - `9.png 처럼 탭의 바텀에 선이 없어야 하는데 지금은 12.png 모양 입니다.`
+ - `이제는 아예 라인을 넘어갔습니다. 9.png처럼 완벽하게 라인 끝처리도 깔끔하게 그냥 100% 똑같아야 합니다.`
++- `global workflow 규칙 3줄이 pgg update를 통해 반영되지 않는거 같습니다.`
+ 
+ ## Audit Applicability
+ 
+@@ -189,6 +193,10 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
+ | UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/001_UPDATE_apps_dashboard_src_features_history_historyModel_ts.diff` |
+ | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/002_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.diff` |
+ | UPDATE | `.codex/add/WOKR-FLOW.md` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/007_UPDATE_pgg_workflow_contracts.diff` |
++| UPDATE | `.pgg/project.json` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/008_UPDATE_pgg_update_workflow_template.diff` |
++| UPDATE | `packages/core/src/templates.ts` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/008_UPDATE_pgg_update_workflow_template.diff` |
++| UPDATE | `packages/core/dist/templates.js` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/008_UPDATE_pgg_update_workflow_template.diff` |
++| UPDATE | `packages/core/dist/templates.js.map` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/008_UPDATE_pgg_update_workflow_template.diff` |
+ | UPDATE | `poggn/active/dashboard-workflow-overview-sync/plan.md` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
+ | UPDATE | `poggn/active/dashboard-workflow-overview-sync/task.md` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
+ | UPDATE | `poggn/active/dashboard-workflow-overview-sync/spec/model/flow-timestamp-and-status-source.md` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
+@@ -204,13 +212,13 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
  
  ## Last Expert Score
  
--- phase: implementation
-+- phase: refactor
+-- phase: refactor
++- phase: implementation
  - score: 96
  - blocking issues: none
  
  ## Open Items
  
--- status: ready_for_refactor
-+- status: ready_for_qa
+-- status: ready_for_qa
++- status: ready_for_refactor
  
  ## Verification
  
-@@ -222,6 +226,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
- - spec files created: pass
- - `pnpm build`: pass
- - `./.codex/sh/pgg-gate.sh pgg-code dashboard-workflow-overview-sync`: pass
-+- `./.codex/sh/pgg-gate.sh pgg-refactor dashboard-workflow-overview-sync`: pass
- - source check for removed extra status stage and retained updating telemetry/status/tooltip keys: pass
- - source check for unresolved revision status overriding completed status across flow advancement: pass
- - source check for completed-flow preservation while unresolved revision is active: pass
-@@ -248,10 +253,11 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
- - source check for visible selected-tab mask overflow matching add-img/10: pass
- - source check for header-inset-aware panel top segments with no selected-tab bottom line: pass
- - source check for constrained tab-side overlap with clean line ends: pass
-+- source check for centralized HistoryWorkspace tab geometry constants and metadata card data rendering: pass
- 
- ## Next Action
- 
--`pgg-refactor`
-+`pgg-qa`
- 
- ## Git Publish Message
- 
+@@ -236,6 +244,9 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
+ - source check for removed MUI Tabs/Tab selected indicator implementation: pass
+ - source check for immediate `requirements-added` live workflow status evidence: pass
+ - source check for global pgg workflow `requirements-added` first rule: pass
++- `pnpm build`: pass
++- `node packages/cli/dist/index.js update`: pass; `.codex/add/WOKR-FLOW.md` remained unchanged and manifest checksum updated
++- source check for ko/en generator template workflow rules: pass
+ - source check for edge-to-edge connector geometry and removed internal connector: pass
+ - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
+ - source check for connector gap-inclusive end offset and circle-radius top alignment: pass
 diff --git a/poggn/active/dashboard-workflow-overview-sync/state/history.ndjson b/poggn/active/dashboard-workflow-overview-sync/state/history.ndjson
-index 0fce2be..cfaff64 100644
+index 34a8979..d96cfe4 100644
 --- a/poggn/active/dashboard-workflow-overview-sync/state/history.ndjson
 +++ b/poggn/active/dashboard-workflow-overview-sync/state/history.ndjson
-@@ -82,3 +82,6 @@
- {"ts":"2026-04-24T22:36:16Z","stage":"implementation","event":"stage-progress","summary":"reduced tab-panel segment overlap so the line ends are hidden by the tab side border without crossing into the selected tab bottom","score":96,"next":"pgg-code"}
- {"ts":"2026-04-24T22:29:22Z","stage":"implementation","event":"stage-commit","archiveType":"fix","targetVersion":"2.2.3","projectLanguage":"ko","commitTitle":"fix: 2.2.3.워크플로우 탭마스크 정리","summary":"워크플로우 탭마스크 정리","why":"선택 탭 마스크가 잘려 add-img 12 형태로 보이고 add-img 10 기준처럼 탭과 컨텐츠 사이 선이 사라져야 한다","footer":"Refs: dashboard-workflow-overview-sync"}
- {"ts":"2026-04-24T22:37:53Z","stage":"implementation","event":"stage-commit","archiveType":"fix","targetVersion":"2.2.3","projectLanguage":"ko","commitTitle":"fix: 2.2.3.워크플로우 탭라인 마감","summary":"워크플로우 탭라인 마감","why":"탭 하단 라인이 보이거나 선분이 탭 안쪽으로 넘어가지 않고 add-img 9 기준처럼 끝처리가 깔끔해야 한다","footer":"Refs: dashboard-workflow-overview-sync"}
-+{"ts":"2026-04-24T22:39:12Z","stage":"refactor","event":"stage-started","summary":"started refactor to centralize HistoryWorkspace tab geometry and metadata card rendering without changing visual behavior","score":96,"next":"pgg-refactor"}
-+{"ts":"2026-04-24T22:42:02Z","stage":"refactor","event":"stage-progress","summary":"centralized HistoryWorkspace tab geometry constants and rendered Workflow Progress metadata cards from one data array","score":96,"next":"pgg-qa"}
-+{"ts":"2026-04-24T22:44:26Z","stage":"refactor","event":"stage-progress","summary":"pgg-refactor gate passed after HistoryWorkspace refactor and refactor review evidence","score":96,"next":"pgg-qa"}
+@@ -86,3 +86,5 @@
+ {"ts":"2026-04-24T22:42:02Z","stage":"refactor","event":"stage-progress","summary":"centralized HistoryWorkspace tab geometry constants and rendered Workflow Progress metadata cards from one data array","score":96,"next":"pgg-qa"}
+ {"ts":"2026-04-24T22:44:26Z","stage":"refactor","event":"stage-progress","summary":"pgg-refactor gate passed after HistoryWorkspace refactor and refactor review evidence","score":96,"next":"pgg-qa"}
+ {"ts":"2026-04-24T22:46:04Z","stage":"refactor","event":"stage-commit","archiveType":"fix","targetVersion":"2.2.3","projectLanguage":"ko","commitTitle":"fix: 2.2.3.워크플로우 구조 정리","summary":"워크플로우 구조 정리","why":"탭 geometry와 메타 카드 렌더링의 반복 계산을 줄여 후속 QA와 유지보수가 쉬워야 한다","footer":"Refs: dashboard-workflow-overview-sync"}
++{"ts":"2026-04-24T22:48:50Z","stage":"implementation","event":"requirements-added","summary":"follow-up reported the three global workflow rules are not preserved when running pgg update","score":96,"next":"pgg-code"}
++{"ts":"2026-04-24T22:50:54Z","stage":"implementation","event":"stage-progress","summary":"added the three global workflow rules to the pgg update generator template and verified update preserves WOKR-FLOW","score":96,"next":"pgg-refactor"}

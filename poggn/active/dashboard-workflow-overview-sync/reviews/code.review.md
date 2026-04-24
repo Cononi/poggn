@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T22:36:16Z"
+  updated_at: "2026-04-24T22:50:54Z"
 ---
 
 # code.review
@@ -45,6 +45,7 @@ pgg:
 | UI 정렬 리뷰어 | 96 | 선택 탭의 overflow를 visible로 명시하고 mask z-index를 부여해 add-img/10처럼 마스크가 탭 밖으로 내려오며 add-img/12 형태로 잘리지 않게 했다. | none |
 | UI 정렬 리뷰어 | 96 | panel top border를 전체 선이 아니라 header padding과 tab inset을 반영한 좌우 segment로 다시 나눠 selected tab 아래에는 선이 그려지지 않게 했다. | none |
 | UI 정렬 리뷰어 | 96 | line segment overlap을 3px로 제한해 선 끝은 tab side border 뒤에 숨기되 selected tab bottom까지 넘어가지 않게 했다. | none |
+| 워크플로우 계약 리뷰어 | 96 | `pgg update`의 source of truth인 `packages/core/src/templates.ts` ko/en WOKR-FLOW template에 global workflow 3줄을 넣어 generated markdown만 수정되던 문제를 해소했다. | none |
 
 ## Findings
 
@@ -53,6 +54,7 @@ pgg:
 ## Verification
 
 - `pnpm build`: pass
+- `node packages/cli/dist/index.js update`: pass; `.codex/add/WOKR-FLOW.md` unchanged and `.pgg/project.json` checksum updated
 - `./.codex/sh/pgg-gate.sh pgg-code dashboard-workflow-overview-sync`: pass
 - source check for extra status stage removal, updating status keys, telemetry/status/tooltip keys: pass
 - source check for unresolved revision status overriding completed status across flow advancement: pass
@@ -63,6 +65,7 @@ pgg:
 - source check for removed MUI Tabs/Tab selected indicator implementation: pass
 - source check for immediate `requirements-added` live workflow status evidence: pass
 - source check for global pgg workflow `requirements-added` first rule: pass
+- source check for ko/en `pgg update` generator workflow rules: pass
 - source check for edge-to-edge connector geometry and removed internal connector: pass
 - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
 - source check for connector gap-inclusive end offset and circle-radius top alignment: pass

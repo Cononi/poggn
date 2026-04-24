@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T22:44:26Z"
+  updated_at: "2026-04-24T22:50:54Z"
   auto_mode: "on"
   archive_type: "fix"
   version_bump: "patch"
@@ -64,6 +64,7 @@ state:
 - `.codex/add/WOKR-FLOW.md` now requires this `requirements-added` first rule for future topics, not only this topic.
 - Dashboard completion evidence now ignores unverified `stage-completed`; actual completion requires governed `stage-commit` or verified/final `stage-completed` so work-in-progress follow-ups do not flip to `완료` too early.
 - `.codex/add/WOKR-FLOW.md` now requires in-progress work to use `stage-progress` and reserves `stage-completed` for verified final completion.
+- `pgg update` now preserves those three global workflow rules because the ko/en `WOKR-FLOW.md` generator template includes them instead of relying only on the generated markdown copy.
 - Status/Workflow Stage/Progress/Priority/Created/Updated metadata now renders as a fixed six-column row under the workflow rail so it does not wrap or overlap.
 - ko/en locale copy was updated for generated/current, update, count, and tooltip labels.
 - Restored the Workflow Progress header icon import and migrated compact Drawer paper styling from `PaperProps` to `slotProps.paper` to remove runtime console errors.
@@ -83,6 +84,10 @@ state:
 | UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | `implementation/diffs/001_UPDATE_apps_dashboard_src_features_history_historyModel_ts.diff` |
 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `implementation/diffs/002_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.diff` |
 | UPDATE | `.codex/add/WOKR-FLOW.md` | `implementation/diffs/007_UPDATE_pgg_workflow_contracts.diff` |
+| UPDATE | `.pgg/project.json` | `implementation/diffs/008_UPDATE_pgg_update_workflow_template.diff` |
+| UPDATE | `packages/core/src/templates.ts` | `implementation/diffs/008_UPDATE_pgg_update_workflow_template.diff` |
+| UPDATE | `packages/core/dist/templates.js` | `implementation/diffs/008_UPDATE_pgg_update_workflow_template.diff` |
+| UPDATE | `packages/core/dist/templates.js.map` | `implementation/diffs/008_UPDATE_pgg_update_workflow_template.diff` |
 | UPDATE | `poggn/active/dashboard-workflow-overview-sync/plan.md` | `implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
 | UPDATE | `poggn/active/dashboard-workflow-overview-sync/task.md` | `implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
 | UPDATE | `poggn/active/dashboard-workflow-overview-sync/spec/model/flow-timestamp-and-status-source.md` | `implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
@@ -118,6 +123,7 @@ state:
 ## Verification
 
 - `pnpm build`: pass
+- `node packages/cli/dist/index.js update`: pass; `.codex/add/WOKR-FLOW.md` remained unchanged and `.pgg/project.json` checksum updated
 - `./.codex/sh/pgg-gate.sh pgg-code dashboard-workflow-overview-sync`: pass
 - `./.codex/sh/pgg-gate.sh pgg-refactor dashboard-workflow-overview-sync`: pass
 - source check for removed extra status stage and retained `workflowProgressStatusUpdating`: pass
@@ -129,6 +135,7 @@ state:
 - source check for removed MUI Tabs/Tab selected indicator implementation: pass
 - source check for immediate `requirements-added` live workflow status evidence: pass
 - source check for global pgg workflow `requirements-added` first rule: pass
+- source check for ko/en `pgg update` generator workflow rules: pass
 - source check for edge-to-edge connector geometry and removed center-to-center internal connector: pass
 - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
 - source check for connector gap-inclusive end offset and circle-radius top alignment: pass
