@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T18:28:01Z"
+  updated_at: "2026-04-24T18:30:45Z"
   auto_mode: "on"
   archive_type: "fix"
   version_bump: "patch"
@@ -45,6 +45,7 @@ state:
 - Priority ignores non-blocking placeholder values such as `none` and uses score/workflow context as helper copy.
 - Overview, Timeline, and Relations content now renders inside the same tab panel surface as the topic header/tabs instead of detached sibling cards.
 - Overview tabs now remove the tab-group box and header/content divider; inactive tabs are text-only and the selected tab blends into the content panel.
+- Selected tab now overlaps the panel edge by 1px so the line is not visible directly under the active tab.
 - Status/Workflow Stage/Priority/Created/Updated metadata card bar now sits under the workflow rail inside Workflow Progress.
 - ko/en locale copy was updated for generated/current, update, count, and tooltip labels.
 - Restored the Workflow Progress header icon import and migrated compact Drawer paper styling from `PaperProps` to `slotProps.paper` to remove runtime console errors.
@@ -107,6 +108,7 @@ state:
 - source check for removed Type card, title-area metadata, fixed date/time formatter, and non-placeholder Priority helper: pass
 - source check for unified tab panel surface wrapping Overview, Timeline, and Relations content: pass
 - source check for borderless text-only inactive tabs and selected-tab panel blending: pass
+- source check for selected-tab edge overlap hiding the active-tab bottom line: pass
 - source check for metadata card bar under the workflow rail: pass
 - source check for `workflowProgressTooltip`, `historyEvents`, `stage-started`, `stage-commit`: pass
 - source check for removed `minHeight: 48` bordered time/status box pattern: pass

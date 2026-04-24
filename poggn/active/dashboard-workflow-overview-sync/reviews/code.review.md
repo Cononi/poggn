@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T18:28:01Z"
+  updated_at: "2026-04-24T18:30:45Z"
 ---
 
 # code.review
@@ -26,6 +26,7 @@ pgg:
 | UI 통합 리뷰어 | 96 | Overview/Timeline/Relations 콘텐츠를 topic header와 tabs가 있는 같은 `Paper`의 `tabpanel` 안으로 이동해 분리된 sibling-card 간격을 제거했다. active glow clipping 방지를 위해 outer overflow는 visible로 유지했다. | none |
 | UI 통합 리뷰어 | 96 | Tabs를 contained segmented treatment로 바꾸고, Status/Workflow Stage/Priority/Created/Updated 카드바를 Workflow Progress 제목 옆에서 rail 아래로 이동해 workflow 영역 내부 관계를 더 명확히 했다. | none |
 | UI 통합 리뷰어 | 96 | 탭 그룹 자체의 border/background와 header/content divider를 제거했다. 비선택 탭은 transparent text-only로 두고 선택 탭만 panel 배경과 같은 색으로 이어지게 했다. | none |
+| UI 정렬 리뷰어 | 96 | 선택 탭에 `overflow: visible`, relative stacking, 1px bottom overlap을 적용해 active tab 바로 아래의 panel edge line이 보이지 않도록 했다. | none |
 
 ## Findings
 
@@ -46,6 +47,7 @@ pgg:
 - source check for removed bordered time/status box pattern: pass
 - source check for unified tab panel surface wrapping Overview, Timeline, and Relations content: pass
 - source check for borderless text-only inactive tabs and selected-tab panel blending: pass
+- source check for selected-tab edge overlap hiding the active-tab bottom line: pass
 - source check for metadata card bar under the workflow rail: pass
 
 ## Residual Risks

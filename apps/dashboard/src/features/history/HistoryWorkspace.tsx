@@ -164,9 +164,10 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
               TabIndicatorProps={{ sx: { display: "none" } }}
               sx={{
                 alignSelf: "flex-start",
-                minHeight: 38,
+                minHeight: 36,
                 mt: 0.2,
-                mb: -0.05,
+                mb: -0.12,
+                overflow: "visible",
                 "& .MuiTabs-flexContainer": { gap: 0.25 },
                 "& .MuiTab-root": {
                   minHeight: 36,
@@ -180,6 +181,9 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
                   bgcolor: "transparent"
                 },
                 "& .Mui-selected": {
+                  position: "relative",
+                  zIndex: 1,
+                  mb: "-1px",
                   color: "primary.main",
                   bgcolor: alpha(theme.palette.background.default, theme.palette.mode === "dark" ? 0.18 : 0.34)
                 }

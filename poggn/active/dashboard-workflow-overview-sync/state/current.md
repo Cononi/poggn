@@ -87,6 +87,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - Overview/Timeline/Relations content should render inside the topic header/tab surface so the selected tab panel does not look detached from the tab area.
 - Tabs should use a contained/segmented treatment, and Status/Workflow Stage/Priority/Created/Updated should sit under the workflow rail inside Workflow Progress.
 - Tab group should not have its own border/background, inactive tabs should not look boxed, and selected tab should visually continue into the tab panel.
+- The active tab should cover the panel edge directly beneath it so no line appears under the selected tab.
 - Workflow Progress compact UI removes the bordered time/status box and uses caption typography.
 - Flow nodes expose hover/focus tooltip copy through locale keys.
 - Active/revision rail uses visible overflow and fixed visual sizing to avoid clipping while preserving click target.
@@ -104,6 +105,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - `Overview, Timeline, Relations 에 하위 컴포넌트 들이 뭔가 분리되어 있으니 자연스럽지 않은거 같습니다. 탭영역안에 포함된 것 처럼 보여줄 수 없을까요?`
 - `Status, Workflow Stage, Priority,Created, Updated 카드바를 같은 영역에서 워크플로우 아래에 배치 해주세요. 그리고 탭이 좀더 자연스럽게 녹아들었으면 좋겟습니다. Contained Tabs 느낌 일까요?`
 - `탭부분 경계선 없이 하위 컨테츠와 자연스럽게 이어져야 하며 클릭되지 않은 부분은 박스 자체가 없어야 하는 그런 디자인을 원했습니다.`
+- `클릭된 탭과 하단 콘텐츠가 선으로 이어지는데 클릭된 탭의 바로 밑에 라인은 없어야 합니다.`
 
 ## Audit Applicability
 
@@ -195,6 +197,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - source check for removed bordered time/status box pattern: pass
 - source check for unified tab panel surface wrapping Overview, Timeline, and Relations content: pass
 - source check for borderless text-only inactive tabs and selected-tab panel blending: pass
+- source check for selected-tab edge overlap hiding the active-tab bottom line: pass
 - source check for metadata card bar under the workflow rail: pass
 
 ## Next Action

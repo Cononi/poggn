@@ -26,6 +26,7 @@ Workflow Overview sync 변경의 visual, model, telemetry, i18n, accessibility a
 - Workflow Progress title and donut center percentage do not feel oversized compared with surrounding Overview content.
 - Overview, Timeline, and Relations tab content is rendered inside the same tab surface as the topic header/tabs, without detached sibling-card spacing.
 - Overview, Timeline, and Relations tab headers have no outer tab-group border/background; inactive tabs render as text-only controls, and the selected tab blends into the content panel.
+- The selected tab overlaps the content panel edge so no line appears directly under the active tab.
 - Status, Workflow Stage, Priority, Created, and Updated appear as a compact card bar under the workflow rail inside Workflow Progress.
 
 ## Model Acceptance
