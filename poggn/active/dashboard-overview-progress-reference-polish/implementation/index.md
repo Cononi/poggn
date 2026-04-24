@@ -27,13 +27,15 @@ Project Workflow Overview의 Workflow Progress를 dynamic flow visibility, local
 | CRUD | Path | Diff |
 |---|---|---|
 | UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | `implementation/diffs/001_UPDATE_apps_dashboard_src_features_history_historyModel_ts.diff` |
+| UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | `implementation/diffs/002_UPDATE_apps_dashboard_src_shared_locale_dashboardLocale_ts.diff` |
+| UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `implementation/diffs/003_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx_i18n.diff` |
 
 ## Task Evidence
 
 | Task | Status | Evidence |
 |---|---|---|
 | T1 Dynamic workflow visibility | done | `visibleWorkflowFlows`가 current stage/evidence 기준으로 future core rows를 숨기고, WorkflowStep에 table용 file/commit summary를 추가했다. |
-| T2 i18n labels | pending | - |
+| T2 i18n labels | done | Workflow Progress status/table/modal label key를 ko/en locale에 추가하고 modal/chart가 raw status 대신 dictionary label을 쓰게 했다. |
 | T3 reference table UI | pending | - |
 | T4 state motion | pending | - |
 | T5 responsive QA evidence | pending | - |

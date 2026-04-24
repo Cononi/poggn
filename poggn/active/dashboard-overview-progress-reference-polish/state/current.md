@@ -10,7 +10,7 @@ implementation
 
 ## Goal
 
-Project Workflow Overview 탭의 Workflow Progress reference polish 구현을 진행 중이다. T1 dynamic flow visibility model 정리를 완료했다.
+Project Workflow Overview 탭의 Workflow Progress reference polish 구현을 진행 중이다. T1 dynamic flow visibility와 T2 i18n status label 정리를 완료했다.
 
 ## Document Refs
 
@@ -49,6 +49,7 @@ Project Workflow Overview 탭의 Workflow Progress reference polish 구현을 �
 - spec boundary는 dynamic flow visibility, workflow progress i18n status labels, reference table/timeline UI, state motion, responsive QA acceptance 다섯 축으로 고정한다.
 - task order는 model visibility, i18n, reference UI, motion, QA evidence 순서다.
 - implementation T1은 `historyModel.ts`에서 future core rows를 current stage/evidence 기준으로 숨기고, WorkflowStep에 reference table용 `fileChanges`와 `commits` summary를 추가했다.
+- implementation T2는 `dashboardLocale.ts`에 Workflow Progress 전용 ko/en label을 추가하고 `HistoryWorkspace.tsx` modal/chart 표면이 dictionary label을 쓰도록 했다.
 
 ## User Question Record
 
@@ -82,10 +83,15 @@ Project Workflow Overview 탭의 Workflow Progress reference polish 구현을 �
 - CREATE `poggn/active/dashboard-overview-progress-reference-polish/reviews/task.review.md`
 - CREATE `poggn/active/dashboard-overview-progress-reference-polish/implementation/index.md`
 - CREATE `poggn/active/dashboard-overview-progress-reference-polish/implementation/diffs/001_UPDATE_apps_dashboard_src_features_history_historyModel_ts.diff`
+- CREATE `poggn/active/dashboard-overview-progress-reference-polish/implementation/diffs/002_UPDATE_apps_dashboard_src_shared_locale_dashboardLocale_ts.diff`
+- CREATE `poggn/active/dashboard-overview-progress-reference-polish/implementation/diffs/003_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx_i18n.diff`
 - UPDATE `poggn/active/dashboard-overview-progress-reference-polish/state/current.md`
 - UPDATE `poggn/active/dashboard-overview-progress-reference-polish/state/history.ndjson`
 - UPDATE `poggn/active/dashboard-overview-progress-reference-polish/workflow.reactflow.json`
+- UPDATE `poggn/active/dashboard-overview-progress-reference-polish/implementation/index.md`
 - UPDATE `apps/dashboard/src/features/history/historyModel.ts`
+- UPDATE `apps/dashboard/src/shared/locale/dashboardLocale.ts`
+- UPDATE `apps/dashboard/src/features/history/HistoryWorkspace.tsx`
 
 ## Last Expert Score
 
@@ -103,10 +109,11 @@ Project Workflow Overview 탭의 Workflow Progress reference polish 구현을 �
 - proposal document review: pass
 - plan/task document review: pass
 - implementation T1 source update: recorded
+- implementation T2 i18n source update: recorded
 
 ## Next Action
 
-Continue `pgg-code` with T2 i18n labels.
+Continue `pgg-code` with T3 reference table UI.
 
 ## Git Publish Message
 

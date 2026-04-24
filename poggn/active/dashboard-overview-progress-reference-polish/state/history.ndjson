@@ -2,3 +2,4 @@
 {"ts":"2026-04-24T12:30:20Z","stage":"proposal","event":"proposal-reviewed","score":95,"next":"pgg-plan"}
 {"ts":"2026-04-24T12:44:00Z","stage":"plan","event":"plan-task-reviewed","score":96,"next":"pgg-code"}
 {"ts":"2026-04-24T13:15:11Z","stage":"implementation","event":"stage-commit","archiveType":"fix","targetVersion":"2.2.2","projectLanguage":"ko","commitTitle":"fix: 2.2.2.Workflow row 노출 정리","summary":"Workflow row 노출 정리","why":"Workflow Progress가 add 단계에서 미래 step 전체 skeleton을 보이지 않고 stage와 evidence 기준 row만 표시하도록 model을 정리했다","footer":"Refs: dashboard-overview-progress-reference-polish"}
+{"ts":"2026-04-24T13:17:13Z","stage":"implementation","event":"stage-commit","archiveType":"fix","targetVersion":"2.2.2","projectLanguage":"ko","commitTitle":"fix: 2.2.2.Progress 문구 i18n 정리","summary":"Progress 문구 i18n 정리","why":"Workflow Progress 상태와 modal 문구가 Pending 같은 내부 문자열 대신 한국어와 영어 locale label을 사용하도록 정리했다","footer":"Refs: dashboard-overview-progress-reference-polish"}
