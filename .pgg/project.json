@@ -6,7 +6,7 @@
   "language": "ko",
   "autoMode": "on",
   "installedVersion": "0.1.0",
-  "updatedAt": "2026-04-24T04:51:39.409Z",
+  "updatedAt": "2026-04-24T06:32:39.146Z",
   "dashboard": {
     "title": "POGGN",
     "titleIconSvg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 48 48\"><defs><linearGradient id=\"pgg-dashboard-icon\" x1=\"10%\" y1=\"10%\" x2=\"90%\" y2=\"90%\"><stop offset=\"0%\" stop-color=\"#2467d6\" /><stop offset=\"55%\" stop-color=\"#4f92ff\" /><stop offset=\"100%\" stop-color=\"#f59e0b\" /></linearGradient></defs><rect x=\"6\" y=\"6\" width=\"36\" height=\"36\" rx=\"14\" fill=\"#0f172a\" /><path d=\"M24 11l5.2 7.9 9.3 2.7-5.9 7.3.2 9.9-8.8-3.4-8.8 3.4.2-9.9-5.9-7.3 9.3-2.7L24 11z\" fill=\"url(#pgg-dashboard-icon)\" /><circle cx=\"24\" cy=\"24\" r=\"4.8\" fill=\"#f8fafc\" fill-opacity=\"0.9\" /></svg>",
@@ -16,17 +16,17 @@
   "managedFiles": [
     {
       "path": "AGENTS.md",
-      "checksum": "50627188c6fc1e8cf00ee382c7c8ae2bc522b462b869cec59ef5705afbf7430a",
+      "checksum": "661876b09f0ca3eb65b453087660cef05b5e276c287dfb33dff6df2dd3362362",
       "executable": false
     },
     {
       "path": ".codex/add/WOKR-FLOW.md",
-      "checksum": "613a377dc6c271c32a8738de4fe47a4aedcc0a592ae1a73d137100e7f07b8597",
+      "checksum": "45bcbc2704ad408bb44e36048f86686d8176ea6719eb775afd2017f0b16133b9",
       "executable": false
     },
     {
       "path": ".codex/add/STATE-CONTRACT.md",
-      "checksum": "2da4fdf2f7f4d48b35df2573e94ee25f9626777cf06913c9f694c6b0b921fc80",
+      "checksum": "8e75ff482086976378e5d1ad429d29460a7aa2adcf1429bdde7a58ed3f4d525a",
       "executable": false
     },
     {
@@ -61,12 +61,12 @@
     },
     {
       "path": ".codex/skills/pgg-code/SKILL.md",
-      "checksum": "3b559d21aa8fc5df81830a60c641f9e8405afd5df6f5bea530a3e23116139d7f",
+      "checksum": "af35aa6c188bd1ee6da0c5d1a5c1880747c08596cbb58ff4b9801e61a348f09e",
       "executable": false
     },
     {
       "path": ".codex/skills/pgg-refactor/SKILL.md",
-      "checksum": "fc09a03d0d6ab979ec938c4787b989c6f030ee8170f49bde727c1bd0196f439c",
+      "checksum": "fd75472ed293a8281be7d397573afd62dbe29bb93d9bb198afdf6244b581e615",
       "executable": false
     },
     {
@@ -126,7 +126,7 @@
     },
     {
       "path": ".codex/sh/pgg-stage-commit.sh",
-      "checksum": "855522062b8ad4a6daa661f48a6b9a8ba03027f348ae028eeefa1d4e6bf776ef",
+      "checksum": "a496a3933c4804c1579297cbc330a2ab92fad2a058c78a4b3335033c4350ffc8",
       "executable": true
     },
     {
@@ -136,7 +136,7 @@
     },
     {
       "path": ".codex/sh/pgg-git-publish.sh",
-      "checksum": "c65544344ec0d4b28113beb6c9c24892e184cc080a7b33b075fa6b1d35f164ec",
+      "checksum": "5cf4f86767198489ef8d694760efa19414607228151a8ba6cd6fc882f5afcc23",
       "executable": true
     },
     {

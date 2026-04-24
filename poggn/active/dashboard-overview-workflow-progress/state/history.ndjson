@@ -1,0 +1,5 @@
+{"ts":"2026-04-24T07:26:18Z","stage":"proposal","event":"topic-created"}
+{"ts":"2026-04-24T07:26:38Z","stage":"proposal","event":"proposal-reviewed","score":95,"next":"pgg-plan"}
+{"ts":"2026-04-24T07:33:05Z","stage":"plan","event":"plan-reviewed","score":96,"next":"pgg-code"}
+{"ts":"2026-04-24T07:51:34Z","stage":"implementation","event":"code-reviewed","score":96,"verification":"pnpm --filter @pgg/dashboard build passed","next":"pgg-refactor"}
+{"ts":"2026-04-24T07:55:48Z","stage":"implementation","event":"stage-commit","archiveType":"feat","targetVersion":"2.2.0","projectLanguage":"ko","commitTitle":"feat: 2.2.0.Overview 진행 표시 개선","summary":"Overview 진행 표시 개선","why":"Overview active 상태와 workflow 진행, Mui Chart, 로그 모달, Activity Summary를 선택 topic 데이터 기준으로 정리했다","footer":"Refs: dashboard-overview-workflow-progress"}
