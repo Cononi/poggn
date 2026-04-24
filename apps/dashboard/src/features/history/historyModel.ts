@@ -35,6 +35,12 @@ export type ActivitySummary = {
   artifactRows: Array<{ label: string; value: string }>;
 };
 
+export type OverviewStatSummary = {
+  value: string;
+  helper: string;
+  tone?: "success" | "primary" | "danger";
+};
+
 type WorkflowFlowDefinition = {
   id: WorkflowFlowId;
   label: string;
@@ -236,6 +242,87 @@ function resolveStageIndex(topic: TopicSummary, flows = visibleWorkflowFlows(top
 export function formatTopicDate(topic: TopicSummary, language: HistoryLanguage, fallback: string): string {
   const value = topic.updatedAt ?? topic.archivedAt;
   return value ? formatDate(value, language) : fallback;
+}
+
+function topicHistoryEvidence(
+  topic: TopicSummary,
+  predicate: (event: TopicHistoryEventEntry) => boolean = () => true
+): TimestampEvidence[] {
+  return (topic.historyEvents ?? [])
+    .filter((event) => event.ts && predicate(event))
+    .map((event) => ({
+      value: event.ts,
+      confidence: "high" as const,
+      source: `history:${event.event ?? event.stage ?? "event"}`
+    }));
+}
+
+function topicFileEvidence(topic: TopicSummary): TimestampEvidence[] {
+  return topic.files
+    .filter((file) => file.updatedAt)
+    .map((file) => ({
+      value: file.updatedAt,
+      confidence: "medium" as const,
+      source: file.relativePath
+    }));
+}
+
+function topicArtifactEvidence(topic: TopicSummary): TimestampEvidence[] {
+  return Object.entries(topic.artifactSummary)
+    .filter(([, group]) => group.latestUpdatedAt)
+    .map(([key, group]) => ({
+      value: group.latestUpdatedAt,
+      confidence: "medium" as const,
+      source: group.primaryRef ?? key
+    }));
+}
+
+export function topicCreatedSummary(topic: TopicSummary, language: HistoryLanguage, fallback: string): OverviewStatSummary {
+  const topicCreated = earliestEvidence(topicHistoryEvidence(topic, (event) => event.event === "topic-created"));
+  const earliest = earliestEvidence([
+    topicCreated,
+    ...topicHistoryEvidence(topic),
+    ...topicFileEvidence(topic),
+    { value: topic.updatedAt ?? topic.archivedAt, confidence: "low", source: "topic snapshot" }
+  ]);
+
+  return {
+    value: formatDateValue(earliest.value, language, fallback),
+    helper: earliest.source ?? fallback
+  };
+}
+
+export function topicUpdatedSummary(topic: TopicSummary, language: HistoryLanguage, fallback: string): OverviewStatSummary {
+  const latest = latestEvidence([
+    ...topicHistoryEvidence(topic),
+    ...topicFileEvidence(topic),
+    ...topicArtifactEvidence(topic),
+    { value: topic.updatedAt, confidence: "low", source: "topic.updatedAt" },
+    { value: topic.archivedAt, confidence: "high", source: "archive" }
+  ]);
+
+  return {
+    value: formatDateValue(latest.value, language, fallback),
+    helper: latest.source ?? fallback
+  };
+}
+
+export function topicPrioritySummary(topic: TopicSummary): OverviewStatSummary {
+  if (topic.blockingIssues) {
+    return { value: "Blocked", helper: topic.blockingIssues, tone: "danger" };
+  }
+
+  if (typeof topic.score === "number") {
+    if (topic.score >= 95) {
+      return { value: "High", helper: `Score ${topic.score}`, tone: "primary" };
+    }
+    if (topic.score >= 85) {
+      return { value: "Medium", helper: `Score ${topic.score}`, tone: "primary" };
+    }
+    return { value: "Low", helper: `Score ${topic.score}`, tone: "danger" };
+  }
+
+  return { value: topic.bucket === "archive" ? "Done" : "Normal", helper: topic.nextAction ?? topic.stage ?? "No score", tone: "primary" };
 }
 
 function latestDate(values: Array<string | null | undefined>): string | null {

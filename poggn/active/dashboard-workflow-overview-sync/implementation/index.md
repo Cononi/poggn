@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T17:49:05Z"
+  updated_at: "2026-04-24T17:54:38Z"
   auto_mode: "on"
   archive_type: "fix"
   version_bump: "patch"
@@ -38,6 +38,7 @@ state:
 - Connector geometry now draws edge-to-edge between circle visuals at the circle center height so the line touches the next flow without crossing inside circles.
 - Connector geometry now includes the grid column gap in the end offset and uses circle-radius top alignment so `add-img/8.png` does not show broken or low connectors.
 - Workflow Progress title and donut percentage typography were reduced from `h5`/`h4` to `h6`/`h5` scale to fit the Overview density.
+- Overview summary cards now derive Workflow Stage, Priority, Created, and Updated from workflow steps, score/blocking metadata, history events, files, artifact summary, and topic timestamps instead of placeholder values.
 - ko/en locale copy was updated for generated/current, update, count, and tooltip labels.
 - Restored the Workflow Progress header icon import and migrated compact Drawer paper styling from `PaperProps` to `slotProps.paper` to remove runtime console errors.
 
@@ -78,7 +79,7 @@ state:
 
 | Task | Status | Evidence |
 |---|---|---|
-| T1 timestamp/status source | done | strict timestamp evidence bundle, `stage-commit` completion support, and stage-specific fallback filtering |
+| T1 timestamp/status source | done | strict timestamp evidence bundle, overview summary timestamp evidence, `stage-commit` completion support, and stage-specific fallback filtering |
 | T2 revision status | done | four-state `WorkflowStatus`, current-flow update event detection, secondary accent UI |
 | T3 telemetry contract | done | core `historyEvents` parsing, workflow detail timestamp preservation, and `stage-commit` completion support |
 | T4 i18n | done | ko/en 시작 전/생성 중/완료/추가 진행 status, count, and tooltip locale keys |
@@ -94,6 +95,7 @@ state:
 - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
 - source check for connector gap-inclusive end offset and circle-radius top alignment: pass
 - source check for reduced Workflow Progress title and donut percentage typography: pass
+- source check for removed `High` / `by john.doe` Overview placeholders and real data summary helpers: pass
 - source check for `workflowProgressTooltip`, `historyEvents`, `stage-started`, `stage-commit`: pass
 - source check for removed `minHeight: 48` bordered time/status box pattern: pass
 

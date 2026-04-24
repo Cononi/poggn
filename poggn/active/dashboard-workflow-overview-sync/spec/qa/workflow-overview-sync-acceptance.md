@@ -31,6 +31,7 @@ Workflow Overview sync 변경의 visual, model, telemetry, i18n, accessibility a
 - topic-wide `updatedAt`이 여러 flow completed time으로 반복 표시되지 않는다.
 - stage-specific completion source가 없으면 완료 시각을 확정값처럼 표시하지 않는다.
 - `추가 진행`은 generated/current/completed/pending과 구분되는 status로 표현 가능하다.
+- Overview summary cards for Workflow Stage, Priority, Created, and Updated are derived from real topic data rather than placeholders such as fixed `High` or `by john.doe`.
 
 ## Telemetry Acceptance
 

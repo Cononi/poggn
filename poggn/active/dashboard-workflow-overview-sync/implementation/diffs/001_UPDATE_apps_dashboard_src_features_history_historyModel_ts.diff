@@ -1,85 +1,105 @@
 diff --git a/apps/dashboard/src/features/history/historyModel.ts b/apps/dashboard/src/features/history/historyModel.ts
-index 3ea8c84..8889d03 100644
+index 8889d03..fda8fa1 100644
 --- a/apps/dashboard/src/features/history/historyModel.ts
 +++ b/apps/dashboard/src/features/history/historyModel.ts
-@@ -2,7 +2,7 @@ import type { TopicSummary } from "../../shared/model/dashboard";
- import { buildTopicKey, formatDate } from "../../shared/utils/dashboard";
+@@ -35,6 +35,12 @@ export type ActivitySummary = {
+   artifactRows: Array<{ label: string; value: string }>;
+ };
  
- export type HistoryLanguage = "ko" | "en";
--export type WorkflowStatus = "completed" | "current" | "finishing" | "updating" | "pending";
-+export type WorkflowStatus = "completed" | "current" | "updating" | "pending";
- export type WorkflowTimestampConfidence = "high" | "medium" | "low" | "none";
- export type FileChangeKind = "A" | "M" | "D";
- export type RelationKind = "depends" | "blocks" | "related" | "implements" | "mentioned";
-@@ -371,10 +371,6 @@ function isRevisionEvent(event: TopicHistoryEventEntry): boolean {
-   return eventNameMatches(event, [/updated$/i, /revised$/i, /requirements-added/i]);
++export type OverviewStatSummary = {
++  value: string;
++  helper: string;
++  tone?: "success" | "primary" | "danger";
++};
++
+ type WorkflowFlowDefinition = {
+   id: WorkflowFlowId;
+   label: string;
+@@ -238,6 +244,87 @@ export function formatTopicDate(topic: TopicSummary, language: HistoryLanguage,
+   return value ? formatDate(value, language) : fallback;
  }
  
--function isFinishingEvent(event: TopicHistoryEventEntry): boolean {
--  return eventNameMatches(event, [/stage-finishing/i, /stage-finalizing/i, /finishing/i, /finalizing/i]);
--}
--
- function flowRevisionEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition): TimestampEvidence[] {
-   const eventEvidence = flowHistoryEvents(topic, flow)
-     .filter((event) => event.ts && isRevisionEvent(event))
-@@ -409,33 +405,6 @@ function flowHasUpdatingStatus(topic: TopicSummary, flow: WorkflowFlowDefinition
-   return new Date(latestRevision).getTime() > new Date(completedAt).getTime();
- }
- 
--function flowFinishingEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition): TimestampEvidence[] {
--  const eventEvidence = flowHistoryEvents(topic, flow)
--    .filter((event) => event.ts && isFinishingEvent(event))
--    .map((event) => ({
--      value: event.ts,
--      confidence: "high" as const,
--      source: `state/history.ndjson:${event.event ?? "finishing"}`
--    }));
--  const nodeEvidence = flowNodes(topic, flow)
--    .filter((node) => /finish|finaliz|closing|wrap|마무리/i.test(node.data.status ?? node.data.detail?.status ?? ""))
--    .map((node) => ({
--      value: node.data.detail?.updatedAt ?? null,
--      confidence: "high" as const,
--      source: sourcePathForNode(node)
--    }));
--
--  return [...eventEvidence, ...nodeEvidence];
--}
--
--function flowHasFinishingStatus(topic: TopicSummary, flow: WorkflowFlowDefinition): boolean {
--  if (topic.bucket === "archive") {
--    return false;
--  }
--
--  return Boolean(latestEvidence(flowFinishingEvidence(topic, flow)).value);
--}
--
- function nodeTimestampEvidence(
-   nodes: WorkflowNodeEntry[],
-   field: "startedAt" | "updatedAt" | "completedAt"
-@@ -559,20 +528,14 @@ export function buildWorkflowSteps(topic: TopicSummary, language: HistoryLanguag
-     const currentFlowIsComplete = stageComplete && activeTaskIds.length === 0;
-     const isComplete = topic.bucket === "archive" || index < currentIndex || (index === currentIndex && currentFlowIsComplete);
-     const timestamps = flowTimestampBundle(topic, flow);
--    const updating = flowHasUpdatingStatus(topic, flow, timestamps.completedAt.value) && index <= currentIndex;
--    const finishing =
--      !updating &&
--      index === currentIndex &&
--      (flowHasFinishingStatus(topic, flow) || (currentFlowIsComplete && timestamps.completedAt.confidence === "none"));
-+    const updating = flowHasUpdatingStatus(topic, flow, timestamps.completedAt.value) && index === currentIndex;
-     const status: WorkflowStatus = updating
-       ? "updating"
--      : finishing
--        ? "finishing"
--        : isComplete
--          ? "completed"
--          : index === currentIndex
--            ? "current"
--            : "pending";
-+      : isComplete
-+        ? "completed"
-+        : index === currentIndex
-+          ? "current"
-+          : "pending";
-     const displayedCompletedAt = status === "completed" && timestamps.completedAt.confidence !== "low" ? timestamps.completedAt.value : null;
- 
-     return {
++function topicHistoryEvidence(
++  topic: TopicSummary,
++  predicate: (event: TopicHistoryEventEntry) => boolean = () => true
++): TimestampEvidence[] {
++  return (topic.historyEvents ?? [])
++    .filter((event) => event.ts && predicate(event))
++    .map((event) => ({
++      value: event.ts,
++      confidence: "high" as const,
++      source: `history:${event.event ?? event.stage ?? "event"}`
++    }));
++}
++
++function topicFileEvidence(topic: TopicSummary): TimestampEvidence[] {
++  return topic.files
++    .filter((file) => file.updatedAt)
++    .map((file) => ({
++      value: file.updatedAt,
++      confidence: "medium" as const,
++      source: file.relativePath
++    }));
++}
++
++function topicArtifactEvidence(topic: TopicSummary): TimestampEvidence[] {
++  return Object.entries(topic.artifactSummary)
++    .filter(([, group]) => group.latestUpdatedAt)
++    .map(([key, group]) => ({
++      value: group.latestUpdatedAt,
++      confidence: "medium" as const,
++      source: group.primaryRef ?? key
++    }));
++}
++
++export function topicCreatedSummary(topic: TopicSummary, language: HistoryLanguage, fallback: string): OverviewStatSummary {
++  const topicCreated = earliestEvidence(topicHistoryEvidence(topic, (event) => event.event === "topic-created"));
++  const earliest = earliestEvidence([
++    topicCreated,
++    ...topicHistoryEvidence(topic),
++    ...topicFileEvidence(topic),
++    { value: topic.updatedAt ?? topic.archivedAt, confidence: "low", source: "topic snapshot" }
++  ]);
++
++  return {
++    value: formatDateValue(earliest.value, language, fallback),
++    helper: earliest.source ?? fallback
++  };
++}
++
++export function topicUpdatedSummary(topic: TopicSummary, language: HistoryLanguage, fallback: string): OverviewStatSummary {
++  const latest = latestEvidence([
++    ...topicHistoryEvidence(topic),
++    ...topicFileEvidence(topic),
++    ...topicArtifactEvidence(topic),
++    { value: topic.updatedAt, confidence: "low", source: "topic.updatedAt" },
++    { value: topic.archivedAt, confidence: "high", source: "archive" }
++  ]);
++
++  return {
++    value: formatDateValue(latest.value, language, fallback),
++    helper: latest.source ?? fallback
++  };
++}
++
++export function topicPrioritySummary(topic: TopicSummary): OverviewStatSummary {
++  if (topic.blockingIssues) {
++    return { value: "Blocked", helper: topic.blockingIssues, tone: "danger" };
++  }
++
++  if (typeof topic.score === "number") {
++    if (topic.score >= 95) {
++      return { value: "High", helper: `Score ${topic.score}`, tone: "primary" };
++    }
++    if (topic.score >= 85) {
++      return { value: "Medium", helper: `Score ${topic.score}`, tone: "primary" };
++    }
++    return { value: "Low", helper: `Score ${topic.score}`, tone: "danger" };
++  }
++
++  return { value: topic.bucket === "archive" ? "Done" : "Normal", helper: topic.nextAction ?? topic.stage ?? "No score", tone: "primary" };
++}
++
+ function latestDate(values: Array<string | null | undefined>): string | null {
+   return values
+     .filter((value): value is string => Boolean(value))

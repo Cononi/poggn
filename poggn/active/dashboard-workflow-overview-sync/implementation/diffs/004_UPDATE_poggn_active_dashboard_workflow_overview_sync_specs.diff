@@ -1,24 +1,24 @@
+diff --git a/poggn/active/dashboard-workflow-overview-sync/spec/model/flow-timestamp-and-status-source.md b/poggn/active/dashboard-workflow-overview-sync/spec/model/flow-timestamp-and-status-source.md
+index f7e0f29..9bd4fa3 100644
+--- a/poggn/active/dashboard-workflow-overview-sync/spec/model/flow-timestamp-and-status-source.md
++++ b/poggn/active/dashboard-workflow-overview-sync/spec/model/flow-timestamp-and-status-source.md
+@@ -47,6 +47,7 @@ Workflow Progress의 flow별 시작, 진행, 완료 시간을 독립 source에
+ - stage 전용 telemetry나 node timestamp가 있으면 file updatedAt fallback이 더 최근이어도 해당 flow의 update/completion evidence를 덮어쓰지 않는다.
+ - `state/`, `workflow.reactflow.json`, stage 공용 index 같은 broad artifact를 특정 flow의 시작/완료 시간으로 승격하지 않는다.
+ - UI component가 timestamp source priority를 직접 구현하지 않는다.
++- Overview summary cards must not use placeholder data for stage, priority, created, or updated fields; they must be derived from topic history, score/blocking metadata, files, artifact summary, or topic timestamps.
+ - pgg internal stage 이름을 변경하지 않는다.
+ 
+ ## Acceptance
 diff --git a/poggn/active/dashboard-workflow-overview-sync/spec/qa/workflow-overview-sync-acceptance.md b/poggn/active/dashboard-workflow-overview-sync/spec/qa/workflow-overview-sync-acceptance.md
-index fbaa2e6..c7a329c 100644
+index c7a329c..e0e8c13 100644
 --- a/poggn/active/dashboard-workflow-overview-sync/spec/qa/workflow-overview-sync-acceptance.md
 +++ b/poggn/active/dashboard-workflow-overview-sync/spec/qa/workflow-overview-sync-acceptance.md
-@@ -23,6 +23,7 @@ Workflow Overview sync 변경의 visual, model, telemetry, i18n, accessibility a
- - flow 이름 아래 bordered time/status box가 없다.
- - time/status는 small caption으로 표시된다.
- - caption, circle, connector, donut, legend가 desktop/mobile에서 겹치지 않는다.
-+- Workflow Progress title and donut center percentage do not feel oversized compared with surrounding Overview content.
+@@ -31,6 +31,7 @@ Workflow Overview sync 변경의 visual, model, telemetry, i18n, accessibility a
+ - topic-wide `updatedAt`이 여러 flow completed time으로 반복 표시되지 않는다.
+ - stage-specific completion source가 없으면 완료 시각을 확정값처럼 표시하지 않는다.
+ - `추가 진행`은 generated/current/completed/pending과 구분되는 status로 표현 가능하다.
++- Overview summary cards for Workflow Stage, Priority, Created, and Updated are derived from real topic data rather than placeholders such as fixed `High` or `by john.doe`.
  
- ## Model Acceptance
+ ## Telemetry Acceptance
  
-diff --git a/poggn/active/dashboard-workflow-overview-sync/spec/ui/compact-workflow-progress-surface.md b/poggn/active/dashboard-workflow-overview-sync/spec/ui/compact-workflow-progress-surface.md
-index ce1a310..fa5b3e9 100644
---- a/poggn/active/dashboard-workflow-overview-sync/spec/ui/compact-workflow-progress-surface.md
-+++ b/poggn/active/dashboard-workflow-overview-sync/spec/ui/compact-workflow-progress-surface.md
-@@ -38,6 +38,7 @@ Workflow Progress를 `add-img/5.png`의 connector/status 정확도와 `add-img/1
- 
- - Workflow Progress는 `add-img/1.png`보다 살짝 큰 정도로 제한한다.
- - visual circle, connector thickness/top, flow label font, caption font, vertical spacing, donut size, count/legend spacing을 compact density로 조정한다.
-+- section title and donut center percentage typography must stay visually subordinate to the surrounding Overview stats and not use hero-scale typography.
- - visual size를 줄여도 click/tap target과 keyboard focus visibility는 유지한다.
- - flow 이름 아래 bordered box는 제거한다.
- - 완료 time 또는 status는 small caption typography로 표시한다.

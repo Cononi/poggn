@@ -49,9 +49,12 @@ import {
   buildWorkflowSteps,
   changeTypeColor,
   formatTopicDate,
+  topicCreatedSummary,
   topicDisplayId,
+  topicPrioritySummary,
   topicStatus,
   topicType,
+  topicUpdatedSummary,
   type FileChangeKind,
   type RelationGroup,
   type RelationItem,
@@ -321,8 +324,15 @@ function HistoryOverview(props: {
   const steps = buildWorkflowSteps(props.topic, props.language);
   const stepCount = Math.max(steps.length, 1);
   const progress = buildProgressOverview(steps);
-  const updatedLabel = formatTopicDate(props.topic, props.language, props.dictionary.unknown);
+  const created = topicCreatedSummary(props.topic, props.language, props.dictionary.unknown);
+  const updated = topicUpdatedSummary(props.topic, props.language, props.dictionary.unknown);
+  const priority = topicPrioritySummary(props.topic);
   const activity = buildActivitySummary(props.topic, props.language);
+  const currentStage = progress.current;
+  const currentStageLabel = currentStage ? workflowFlowLabel(currentStage.id, props.dictionary) : props.dictionary.workflowProgressFlowAdd;
+  const currentStageHelper = currentStage
+    ? `${workflowStatusLabel(currentStage, props.dictionary)} · ${progress.position} of ${steps.length} steps`
+    : `0 of ${steps.length} steps`;
 
   return (
     <Stack spacing={1.5}>
@@ -334,11 +344,11 @@ function HistoryOverview(props: {
         }}
       >
         <OverviewStat title="Status" value={topicStatus(props.topic)} helper={props.topic.bucket === "archive" ? props.dictionary.archive : props.dictionary.statusInProgress} tone="success" />
-        <OverviewStat title="Workflow Stage" value={progress.current ? workflowFlowLabel(progress.current.id, props.dictionary) : props.dictionary.workflowProgressFlowAdd} helper={`${progress.position} of ${steps.length} steps`} tone="primary" />
+        <OverviewStat title="Workflow Stage" value={currentStageLabel} helper={currentStageHelper} tone="primary" />
         <OverviewStat title="Type" value={topicType(props.topic)} helper="Feature" tone="primary" />
-        <OverviewStat title="Priority" value="High" helper="" tone="danger" />
-        <OverviewStat title="Created" value={updatedLabel} helper="by john.doe" />
-        <OverviewStat title="Updated" value={updatedLabel} helper="by john.doe" />
+        <OverviewStat title="Priority" value={priority.value} helper={priority.helper} tone={priority.tone} />
+        <OverviewStat title="Created" value={created.value} helper={created.helper} />
+        <OverviewStat title="Updated" value={updated.value} helper={updated.helper} />
       </Box>
 
       <Paper
@@ -505,6 +515,7 @@ function buildProgressOverview(steps: WorkflowStep[]) {
   const pending = steps.filter((step) => step.status === "pending").length;
   const current =
     steps.find((step) => step.status === "current" || step.status === "updating") ??
+    [...steps].reverse().find((step) => step.status === "completed") ??
     steps[0] ??
     null;
 
@@ -544,7 +555,7 @@ function OverviewStat(props: {
           {props.value}
         </Typography>
       </Stack>
-      {props.helper ? <Typography variant="caption" color="text.secondary">{props.helper}</Typography> : null}
+      {props.helper ? <Typography variant="caption" color="text.secondary" sx={{ overflowWrap: "anywhere" }}>{props.helper}</Typography> : null}
     </Paper>
   );
 }
