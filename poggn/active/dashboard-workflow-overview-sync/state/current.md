@@ -95,6 +95,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - Selected tab should match `add-img/9.png`: rounded top corners, visible top/side border, matching panel fill, and no bottom border.
 - Content panel top border remains visible except under the selected tab segment, where the selected tab connects to the panel.
 - New dialogue requirements should append `requirements-added` before completion evidence so live dashboard refresh can show the current flow as `추가 진행`.
+- This `requirements-added` first rule is a global pgg workflow rule for future active topics, not a one-off behavior for this topic.
 - Workflow Progress compact UI removes the bordered time/status box and uses caption typography.
 - Flow nodes expose hover/focus tooltip copy through locale keys.
 - Active/revision rail uses visible overflow and fixed visual sizing to avoid clipping while preserving click target.
@@ -118,6 +119,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - `탭과 컨텐츠사이에 영역에서 선이 있어서 하나로 분리된 영역처럼 안보입니다. 그리고 여전히 수정된 부분은 code쪽인데 add 추가 진행 - plan 완료 - code 완료 상태입니다. 그리고 분명히 진행이 전부 완료 되었는데 add가 설령 현 작업이 아니여도 완료로 나왔어야 합니다. 제대로된 실시간 플로우 상태 관리로 만들어주세요.`
 - `탭에 대해서 잘못되었습니다. 제가 원한건 선택한 탭의 border bottom 라인이 없고 선택 효과도 없는 상태이고 컨텐츠의 top 라인은 탭 영역과 이어지는 부분 제외하고 다른 라인은 있어야 합니다.`
 - `죄송합니다. tap 모양이 전혀 아닙니다. add-img의 9.png 처럼 수정해야합니다. 그리고 실시간으로 플로우 보여주는 기능이 있다면 분명 이 대화로 인해 flow의 상태가 변해야 합니다.`
+- `앞으로 플로우 처리는 다른 토픽 도 마찬가지고 전부 이렇게 되야 합니다. 그리고 add-img의 9.png 이미지 다시 보세요 경계선이 있나요? 전혀 다른 디자인입니다. 다시 해주세요.`
 
 ## Audit Applicability
 
@@ -161,6 +163,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 | UPDATE | `apps/dashboard/src/app/DashboardApp.tsx` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/006_UPDATE_apps_dashboard_src_app_DashboardApp_tsx.diff` |
 | UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/001_UPDATE_apps_dashboard_src_features_history_historyModel_ts.diff` |
 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/002_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.diff` |
+| UPDATE | `.codex/add/WOKR-FLOW.md` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/007_UPDATE_pgg_workflow_contracts.diff` |
 | UPDATE | `poggn/active/dashboard-workflow-overview-sync/plan.md` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
 | UPDATE | `poggn/active/dashboard-workflow-overview-sync/task.md` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
 | UPDATE | `poggn/active/dashboard-workflow-overview-sync/spec/model/flow-timestamp-and-status-source.md` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
@@ -205,6 +208,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - source check for selected-tab-only frame with unboxed inactive tabs: pass
 - source check for add-img/9 selected-tab shape and top-border segment masking: pass
 - source check for immediate `requirements-added` live workflow status evidence: pass
+- source check for global pgg workflow `requirements-added` first rule: pass
 - source check for edge-to-edge connector geometry and removed internal connector: pass
 - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
 - source check for connector gap-inclusive end offset and circle-radius top alignment: pass

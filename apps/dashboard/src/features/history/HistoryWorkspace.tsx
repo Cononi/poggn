@@ -107,6 +107,10 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
     xs: `${historyTabInset + historyTabIndex * (98 + historyTabGap)}px`,
     sm: `${historyTabInset + historyTabIndex * (128 + historyTabGap)}px`
   };
+  const historyTabMaskRight = {
+    xs: `${historyTabInset + historyTabIndex * (98 + historyTabGap) + 98}px`,
+    sm: `${historyTabInset + historyTabIndex * (128 + historyTabGap) + 128}px`
+  };
   const historyPanelBg = alpha(theme.palette.background.default, theme.palette.mode === "dark" ? 0.18 : 0.34);
   const historyPanelBorder = alpha(theme.palette.primary.light, theme.palette.mode === "dark" ? 0.62 : 0.42);
 
@@ -194,11 +198,17 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
                   position: "relative",
                   zIndex: 1,
                   color: "text.primary",
-                  border: `2px solid ${historyPanelBorder}`,
-                  borderBottomColor: historyPanelBg,
-                  borderTopLeftRadius: { xs: 2, sm: 2.5 },
-                  borderTopRightRadius: { xs: 2, sm: 2.5 },
-                  bgcolor: historyPanelBg
+                  bgcolor: historyPanelBg,
+                  "&::before": {
+                    content: '""',
+                    position: "absolute",
+                    inset: 0,
+                    border: `2px solid ${historyPanelBorder}`,
+                    borderBottom: 0,
+                    borderTopLeftRadius: { xs: 2, sm: 2.5 },
+                    borderTopRightRadius: { xs: 2, sm: 2.5 },
+                    pointerEvents: "none"
+                  }
                 }
               }}
             >
@@ -216,18 +226,31 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
               position: "relative",
               p: { xs: 1.2, md: 1.5 },
               border: `1px solid ${historyPanelBorder}`,
+              borderTop: 0,
               borderRadius: 1,
+              borderTopLeftRadius: 0,
+              borderTopRightRadius: 0,
               borderBottomLeftRadius: 1,
               borderBottomRightRadius: 1,
               bgcolor: historyPanelBg,
               "&::before": {
                 content: '""',
                 position: "absolute",
-                top: -2,
-                left: historyTabMaskLeft,
-                width: historyTabWidth,
+                top: 0,
+                left: 0,
+                width: historyTabMaskLeft,
                 height: 2,
-                bgcolor: historyPanelBg,
+                bgcolor: historyPanelBorder,
+                pointerEvents: "none"
+              },
+              "&::after": {
+                content: '""',
+                position: "absolute",
+                top: 0,
+                left: historyTabMaskRight,
+                right: 0,
+                height: 2,
+                bgcolor: historyPanelBorder,
                 pointerEvents: "none"
               }
             }}

@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T18:58:45Z"
+  updated_at: "2026-04-24T19:02:12Z"
 ---
 
 # code.review
@@ -33,6 +33,7 @@ pgg:
 | 상태 모델 리뷰어 | 96 | Add의 과거 `proposal-updated`처럼 이미 후속 flow 진행/완료로 해소된 revision 후보는 `추가 진행`으로 유지하지 않도록 later flow evidence 비교를 추가했다. | none |
 | UI 통합 리뷰어 | 96 | `add-img/9.png` 기준으로 선택 탭에 rounded top, top/side border, panel fill, bottom-line gap을 적용했다. 비선택 탭은 박스 없이 유지된다. | none |
 | 상태 모델 리뷰어 | 96 | 이번 대화의 `requirements-added`를 완료 evidence보다 먼저 기록해 dashboard refresh 시 Code flow가 즉시 `추가 진행`으로 바뀔 수 있게 했다. 완료 시에는 `stage-completed`/`stage-commit`이 상태를 해소한다. | none |
+| 워크플로우 계약 리뷰어 | 96 | 모든 active topic에서 follow-up 요구가 들어오면 stage 작업 전 `requirements-added`를 먼저 append하도록 `.codex/add/WOKR-FLOW.md` 규칙을 보강했다. | none |
 
 ## Findings
 
@@ -49,6 +50,7 @@ pgg:
 - source check for selected-tab-only frame with unboxed inactive tabs: pass
 - source check for add-img/9 selected-tab shape and top-border segment masking: pass
 - source check for immediate `requirements-added` live workflow status evidence: pass
+- source check for global pgg workflow `requirements-added` first rule: pass
 - source check for edge-to-edge connector geometry and removed internal connector: pass
 - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
 - source check for connector gap-inclusive end offset and circle-radius top alignment: pass

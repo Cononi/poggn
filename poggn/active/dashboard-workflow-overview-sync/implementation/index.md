@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T18:58:45Z"
+  updated_at: "2026-04-24T19:02:12Z"
   auto_mode: "on"
   archive_type: "fix"
   version_bump: "patch"
@@ -53,6 +53,7 @@ state:
 - Selected tabs now use the `add-img/9.png` tab shape with rounded top corners, top/side border, matching panel fill, and no bottom border.
 - Content panel top border is retained except for the selected-tab segment, which is masked by the selected tab/panel fill.
 - New follow-up requests now append `requirements-added` before completion evidence so a live dashboard refresh can show Code as `추가 진행` during the conversation.
+- `.codex/add/WOKR-FLOW.md` now requires this `requirements-added` first rule for future topics, not only this topic.
 - Status/Workflow Stage/Priority/Created/Updated metadata card bar now sits under the workflow rail inside Workflow Progress.
 - ko/en locale copy was updated for generated/current, update, count, and tooltip labels.
 - Restored the Workflow Progress header icon import and migrated compact Drawer paper styling from `PaperProps` to `slotProps.paper` to remove runtime console errors.
@@ -71,6 +72,7 @@ state:
 | UPDATE | `apps/dashboard/src/app/DashboardApp.tsx` | `implementation/diffs/006_UPDATE_apps_dashboard_src_app_DashboardApp_tsx.diff` |
 | UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | `implementation/diffs/001_UPDATE_apps_dashboard_src_features_history_historyModel_ts.diff` |
 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `implementation/diffs/002_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.diff` |
+| UPDATE | `.codex/add/WOKR-FLOW.md` | `implementation/diffs/007_UPDATE_pgg_workflow_contracts.diff` |
 | UPDATE | `poggn/active/dashboard-workflow-overview-sync/plan.md` | `implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
 | UPDATE | `poggn/active/dashboard-workflow-overview-sync/task.md` | `implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
 | UPDATE | `poggn/active/dashboard-workflow-overview-sync/spec/model/flow-timestamp-and-status-source.md` | `implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
@@ -89,6 +91,7 @@ state:
 | CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` | |
 | CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/005_UPDATE_poggn_active_dashboard_workflow_overview_sync_topic_state.diff` | |
 | CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/006_UPDATE_apps_dashboard_src_app_DashboardApp_tsx.diff` | |
+| CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/007_UPDATE_pgg_workflow_contracts.diff` | |
 
 ## Task Coverage
 
@@ -112,6 +115,7 @@ state:
 - source check for selected-tab-only frame with unboxed inactive tabs: pass
 - source check for add-img/9 selected-tab shape and top-border segment masking: pass
 - source check for immediate `requirements-added` live workflow status evidence: pass
+- source check for global pgg workflow `requirements-added` first rule: pass
 - source check for edge-to-edge connector geometry and removed center-to-center internal connector: pass
 - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
 - source check for connector gap-inclusive end offset and circle-radius top alignment: pass

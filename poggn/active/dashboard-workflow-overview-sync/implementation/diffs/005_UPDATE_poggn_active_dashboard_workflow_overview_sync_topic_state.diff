@@ -1,112 +1,120 @@
 diff --git a/poggn/active/dashboard-workflow-overview-sync/implementation/index.md b/poggn/active/dashboard-workflow-overview-sync/implementation/index.md
-index aacd586..8836c10 100644
+index 8836c10..e6fc5c0 100644
 --- a/poggn/active/dashboard-workflow-overview-sync/implementation/index.md
 +++ b/poggn/active/dashboard-workflow-overview-sync/implementation/index.md
 @@ -5,7 +5,7 @@ pgg:
    status: "reviewed"
    skill: "pgg-code"
    score: 96
--  updated_at: "2026-04-24T18:49:10Z"
-+  updated_at: "2026-04-24T18:58:45Z"
+-  updated_at: "2026-04-24T18:58:45Z"
++  updated_at: "2026-04-24T19:02:12Z"
    auto_mode: "on"
    archive_type: "fix"
    version_bump: "patch"
-@@ -50,8 +50,9 @@ state:
- - Overview tabs now remove the tab-group box and header/content divider; inactive tabs are text-only and the selected tab blends into the content panel.
- - Selected tab now overlaps the panel edge by 1px so the line is not visible directly under the active tab.
- - Selected tab and its content panel now share one framed surface while inactive tabs remain unboxed text controls.
--- Content panel top border is retained, but the selected-tab segment is masked so only that joined area has no line.
--- Selected tabs no longer use a separate selected background, border, shadow, or text-color effect.
-+- Selected tabs now use the `add-img/9.png` tab shape with rounded top corners, top/side border, matching panel fill, and no bottom border.
-+- Content panel top border is retained except for the selected-tab segment, which is masked by the selected tab/panel fill.
-+- New follow-up requests now append `requirements-added` before completion evidence so a live dashboard refresh can show Code as `추가 진행` during the conversation.
+@@ -53,6 +53,7 @@ state:
+ - Selected tabs now use the `add-img/9.png` tab shape with rounded top corners, top/side border, matching panel fill, and no bottom border.
+ - Content panel top border is retained except for the selected-tab segment, which is masked by the selected tab/panel fill.
+ - New follow-up requests now append `requirements-added` before completion evidence so a live dashboard refresh can show Code as `추가 진행` during the conversation.
++- `.codex/add/WOKR-FLOW.md` now requires this `requirements-added` first rule for future topics, not only this topic.
  - Status/Workflow Stage/Priority/Created/Updated metadata card bar now sits under the workflow rail inside Workflow Progress.
  - ko/en locale copy was updated for generated/current, update, count, and tooltip labels.
  - Restored the Workflow Progress header icon import and migrated compact Drawer paper styling from `PaperProps` to `slotProps.paper` to remove runtime console errors.
-@@ -109,7 +110,8 @@ state:
- - source check for completed-flow preservation while unresolved revision is active: pass
- - source check for stale earlier-flow revision resolution by later flow evidence: pass
+@@ -71,6 +72,7 @@ state:
+ | UPDATE | `apps/dashboard/src/app/DashboardApp.tsx` | `implementation/diffs/006_UPDATE_apps_dashboard_src_app_DashboardApp_tsx.diff` |
+ | UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | `implementation/diffs/001_UPDATE_apps_dashboard_src_features_history_historyModel_ts.diff` |
+ | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `implementation/diffs/002_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.diff` |
++| UPDATE | `.codex/add/WOKR-FLOW.md` | `implementation/diffs/007_UPDATE_pgg_workflow_contracts.diff` |
+ | UPDATE | `poggn/active/dashboard-workflow-overview-sync/plan.md` | `implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
+ | UPDATE | `poggn/active/dashboard-workflow-overview-sync/task.md` | `implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
+ | UPDATE | `poggn/active/dashboard-workflow-overview-sync/spec/model/flow-timestamp-and-status-source.md` | `implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
+@@ -89,6 +91,7 @@ state:
+ | CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` | |
+ | CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/005_UPDATE_poggn_active_dashboard_workflow_overview_sync_topic_state.diff` | |
+ | CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/006_UPDATE_apps_dashboard_src_app_DashboardApp_tsx.diff` | |
++| CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/007_UPDATE_pgg_workflow_contracts.diff` | |
+ 
+ ## Task Coverage
+ 
+@@ -112,6 +115,7 @@ state:
  - source check for selected-tab-only frame with unboxed inactive tabs: pass
--- source check for selected-tab top-border segment masking without selected-tab visual effects: pass
-+- source check for add-img/9 selected-tab shape and top-border segment masking: pass
-+- source check for immediate `requirements-added` live workflow status evidence: pass
+ - source check for add-img/9 selected-tab shape and top-border segment masking: pass
+ - source check for immediate `requirements-added` live workflow status evidence: pass
++- source check for global pgg workflow `requirements-added` first rule: pass
  - source check for edge-to-edge connector geometry and removed center-to-center internal connector: pass
  - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
  - source check for connector gap-inclusive end offset and circle-radius top alignment: pass
 diff --git a/poggn/active/dashboard-workflow-overview-sync/reviews/code.review.md b/poggn/active/dashboard-workflow-overview-sync/reviews/code.review.md
-index 7fce5c5..2679d13 100644
+index 2679d13..778a50c 100644
 --- a/poggn/active/dashboard-workflow-overview-sync/reviews/code.review.md
 +++ b/poggn/active/dashboard-workflow-overview-sync/reviews/code.review.md
 @@ -5,7 +5,7 @@ pgg:
    status: "reviewed"
    skill: "pgg-code"
    score: 96
--  updated_at: "2026-04-24T18:49:10Z"
-+  updated_at: "2026-04-24T18:58:45Z"
+-  updated_at: "2026-04-24T18:58:45Z"
++  updated_at: "2026-04-24T19:02:12Z"
  ---
  
  # code.review
-@@ -31,7 +31,8 @@ pgg:
- | 상태 모델 리뷰어 | 96 | `effectiveCurrentIndex`가 다른 완료 flow를 pending으로 되돌리던 회귀를 막기 위해 완료 evidence와 current stage 이전 완료 이력을 별도로 보존했다. current 표시는 effective current에만 붙는다. | none |
- | UI 통합 리뷰어 | 96 | 탭 그룹 전체가 아니라 선택 탭과 content panel만 같은 border/background surface를 공유하게 했다. 비선택 탭은 transparent text-only 상태로 유지된다. | none |
+@@ -33,6 +33,7 @@ pgg:
  | 상태 모델 리뷰어 | 96 | Add의 과거 `proposal-updated`처럼 이미 후속 flow 진행/완료로 해소된 revision 후보는 `추가 진행`으로 유지하지 않도록 later flow evidence 비교를 추가했다. | none |
--| UI 통합 리뷰어 | 96 | content panel의 top border는 유지하고 선택 탭 아래 segment만 panel 배경 pseudo-element로 가렸다. 선택 탭 자체의 background/border/shadow/text-color 효과는 제거했다. | none |
-+| UI 통합 리뷰어 | 96 | `add-img/9.png` 기준으로 선택 탭에 rounded top, top/side border, panel fill, bottom-line gap을 적용했다. 비선택 탭은 박스 없이 유지된다. | none |
-+| 상태 모델 리뷰어 | 96 | 이번 대화의 `requirements-added`를 완료 evidence보다 먼저 기록해 dashboard refresh 시 Code flow가 즉시 `추가 진행`으로 바뀔 수 있게 했다. 완료 시에는 `stage-completed`/`stage-commit`이 상태를 해소한다. | none |
+ | UI 통합 리뷰어 | 96 | `add-img/9.png` 기준으로 선택 탭에 rounded top, top/side border, panel fill, bottom-line gap을 적용했다. 비선택 탭은 박스 없이 유지된다. | none |
+ | 상태 모델 리뷰어 | 96 | 이번 대화의 `requirements-added`를 완료 evidence보다 먼저 기록해 dashboard refresh 시 Code flow가 즉시 `추가 진행`으로 바뀔 수 있게 했다. 완료 시에는 `stage-completed`/`stage-commit`이 상태를 해소한다. | none |
++| 워크플로우 계약 리뷰어 | 96 | 모든 active topic에서 follow-up 요구가 들어오면 stage 작업 전 `requirements-added`를 먼저 append하도록 `.codex/add/WOKR-FLOW.md` 규칙을 보강했다. | none |
  
  ## Findings
  
-@@ -46,7 +47,8 @@ pgg:
- - source check for completed-flow preservation while unresolved revision is active: pass
- - source check for stale earlier-flow revision resolution by later flow evidence: pass
+@@ -49,6 +50,7 @@ pgg:
  - source check for selected-tab-only frame with unboxed inactive tabs: pass
--- source check for selected-tab top-border segment masking without selected-tab visual effects: pass
-+- source check for add-img/9 selected-tab shape and top-border segment masking: pass
-+- source check for immediate `requirements-added` live workflow status evidence: pass
+ - source check for add-img/9 selected-tab shape and top-border segment masking: pass
+ - source check for immediate `requirements-added` live workflow status evidence: pass
++- source check for global pgg workflow `requirements-added` first rule: pass
  - source check for edge-to-edge connector geometry and removed internal connector: pass
  - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
  - source check for connector gap-inclusive end offset and circle-radius top alignment: pass
 diff --git a/poggn/active/dashboard-workflow-overview-sync/state/current.md b/poggn/active/dashboard-workflow-overview-sync/state/current.md
-index 0de3724..c5a0efb 100644
+index c5a0efb..e916c7f 100644
 --- a/poggn/active/dashboard-workflow-overview-sync/state/current.md
 +++ b/poggn/active/dashboard-workflow-overview-sync/state/current.md
-@@ -92,8 +92,9 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
- - Tab group should not have its own border/background, inactive tabs should not look boxed, and selected tab should visually continue into the tab panel.
- - The active tab should cover the panel edge directly beneath it so no line appears under the selected tab.
- - Only the selected tab and its content panel are framed together; inactive tabs remain unboxed text controls.
--- Content panel top border remains visible except under the selected tab segment, which is masked by the panel background.
--- Selected tab should not have a separate selected background, border, shadow, or text-color effect.
-+- Selected tab should match `add-img/9.png`: rounded top corners, visible top/side border, matching panel fill, and no bottom border.
-+- Content panel top border remains visible except under the selected tab segment, where the selected tab connects to the panel.
-+- New dialogue requirements should append `requirements-added` before completion evidence so live dashboard refresh can show the current flow as `추가 진행`.
+@@ -95,6 +95,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
+ - Selected tab should match `add-img/9.png`: rounded top corners, visible top/side border, matching panel fill, and no bottom border.
+ - Content panel top border remains visible except under the selected tab segment, where the selected tab connects to the panel.
+ - New dialogue requirements should append `requirements-added` before completion evidence so live dashboard refresh can show the current flow as `추가 진행`.
++- This `requirements-added` first rule is a global pgg workflow rule for future active topics, not a one-off behavior for this topic.
  - Workflow Progress compact UI removes the bordered time/status box and uses caption typography.
  - Flow nodes expose hover/focus tooltip copy through locale keys.
  - Active/revision rail uses visible overflow and fixed visual sizing to avoid clipping while preserving click target.
-@@ -116,6 +117,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
- - `오버플로우 메뉴에서 탭이 클릭되면 다른 탭은 감싸지말고 하위 컨텐츠까지 감싸서 영역 분리되는 디자인을 원햇는데 그 방식은 어려운가요? 그리고 플로우 에서 추가중에서 완료 했는데 불구하고 추가중 상태이며 이전에 완료된 작업들 상태들도 바꿔버려서 이상한 상태가 되었습니다. add 추가 진행 - plan 시작전 - code 생성중 이런 상태가 맞나요?`
+@@ -118,6 +119,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
  - `탭과 컨텐츠사이에 영역에서 선이 있어서 하나로 분리된 영역처럼 안보입니다. 그리고 여전히 수정된 부분은 code쪽인데 add 추가 진행 - plan 완료 - code 완료 상태입니다. 그리고 분명히 진행이 전부 완료 되었는데 add가 설령 현 작업이 아니여도 완료로 나왔어야 합니다. 제대로된 실시간 플로우 상태 관리로 만들어주세요.`
  - `탭에 대해서 잘못되었습니다. 제가 원한건 선택한 탭의 border bottom 라인이 없고 선택 효과도 없는 상태이고 컨텐츠의 top 라인은 탭 영역과 이어지는 부분 제외하고 다른 라인은 있어야 합니다.`
-+- `죄송합니다. tap 모양이 전혀 아닙니다. add-img의 9.png 처럼 수정해야합니다. 그리고 실시간으로 플로우 보여주는 기능이 있다면 분명 이 대화로 인해 flow의 상태가 변해야 합니다.`
+ - `죄송합니다. tap 모양이 전혀 아닙니다. add-img의 9.png 처럼 수정해야합니다. 그리고 실시간으로 플로우 보여주는 기능이 있다면 분명 이 대화로 인해 flow의 상태가 변해야 합니다.`
++- `앞으로 플로우 처리는 다른 토픽 도 마찬가지고 전부 이렇게 되야 합니다. 그리고 add-img의 9.png 이미지 다시 보세요 경계선이 있나요? 전혀 다른 디자인입니다. 다시 해주세요.`
  
  ## Audit Applicability
  
-@@ -201,7 +203,8 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
- - source check for completed-flow preservation while unresolved revision is active: pass
- - source check for stale earlier-flow revision resolution by later flow evidence: pass
+@@ -161,6 +163,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
+ | UPDATE | `apps/dashboard/src/app/DashboardApp.tsx` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/006_UPDATE_apps_dashboard_src_app_DashboardApp_tsx.diff` |
+ | UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/001_UPDATE_apps_dashboard_src_features_history_historyModel_ts.diff` |
+ | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/002_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.diff` |
++| UPDATE | `.codex/add/WOKR-FLOW.md` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/007_UPDATE_pgg_workflow_contracts.diff` |
+ | UPDATE | `poggn/active/dashboard-workflow-overview-sync/plan.md` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
+ | UPDATE | `poggn/active/dashboard-workflow-overview-sync/task.md` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
+ | UPDATE | `poggn/active/dashboard-workflow-overview-sync/spec/model/flow-timestamp-and-status-source.md` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
+@@ -205,6 +208,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
  - source check for selected-tab-only frame with unboxed inactive tabs: pass
--- source check for selected-tab top-border segment masking without selected-tab visual effects: pass
-+- source check for add-img/9 selected-tab shape and top-border segment masking: pass
-+- source check for immediate `requirements-added` live workflow status evidence: pass
+ - source check for add-img/9 selected-tab shape and top-border segment masking: pass
+ - source check for immediate `requirements-added` live workflow status evidence: pass
++- source check for global pgg workflow `requirements-added` first rule: pass
  - source check for edge-to-edge connector geometry and removed internal connector: pass
  - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
  - source check for connector gap-inclusive end offset and circle-radius top alignment: pass
 diff --git a/poggn/active/dashboard-workflow-overview-sync/state/history.ndjson b/poggn/active/dashboard-workflow-overview-sync/state/history.ndjson
-index a6ff0ad..2d90249 100644
+index 4095faf..25e3a88 100644
 --- a/poggn/active/dashboard-workflow-overview-sync/state/history.ndjson
 +++ b/poggn/active/dashboard-workflow-overview-sync/state/history.ndjson
-@@ -54,3 +54,5 @@
- {"ts":"2026-04-24T18:49:10Z","stage":"implementation","event":"requirements-added","summary":"follow-up clarified content top border should remain except under selected tab and selected tab should have no visual effect","score":96,"next":"pgg-code"}
- {"ts":"2026-04-24T18:49:10Z","stage":"implementation","event":"stage-completed","summary":"masked only the selected-tab segment of the content top border and removed selected-tab visual effects","score":96,"next":"pgg-refactor"}
+@@ -56,4 +56,5 @@
  {"ts":"2026-04-24T18:56:06Z","stage":"implementation","event":"stage-commit","archiveType":"fix","targetVersion":"2.2.3","projectLanguage":"ko","commitTitle":"fix: 2.2.3.워크플로우 탭 라인 정리","summary":"워크플로우 탭 라인 정리","why":"선택 탭 자체 효과 없이 콘텐츠 top 라인은 유지하되 선택 탭 아래 구간만 끊겨야 한다","footer":"Refs: dashboard-workflow-overview-sync"}
-+{"ts":"2026-04-24T18:57:29Z","stage":"implementation","event":"requirements-added","summary":"follow-up requested add-img/9 tab shape and live workflow state change from this dialogue","score":96,"next":"pgg-code"}
-+{"ts":"2026-04-24T18:58:45Z","stage":"implementation","event":"stage-completed","summary":"updated selected tab to add-img/9 shape and recorded live requirements-added evidence for this dialogue","score":96,"next":"pgg-refactor"}
+ {"ts":"2026-04-24T18:57:29Z","stage":"implementation","event":"requirements-added","summary":"follow-up requested add-img/9 tab shape and live workflow state change from this dialogue","score":96,"next":"pgg-code"}
+ {"ts":"2026-04-24T18:58:45Z","stage":"implementation","event":"stage-completed","summary":"updated selected tab to add-img/9 shape and recorded live requirements-added evidence for this dialogue","score":96,"next":"pgg-refactor"}
++{"ts":"2026-04-24T19:02:12Z","stage":"implementation","event":"stage-completed","summary":"refined add-img/9 continuous tab outline and made requirements-added first rule global for future active topics","score":96,"next":"pgg-refactor"}
+ {"ts":"2026-04-24T19:00:57Z","stage":"implementation","event":"stage-commit","archiveType":"fix","targetVersion":"2.2.3","projectLanguage":"ko","commitTitle":"fix: 2.2.3.워크플로우 탭 모양 반영","summary":"워크플로우 탭 모양 반영","why":"add-img 9 기준의 실제 탭 모양과 현재 대화 요구가 workflow 상태에 먼저 반영되는 기록이 필요하다","footer":"Refs: dashboard-workflow-overview-sync"}

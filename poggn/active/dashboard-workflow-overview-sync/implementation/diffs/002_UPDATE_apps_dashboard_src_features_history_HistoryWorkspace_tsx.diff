@@ -1,78 +1,74 @@
 diff --git a/apps/dashboard/src/features/history/HistoryWorkspace.tsx b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
-index 75d7635..3412cff 100644
+index 3412cff..b1702da 100644
 --- a/apps/dashboard/src/features/history/HistoryWorkspace.tsx
 +++ b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
-@@ -99,15 +99,16 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
-       <HistoryRelations topic={selectedTopic} topics={allTopics} />
-     );
-   const historyTabIndex = activeTab === "overview" ? 0 : activeTab === "timeline" ? 1 : 2;
--  const historyTabWidth = { xs: 92, sm: 104 };
-+  const historyTabWidth = { xs: 98, sm: 128 };
-+  const historyTabHeight = { xs: 42, sm: 50 };
-   const historyTabGap = 2;
-   const historyTabInset = 12;
-   const historyTabMaskLeft = {
--    xs: `${historyTabInset + historyTabIndex * (92 + historyTabGap)}px`,
--    sm: `${historyTabInset + historyTabIndex * (104 + historyTabGap)}px`
-+    xs: `${historyTabInset + historyTabIndex * (98 + historyTabGap)}px`,
-+    sm: `${historyTabInset + historyTabIndex * (128 + historyTabGap)}px`
+@@ -107,6 +107,10 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
+     xs: `${historyTabInset + historyTabIndex * (98 + historyTabGap)}px`,
+     sm: `${historyTabInset + historyTabIndex * (128 + historyTabGap)}px`
    };
++  const historyTabMaskRight = {
++    xs: `${historyTabInset + historyTabIndex * (98 + historyTabGap) + 98}px`,
++    sm: `${historyTabInset + historyTabIndex * (128 + historyTabGap) + 128}px`
++  };
    const historyPanelBg = alpha(theme.palette.background.default, theme.palette.mode === "dark" ? 0.18 : 0.34);
--  const historyPanelBorder = alpha(theme.palette.divider, 0.72);
-+  const historyPanelBorder = alpha(theme.palette.primary.light, theme.palette.mode === "dark" ? 0.62 : 0.42);
+   const historyPanelBorder = alpha(theme.palette.primary.light, theme.palette.mode === "dark" ? 0.62 : 0.42);
  
-   return (
-     <Box
-@@ -174,26 +175,30 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
-               TabIndicatorProps={{ sx: { display: "none" } }}
-               sx={{
-                 alignSelf: "flex-start",
--                minHeight: 36,
--                mt: 0.2,
--                mb: -0.12,
-+                minHeight: historyTabHeight,
-+                mt: 0.4,
-+                mb: "-1px",
-                 overflow: "visible",
-                 "& .MuiTabs-flexContainer": { gap: 0.25 },
-                 "& .MuiTab-root": {
--                  minHeight: 36,
-+                  minHeight: historyTabHeight,
-                   width: historyTabWidth,
-                   minWidth: historyTabWidth,
-                   px: 0,
-                   color: "text.secondary",
--                  fontWeight: 700,
--                  bgcolor: "transparent"
-+                  fontWeight: 760,
-+                  bgcolor: "transparent",
-+                  letterSpacing: 0
-                 },
-                 "& .Mui-selected": {
+@@ -194,11 +198,17 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
                    position: "relative",
                    zIndex: 1,
--                  mb: "-1px",
--                  color: "text.secondary",
--                  bgcolor: "transparent"
-+                  color: "text.primary",
-+                  border: `2px solid ${historyPanelBorder}`,
-+                  borderBottomColor: historyPanelBg,
-+                  borderTopLeftRadius: { xs: 2, sm: 2.5 },
-+                  borderTopRightRadius: { xs: 2, sm: 2.5 },
-+                  bgcolor: historyPanelBg
+                   color: "text.primary",
+-                  border: `2px solid ${historyPanelBorder}`,
+-                  borderBottomColor: historyPanelBg,
+-                  borderTopLeftRadius: { xs: 2, sm: 2.5 },
+-                  borderTopRightRadius: { xs: 2, sm: 2.5 },
+-                  bgcolor: historyPanelBg
++                  bgcolor: historyPanelBg,
++                  "&::before": {
++                    content: '""',
++                    position: "absolute",
++                    inset: 0,
++                    border: `2px solid ${historyPanelBorder}`,
++                    borderBottom: 0,
++                    borderTopLeftRadius: { xs: 2, sm: 2.5 },
++                    borderTopRightRadius: { xs: 2, sm: 2.5 },
++                    pointerEvents: "none"
++                  }
                  }
                }}
              >
-@@ -218,10 +223,10 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
+@@ -216,18 +226,31 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
+               position: "relative",
+               p: { xs: 1.2, md: 1.5 },
+               border: `1px solid ${historyPanelBorder}`,
++              borderTop: 0,
+               borderRadius: 1,
++              borderTopLeftRadius: 0,
++              borderTopRightRadius: 0,
+               borderBottomLeftRadius: 1,
+               borderBottomRightRadius: 1,
+               bgcolor: historyPanelBg,
                "&::before": {
                  content: '""',
                  position: "absolute",
--                top: -1,
-+                top: -2,
-                 left: historyTabMaskLeft,
-                 width: historyTabWidth,
--                height: 1,
+-                top: -2,
+-                left: historyTabMaskLeft,
+-                width: historyTabWidth,
++                top: 0,
++                left: 0,
++                width: historyTabMaskLeft,
 +                height: 2,
-                 bgcolor: historyPanelBg,
++                bgcolor: historyPanelBorder,
++                pointerEvents: "none"
++              },
++              "&::after": {
++                content: '""',
++                position: "absolute",
++                top: 0,
++                left: historyTabMaskRight,
++                right: 0,
+                 height: 2,
+-                bgcolor: historyPanelBg,
++                bgcolor: historyPanelBorder,
                  pointerEvents: "none"
                }
+             }}
