@@ -1,111 +1,123 @@
 diff --git a/poggn/active/dashboard-workflow-overview-sync/implementation/index.md b/poggn/active/dashboard-workflow-overview-sync/implementation/index.md
-index 7f130bc..71b73ec 100644
+index 71b73ec..8d4421b 100644
 --- a/poggn/active/dashboard-workflow-overview-sync/implementation/index.md
 +++ b/poggn/active/dashboard-workflow-overview-sync/implementation/index.md
 @@ -5,7 +5,7 @@ pgg:
    status: "reviewed"
    skill: "pgg-code"
    score: 96
--  updated_at: "2026-04-24T17:32:33Z"
-+  updated_at: "2026-04-24T17:39:16Z"
+-  updated_at: "2026-04-24T17:39:16Z"
++  updated_at: "2026-04-24T17:45:06Z"
    auto_mode: "on"
    archive_type: "fix"
    version_bump: "patch"
-@@ -37,6 +37,7 @@ state:
+@@ -36,6 +36,7 @@ state:
+ - Workflow/React Flow nodes can also surface `updating` status from node metadata.
  - Workflow Progress UI is more compact, removes the bordered time/status box, shows small caption text, prevents active clipping with visible rail overflow, and adds flow tooltip affordance.
  - Connector geometry now draws edge-to-edge between circle visuals at the circle center height so the line touches the next flow without crossing inside circles.
++- Connector geometry now includes the grid column gap in the end offset and uses circle-radius top alignment so `add-img/8.png` does not show broken or low connectors.
  - ko/en locale copy was updated for generated/current, update, count, and tooltip labels.
-+- Restored the Workflow Progress header icon import and migrated compact Drawer paper styling from `PaperProps` to `slotProps.paper` to remove runtime console errors.
+ - Restored the Workflow Progress header icon import and migrated compact Drawer paper styling from `PaperProps` to `slotProps.paper` to remove runtime console errors.
  
- ## Changed Files
- 
-@@ -49,6 +50,7 @@ state:
- | UPDATE | `apps/dashboard/src/shared/model/dashboard.ts` | `implementation/diffs/003_UPDATE_dashboard_core_workflow_telemetry_shared.diff` |
- | UPDATE | `apps/dashboard/src/shared/utils/dashboard.tsx` | `implementation/diffs/003_UPDATE_dashboard_core_workflow_telemetry_shared.diff` |
- | UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | `implementation/diffs/003_UPDATE_dashboard_core_workflow_telemetry_shared.diff` |
-+| UPDATE | `apps/dashboard/src/app/DashboardApp.tsx` | `implementation/diffs/006_UPDATE_apps_dashboard_src_app_DashboardApp_tsx.diff` |
- | UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | `implementation/diffs/001_UPDATE_apps_dashboard_src_features_history_historyModel_ts.diff` |
- | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `implementation/diffs/002_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.diff` |
- | UPDATE | `poggn/active/dashboard-workflow-overview-sync/plan.md` | `implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
-@@ -68,6 +70,7 @@ state:
- | CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/003_UPDATE_dashboard_core_workflow_telemetry_shared.diff` | |
- | CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` | |
- | CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/005_UPDATE_poggn_active_dashboard_workflow_overview_sync_topic_state.diff` | |
-+| CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/006_UPDATE_apps_dashboard_src_app_DashboardApp_tsx.diff` | |
- 
- ## Task Coverage
- 
-@@ -86,6 +89,7 @@ state:
- - `./.codex/sh/pgg-gate.sh pgg-code dashboard-workflow-overview-sync`: pass
+@@ -90,6 +91,7 @@ state:
  - source check for removed extra status stage and retained `workflowProgressStatusUpdating`: pass
  - source check for edge-to-edge connector geometry and removed center-to-center internal connector: pass
-+- source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
+ - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
++- source check for connector gap-inclusive end offset and circle-radius top alignment: pass
  - source check for `workflowProgressTooltip`, `historyEvents`, `stage-started`, `stage-commit`: pass
  - source check for removed `minHeight: 48` bordered time/status box pattern: pass
  
 diff --git a/poggn/active/dashboard-workflow-overview-sync/reviews/code.review.md b/poggn/active/dashboard-workflow-overview-sync/reviews/code.review.md
-index fd91d4f..ac7f1b7 100644
+index ac7f1b7..0e198d2 100644
 --- a/poggn/active/dashboard-workflow-overview-sync/reviews/code.review.md
 +++ b/poggn/active/dashboard-workflow-overview-sync/reviews/code.review.md
 @@ -5,7 +5,7 @@ pgg:
    status: "reviewed"
    skill: "pgg-code"
    score: 96
--  updated_at: "2026-04-24T17:32:33Z"
-+  updated_at: "2026-04-24T17:39:16Z"
+-  updated_at: "2026-04-24T17:39:16Z"
++  updated_at: "2026-04-24T17:45:06Z"
  ---
  
  # code.review
-@@ -17,6 +17,7 @@ pgg:
- | 시니어 백엔드 엔지니어 | 96 | dashboard model이 `stage-commit`을 completion evidence로 인식하고, broad artifact와 file updatedAt fallback이 Add/Code 등 여러 flow 시간을 공유하지 않도록 stage-specific fallback으로 제한했다. | none |
+@@ -18,6 +18,7 @@ pgg:
  | 테크 리드 | 96 | 실시간 표시용 상태를 `시작 전`, `생성 중`, `완료`, `추가 진행` 네 가지로 줄이고, `추가 진행`은 현재 active flow에만 붙도록 정리했다. pgg stage 이름과 workflow 순서는 유지했다. | none |
  | 코드 리뷰어 | 96 | connector를 원 내부를 가로지르는 center-to-center 방식에서 원 외곽 edge-to-edge 방식으로 재조정했고, padding 포함 중심 높이를 맞춰 `add-img/7.png`의 낮은 선 문제를 줄였다. | none |
-+| 프론트엔드 런타임 리뷰어 | 96 | Workflow Progress header icon import 누락과 compact Drawer `PaperProps` DOM warning을 수정했다. `slotProps.paper`로 MUI slot API에 맞췄고 build가 통과했다. | none |
+ | 프론트엔드 런타임 리뷰어 | 96 | Workflow Progress header icon import 누락과 compact Drawer `PaperProps` DOM warning을 수정했다. `slotProps.paper`로 MUI slot API에 맞췄고 build가 통과했다. | none |
++| UI 정렬 리뷰어 | 96 | `add-img/8.png` 기준으로 connector end offset에 grid gap을 포함했고, top을 circle visual radius 기준으로 낮춰 잡아 선 끊김과 아래 치우침을 동시에 보정했다. | none |
  
  ## Findings
  
-@@ -28,6 +29,7 @@ pgg:
- - `./.codex/sh/pgg-gate.sh pgg-code dashboard-workflow-overview-sync`: pass
+@@ -30,6 +31,7 @@ pgg:
  - source check for extra status stage removal, updating status keys, telemetry/status/tooltip keys: pass
  - source check for edge-to-edge connector geometry and removed internal connector: pass
-+- source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
+ - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
++- source check for connector gap-inclusive end offset and circle-radius top alignment: pass
  - source check for removed bordered time/status box pattern: pass
  
  ## Residual Risks
 diff --git a/poggn/active/dashboard-workflow-overview-sync/state/current.md b/poggn/active/dashboard-workflow-overview-sync/state/current.md
-index 9c521cc..ab69c40 100644
+index ab69c40..06b3762 100644
 --- a/poggn/active/dashboard-workflow-overview-sync/state/current.md
 +++ b/poggn/active/dashboard-workflow-overview-sync/state/current.md
-@@ -75,6 +75,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
- - `stage-commit` is treated as governed completion evidence for implementation/refactor/qa stage-local commits.
+@@ -33,6 +33,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
+ - dirty baseline: `poggn/active/dashboard-workflow-overview-sync/state/dirty-worktree-baseline.txt`
+ - visual reference: `add-img/5.png`
+ - follow-up connector reference: `add-img/6.png`
++- follow-up center/gap reference: `add-img/8.png`
+ - density reference: `add-img/1.png`
+ 
+ ## Constraints
+@@ -47,7 +48,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
+ 
+ ## Decisions
+ 
+-- `add-img/5.png` and `add-img/6.png` are the visual acceptance references for connector alignment, flow time labels, and status color separation.
++- `add-img/5.png`, `add-img/6.png`, and `add-img/8.png` are the visual acceptance references for connector alignment, flow time labels, and status color separation.
+ - Connector geometry must draw the rail between circle outer edges at the circle center height so it touches the next flow without crossing inside the circles on desktop and mobile.
+ - Completed connectors use solid green. Not-started connectors use muted dotted styling. Active/generated flow uses a distinct active color and emphasis.
+ - Flow time must be modeled as separate `startedAt`, `completedAt`, and `updatedAt` values.
+@@ -76,6 +77,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
  - `추가 진행` is implemented as `updating` status in Overview Progress and React Flow model.
  - Historical update events on previous flows do not keep those previous flows in update state after the workflow has advanced.
-+- Runtime follow-up fixed missing `AutoGraphRounded` import and replaced compact Drawer `PaperProps` with `slotProps.paper`.
+ - Runtime follow-up fixed missing `AutoGraphRounded` import and replaced compact Drawer `PaperProps` with `slotProps.paper`.
++- `add-img/8.png` follow-up fixed connector end offset to include grid gap and connector top to align with the circle visual center.
  - Workflow Progress compact UI removes the bordered time/status box and uses caption typography.
  - Flow nodes expose hover/focus tooltip copy through locale keys.
  - Active/revision rail uses visible overflow and fixed visual sizing to avoid clipping while preserving click target.
-@@ -129,6 +130,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
- | UPDATE | `apps/dashboard/src/shared/model/dashboard.ts` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/003_UPDATE_dashboard_core_workflow_telemetry_shared.diff` |
- | UPDATE | `apps/dashboard/src/shared/utils/dashboard.tsx` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/003_UPDATE_dashboard_core_workflow_telemetry_shared.diff` |
- | UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/003_UPDATE_dashboard_core_workflow_telemetry_shared.diff` |
-+| UPDATE | `apps/dashboard/src/app/DashboardApp.tsx` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/006_UPDATE_apps_dashboard_src_app_DashboardApp_tsx.diff` |
- | UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/001_UPDATE_apps_dashboard_src_features_history_historyModel_ts.diff` |
- | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/002_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.diff` |
- | UPDATE | `poggn/active/dashboard-workflow-overview-sync/plan.md` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
-@@ -170,6 +172,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
- - `./.codex/sh/pgg-gate.sh pgg-code dashboard-workflow-overview-sync`: pass
+@@ -163,7 +165,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
+ - additional clipping requirement captured: pass
+ - additional revision status requirement captured: pass
+ - compact caption and tooltip requirement captured: pass
+-- reference image checked: `add-img/5.png`, `add-img/6.png`
++- reference image checked: `add-img/5.png`, `add-img/6.png`, `add-img/8.png`
+ - density reference image checked: `add-img/1.png`
+ - plan document review: pass
+ - task document review: pass
+@@ -173,6 +175,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
  - source check for removed extra status stage and retained updating telemetry/status/tooltip keys: pass
  - source check for edge-to-edge connector geometry and removed internal connector: pass
-+- source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
+ - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
++- source check for connector gap-inclusive end offset and circle-radius top alignment: pass
  - source check for removed bordered time/status box pattern: pass
  
  ## Next Action
+diff --git a/poggn/active/dashboard-workflow-overview-sync/state/dirty-worktree-baseline.txt b/poggn/active/dashboard-workflow-overview-sync/state/dirty-worktree-baseline.txt
+index 49431b5..62591c8 100644
+--- a/poggn/active/dashboard-workflow-overview-sync/state/dirty-worktree-baseline.txt
++++ b/poggn/active/dashboard-workflow-overview-sync/state/dirty-worktree-baseline.txt
+@@ -2,3 +2,4 @@ add-img/4.png
+ add-img/5.png
+ add-img/6.png
+ add-img/7.png
++add-img/8.png
 diff --git a/poggn/active/dashboard-workflow-overview-sync/state/history.ndjson b/poggn/active/dashboard-workflow-overview-sync/state/history.ndjson
-index 6ea3848..14ae038 100644
+index 2e11f73..818be49 100644
 --- a/poggn/active/dashboard-workflow-overview-sync/state/history.ndjson
 +++ b/poggn/active/dashboard-workflow-overview-sync/state/history.ndjson
-@@ -13,3 +13,4 @@
- {"ts":"2026-04-24T17:32:33Z","stage":"implementation","event":"requirements-added","summary":"follow-up requested removing unnecessary status stages, live flow sync, and edge-to-edge centered circle connector alignment from add-img/7.png","score":96,"next":"pgg-code"}
- {"ts":"2026-04-24T17:32:33Z","stage":"implementation","event":"stage-completed","summary":"reduced workflow progress to four live statuses and changed connector geometry to circle edge-to-edge center alignment","score":96,"next":"pgg-refactor"}
+@@ -15,3 +15,5 @@
  {"ts":"2026-04-24T17:37:48Z","stage":"implementation","event":"stage-commit","archiveType":"fix","targetVersion":"2.2.3","projectLanguage":"ko","commitTitle":"fix: 2.2.3.워크플로우 선 상태 정리","summary":"워크플로우 선 상태 정리","why":"Workflow Progress의 상태 모델을 필요한 live 상태만으로 줄이고 connector를 원 외곽 edge 기준 가운데 정렬로 다시 맞춰야 한다","footer":"Refs: dashboard-workflow-overview-sync"}
-+{"ts":"2026-04-24T17:39:16Z","stage":"implementation","event":"stage-completed","summary":"fixed Workflow Progress header icon import and migrated compact Drawer paper styling to slotProps.paper","score":96,"next":"pgg-refactor"}
+ {"ts":"2026-04-24T17:39:16Z","stage":"implementation","event":"stage-completed","summary":"fixed Workflow Progress header icon import and migrated compact Drawer paper styling to slotProps.paper","score":96,"next":"pgg-refactor"}
+ {"ts":"2026-04-24T17:41:07Z","stage":"implementation","event":"stage-commit","archiveType":"fix","targetVersion":"2.2.3","projectLanguage":"ko","commitTitle":"fix: 2.2.3.워크플로우 런타임 오류 수정","summary":"워크플로우 런타임 오류 수정","why":"Workflow Progress header icon import 누락과 compact Drawer PaperProps warning이 dashboard runtime에서 오류를 만들기 때문에 즉시 수정되어야 한다","footer":"Refs: dashboard-workflow-overview-sync"}
++{"ts":"2026-04-24T17:45:06Z","stage":"implementation","event":"requirements-added","summary":"follow-up requested add-img/8 connector gaps and low vertical alignment correction","score":96,"next":"pgg-code"}
++{"ts":"2026-04-24T17:45:06Z","stage":"implementation","event":"stage-completed","summary":"included grid gap in connector end offset and aligned connector top to circle visual radius","score":96,"next":"pgg-refactor"}

@@ -15,7 +15,8 @@ Workflow Overview sync 변경의 visual, model, telemetry, i18n, accessibility a
 
 ## Visual Acceptance
 
-- `add-img/5.png`/`add-img/6.png`처럼 completed circle과 connector가 정확히 이어진다.
+- `add-img/5.png`/`add-img/6.png`/`add-img/8.png`처럼 completed circle과 connector가 정확히 이어진다.
+- connector는 grid gap 때문에 다음 circle 앞에서 끊기지 않고, circle 중심 높이에 정렬된다.
 - completed connector는 solid green, pending connector는 muted dotted line이다.
 - active/update glow, pulse, focus outline은 상단/좌우에서 잘리지 않는다.
 - `add-img/1.png`보다 살짝 큰 compact density로 보인다.

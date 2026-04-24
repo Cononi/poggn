@@ -11,7 +11,7 @@ Workflow Progress를 `add-img/5.png`의 connector/status 정확도와 `add-img/1
 
 ## Reference Contract
 
-- connector/status reference: `add-img/5.png`, follow-up gap reference: `add-img/6.png`
+- connector/status reference: `add-img/5.png`, follow-up gap reference: `add-img/6.png`, center/gap reference: `add-img/8.png`
 - density reference: `add-img/1.png`
 - component는 기존 Overview 안의 Workflow Progress surface에 한정해 변경한다.
 
@@ -20,6 +20,8 @@ Workflow Progress를 `add-img/5.png`의 connector/status 정확도와 `add-img/1
 - circle visual size, connector offset, connector top을 단일 token 또는 계산식으로 맞춘다.
 - connector는 circle 중심 높이에 놓이고 양쪽 circle 외곽 edge 사이만 이어야 한다.
 - connector는 circle 내부를 가로지르지 않아야 하며, edge와 connector 사이에 보이는 gap이 없어야 한다.
+- connector 길이는 grid column gap까지 포함해 다음 circle edge까지 도달해야 한다.
+- connector vertical position은 parent rail padding이 아니라 circle visual box 기준 radius에 맞춘다.
 - completed-to-completed connector는 solid green이다.
 - completed-to-pending connector는 muted dotted line이다.
 - active/update connector는 각 상태 accent를 따른다.

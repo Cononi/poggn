@@ -33,6 +33,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - dirty baseline: `poggn/active/dashboard-workflow-overview-sync/state/dirty-worktree-baseline.txt`
 - visual reference: `add-img/5.png`
 - follow-up connector reference: `add-img/6.png`
+- follow-up center/gap reference: `add-img/8.png`
 - density reference: `add-img/1.png`
 
 ## Constraints
@@ -47,7 +48,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 
 ## Decisions
 
-- `add-img/5.png` and `add-img/6.png` are the visual acceptance references for connector alignment, flow time labels, and status color separation.
+- `add-img/5.png`, `add-img/6.png`, and `add-img/8.png` are the visual acceptance references for connector alignment, flow time labels, and status color separation.
 - Connector geometry must draw the rail between circle outer edges at the circle center height so it touches the next flow without crossing inside the circles on desktop and mobile.
 - Completed connectors use solid green. Not-started connectors use muted dotted styling. Active/generated flow uses a distinct active color and emphasis.
 - Flow time must be modeled as separate `startedAt`, `completedAt`, and `updatedAt` values.
@@ -76,6 +77,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - `추가 진행` is implemented as `updating` status in Overview Progress and React Flow model.
 - Historical update events on previous flows do not keep those previous flows in update state after the workflow has advanced.
 - Runtime follow-up fixed missing `AutoGraphRounded` import and replaced compact Drawer `PaperProps` with `slotProps.paper`.
+- `add-img/8.png` follow-up fixed connector end offset to include grid gap and connector top to align with the circle visual center.
 - Workflow Progress compact UI removes the bordered time/status box and uses caption typography.
 - Flow nodes expose hover/focus tooltip copy through locale keys.
 - Active/revision rail uses visible overflow and fixed visual sizing to avoid clipping while preserving click target.
@@ -163,7 +165,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - additional clipping requirement captured: pass
 - additional revision status requirement captured: pass
 - compact caption and tooltip requirement captured: pass
-- reference image checked: `add-img/5.png`, `add-img/6.png`
+- reference image checked: `add-img/5.png`, `add-img/6.png`, `add-img/8.png`
 - density reference image checked: `add-img/1.png`
 - plan document review: pass
 - task document review: pass
@@ -173,6 +175,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - source check for removed extra status stage and retained updating telemetry/status/tooltip keys: pass
 - source check for edge-to-edge connector geometry and removed internal connector: pass
 - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
+- source check for connector gap-inclusive end offset and circle-radius top alignment: pass
 - source check for removed bordered time/status box pattern: pass
 
 ## Next Action

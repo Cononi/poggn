@@ -1,12 +1,15 @@
 diff --git a/apps/dashboard/src/features/history/HistoryWorkspace.tsx b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
-index 714730e..bc87477 100644
+index bc87477..1d3ca21 100644
 --- a/apps/dashboard/src/features/history/HistoryWorkspace.tsx
 +++ b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
-@@ -21,6 +21,7 @@ import {
-   Typography
- } from "@mui/material";
- import ChevronRightRounded from "@mui/icons-material/ChevronRightRounded";
-+import AutoGraphRounded from "@mui/icons-material/AutoGraphRounded";
- import CheckRounded from "@mui/icons-material/CheckRounded";
- import CloseRounded from "@mui/icons-material/CloseRounded";
- import CodeRounded from "@mui/icons-material/CodeRounded";
+@@ -636,8 +636,8 @@ function connectorSx(theme: Theme, step: WorkflowStep, nextStep: WorkflowStep |
+     content: "\"\"",
+     position: "absolute",
+     left: { xs: "calc(50% + 25px)", sm: "calc(50% + 27px)", md: "calc(50% + 29px)" },
+-    right: { xs: "calc(-50% + 25px)", sm: "calc(-50% + 27px)", md: "calc(-50% + 29px)" },
+-    top: { xs: 30.9, sm: 32.9, md: 36.5 },
++    right: { xs: "calc(-50% + 20px)", sm: "calc(-50% + 21px)", md: "calc(-50% + 21px)" },
++    top: { xs: 24.5, sm: 26.5, md: 28.5 },
+     height: 3,
+     borderRadius: 999,
+     bgcolor: nextStep.status === "pending" && !nextIsLive ? "transparent" : color,
