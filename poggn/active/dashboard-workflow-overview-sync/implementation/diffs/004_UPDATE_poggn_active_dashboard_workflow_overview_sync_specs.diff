@@ -1,31 +1,14 @@
-diff --git a/poggn/active/dashboard-workflow-overview-sync/spec/model/revision-status-model.md b/poggn/active/dashboard-workflow-overview-sync/spec/model/revision-status-model.md
-index 965eba2..014d432 100644
---- a/poggn/active/dashboard-workflow-overview-sync/spec/model/revision-status-model.md
-+++ b/poggn/active/dashboard-workflow-overview-sync/spec/model/revision-status-model.md
-@@ -28,6 +28,7 @@
- - 다음 flow 차례로 넘어간 뒤에도 이전 flow의 완료 시각 이후 추가 요구가 들어왔고 아직 그 flow의 새 completion evidence가 없으면 이전 flow를 `추가 진행`으로 되돌린다.
- - unresolved revision flow가 있으면 그 flow를 effective current flow로 보고 이후 flow는 pending으로 둔다.
- - unresolved revision flow가 있어도 다른 flow의 completed evidence 또는 current stage 이전 완료 이력은 `완료`로 유지한다.
-+- unresolved revision 후보보다 더 최신인 후속 flow의 started/updated/completed evidence가 있으면 이전 flow의 revision은 해소된 것으로 본다.
- - not-started future flow에는 revision status를 붙이지 않는다.
- - 이미 다음 flow로 넘어간 과거 flow라도 revision 이후 새 completion evidence가 있으면 `추가 진행`을 계속 붙이지 않는다.
- 
-@@ -55,5 +56,6 @@
- - 이번 topic처럼 완료 후 새 요구사항이 들어오면 대상 flow를 `추가 진행`으로 표시할 수 있다.
- - 완료된 flow에서 새 추가 처리가 진행 중이면 다음 flow 차례여도 대상 flow가 `완료`가 아니라 `추가 진행`으로 표시된다.
- - `추가 진행` flow 때문에 이미 완료된 Plan/Code 같은 다른 flow가 `시작 전`으로 되돌아가면 안 된다.
-+- Add의 과거 `proposal-updated` 이후 Plan/Code가 완료되었다면 Add는 `추가 진행`이 아니라 `완료`로 표시된다.
- - update status는 `생성 중`, `완료`, `시작 전`과 색/문구/아이콘 또는 badge로 구분된다.
- - revision event는 log modal에서 source로 확인할 수 있다.
 diff --git a/poggn/active/dashboard-workflow-overview-sync/spec/qa/workflow-overview-sync-acceptance.md b/poggn/active/dashboard-workflow-overview-sync/spec/qa/workflow-overview-sync-acceptance.md
-index 09d3468..fd7c799 100644
+index fd7c799..79a65ba 100644
 --- a/poggn/active/dashboard-workflow-overview-sync/spec/qa/workflow-overview-sync-acceptance.md
 +++ b/poggn/active/dashboard-workflow-overview-sync/spec/qa/workflow-overview-sync-acceptance.md
-@@ -28,6 +28,7 @@ Workflow Overview sync 변경의 visual, model, telemetry, i18n, accessibility a
+@@ -28,7 +28,8 @@ Workflow Overview sync 변경의 visual, model, telemetry, i18n, accessibility a
  - Overview, Timeline, and Relations tab headers have no outer tab-group border/background; inactive tabs render as text-only controls, and the selected tab blends into the content panel.
  - The selected tab overlaps the content panel edge so no line appears directly under the active tab.
  - Only the selected tab and its content panel are framed together; inactive tabs are not boxed.
-+- The content panel has no top border, so no line visually separates the selected tab from its content.
+-- The content panel has no top border, so no line visually separates the selected tab from its content.
++- The content panel keeps its top border except for the segment directly under the selected tab.
++- The selected tab has no separate selected background, border, shadow, or text-color effect; only the missing top-border segment connects it to the content.
  - Status, Workflow Stage, Priority, Created, and Updated appear as a compact card bar under the workflow rail inside Workflow Progress.
  
  ## Model Acceptance

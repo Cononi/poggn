@@ -92,7 +92,8 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - Tab group should not have its own border/background, inactive tabs should not look boxed, and selected tab should visually continue into the tab panel.
 - The active tab should cover the panel edge directly beneath it so no line appears under the selected tab.
 - Only the selected tab and its content panel are framed together; inactive tabs remain unboxed text controls.
-- Content panel top border is removed so the selected tab and content are not separated by a visible line.
+- Content panel top border remains visible except under the selected tab segment, which is masked by the panel background.
+- Selected tab should not have a separate selected background, border, shadow, or text-color effect.
 - Workflow Progress compact UI removes the bordered time/status box and uses caption typography.
 - Flow nodes expose hover/focus tooltip copy through locale keys.
 - Active/revision rail uses visible overflow and fixed visual sizing to avoid clipping while preserving click target.
@@ -114,6 +115,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - `워크플로우에서 특정 flow에서 완료되서 다음 플로우 차례지만 체크해보니 추가사항이 생겨서 추가 처리를 요청한 상태입니다. 근데 추가 사항 처리중인데 불구하고 완료된 처리로 보여주고 있습니다. 실시간으로 반영이 되도록 상태가 현 상황에 맞는 걸로 해야하는거 아닌가요?`
 - `오버플로우 메뉴에서 탭이 클릭되면 다른 탭은 감싸지말고 하위 컨텐츠까지 감싸서 영역 분리되는 디자인을 원햇는데 그 방식은 어려운가요? 그리고 플로우 에서 추가중에서 완료 했는데 불구하고 추가중 상태이며 이전에 완료된 작업들 상태들도 바꿔버려서 이상한 상태가 되었습니다. add 추가 진행 - plan 시작전 - code 생성중 이런 상태가 맞나요?`
 - `탭과 컨텐츠사이에 영역에서 선이 있어서 하나로 분리된 영역처럼 안보입니다. 그리고 여전히 수정된 부분은 code쪽인데 add 추가 진행 - plan 완료 - code 완료 상태입니다. 그리고 분명히 진행이 전부 완료 되었는데 add가 설령 현 작업이 아니여도 완료로 나왔어야 합니다. 제대로된 실시간 플로우 상태 관리로 만들어주세요.`
+- `탭에 대해서 잘못되었습니다. 제가 원한건 선택한 탭의 border bottom 라인이 없고 선택 효과도 없는 상태이고 컨텐츠의 top 라인은 탭 영역과 이어지는 부분 제외하고 다른 라인은 있어야 합니다.`
 
 ## Audit Applicability
 
@@ -199,7 +201,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - source check for completed-flow preservation while unresolved revision is active: pass
 - source check for stale earlier-flow revision resolution by later flow evidence: pass
 - source check for selected-tab-only frame with unboxed inactive tabs: pass
-- source check for removed content panel top border under selected tabs: pass
+- source check for selected-tab top-border segment masking without selected-tab visual effects: pass
 - source check for edge-to-edge connector geometry and removed internal connector: pass
 - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
 - source check for connector gap-inclusive end offset and circle-radius top alignment: pass

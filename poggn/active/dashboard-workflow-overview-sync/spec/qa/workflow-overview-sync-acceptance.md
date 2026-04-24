@@ -28,7 +28,8 @@ Workflow Overview sync 변경의 visual, model, telemetry, i18n, accessibility a
 - Overview, Timeline, and Relations tab headers have no outer tab-group border/background; inactive tabs render as text-only controls, and the selected tab blends into the content panel.
 - The selected tab overlaps the content panel edge so no line appears directly under the active tab.
 - Only the selected tab and its content panel are framed together; inactive tabs are not boxed.
-- The content panel has no top border, so no line visually separates the selected tab from its content.
+- The content panel keeps its top border except for the segment directly under the selected tab.
+- The selected tab has no separate selected background, border, shadow, or text-color effect; only the missing top-border segment connects it to the content.
 - Status, Workflow Stage, Priority, Created, and Updated appear as a compact card bar under the workflow rail inside Workflow Progress.
 
 ## Model Acceptance

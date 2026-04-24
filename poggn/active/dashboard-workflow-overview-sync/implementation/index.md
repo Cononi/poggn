@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T18:45:44Z"
+  updated_at: "2026-04-24T18:49:10Z"
   auto_mode: "on"
   archive_type: "fix"
   version_bump: "patch"
@@ -50,7 +50,8 @@ state:
 - Overview tabs now remove the tab-group box and header/content divider; inactive tabs are text-only and the selected tab blends into the content panel.
 - Selected tab now overlaps the panel edge by 1px so the line is not visible directly under the active tab.
 - Selected tab and its content panel now share one framed surface while inactive tabs remain unboxed text controls.
-- Content panel top border was removed so the selected tab and content are not split by a visible line.
+- Content panel top border is retained, but the selected-tab segment is masked so only that joined area has no line.
+- Selected tabs no longer use a separate selected background, border, shadow, or text-color effect.
 - Status/Workflow Stage/Priority/Created/Updated metadata card bar now sits under the workflow rail inside Workflow Progress.
 - ko/en locale copy was updated for generated/current, update, count, and tooltip labels.
 - Restored the Workflow Progress header icon import and migrated compact Drawer paper styling from `PaperProps` to `slotProps.paper` to remove runtime console errors.
@@ -108,7 +109,7 @@ state:
 - source check for completed-flow preservation while unresolved revision is active: pass
 - source check for stale earlier-flow revision resolution by later flow evidence: pass
 - source check for selected-tab-only frame with unboxed inactive tabs: pass
-- source check for removed content panel top border under selected tabs: pass
+- source check for selected-tab top-border segment masking without selected-tab visual effects: pass
 - source check for edge-to-edge connector geometry and removed center-to-center internal connector: pass
 - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
 - source check for connector gap-inclusive end offset and circle-radius top alignment: pass

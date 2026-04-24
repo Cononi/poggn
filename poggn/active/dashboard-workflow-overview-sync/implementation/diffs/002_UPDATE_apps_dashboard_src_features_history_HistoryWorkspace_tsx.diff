@@ -1,12 +1,74 @@
 diff --git a/apps/dashboard/src/features/history/HistoryWorkspace.tsx b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
-index a08c26b..9e44dd1 100644
+index 9e44dd1..75d7635 100644
 --- a/apps/dashboard/src/features/history/HistoryWorkspace.tsx
 +++ b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
-@@ -206,6 +206,7 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
+@@ -98,6 +98,14 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
+     ) : (
+       <HistoryRelations topic={selectedTopic} topics={allTopics} />
+     );
++  const historyTabIndex = activeTab === "overview" ? 0 : activeTab === "timeline" ? 1 : 2;
++  const historyTabWidth = { xs: 92, sm: 104 };
++  const historyTabGap = 2;
++  const historyTabInset = 12;
++  const historyTabMaskLeft = {
++    xs: `${historyTabInset + historyTabIndex * (92 + historyTabGap)}px`,
++    sm: `${historyTabInset + historyTabIndex * (104 + historyTabGap)}px`
++  };
+   const historyPanelBg = alpha(theme.palette.background.default, theme.palette.mode === "dark" ? 0.18 : 0.34);
+   const historyPanelBorder = alpha(theme.palette.divider, 0.72);
+ 
+@@ -173,11 +181,9 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
+                 "& .MuiTabs-flexContainer": { gap: 0.25 },
+                 "& .MuiTab-root": {
+                   minHeight: 36,
+-                  px: 2,
+-                  borderTopLeftRadius: 1,
+-                  borderTopRightRadius: 1,
+-                  borderBottomLeftRadius: 0,
+-                  borderBottomRightRadius: 0,
++                  width: historyTabWidth,
++                  minWidth: historyTabWidth,
++                  px: 0,
+                   color: "text.secondary",
+                   fontWeight: 700,
+                   bgcolor: "transparent"
+@@ -186,10 +192,8 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
+                   position: "relative",
+                   zIndex: 1,
+                   mb: "-1px",
+-                  color: "primary.main",
+-                  border: `1px solid ${historyPanelBorder}`,
+-                  borderBottomColor: historyPanelBg,
+-                  bgcolor: historyPanelBg
++                  color: "text.secondary",
++                  bgcolor: "transparent"
+                 }
+               }}
+             >
+@@ -204,14 +208,23 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
+             aria-labelledby={`history-tab-${activeTab}`}
+             role="tabpanel"
              sx={{
++              position: "relative",
                p: { xs: 1.2, md: 1.5 },
                border: `1px solid ${historyPanelBorder}`,
-+              borderTop: 0,
+-              borderTop: 0,
                borderRadius: 1,
-               borderTopLeftRadius: activeTab === "overview" ? 0 : 1,
+-              borderTopLeftRadius: activeTab === "overview" ? 0 : 1,
                borderBottomLeftRadius: 1,
+               borderBottomRightRadius: 1,
+-              bgcolor: historyPanelBg
++              bgcolor: historyPanelBg,
++              "&::before": {
++                content: '""',
++                position: "absolute",
++                top: -1,
++                left: historyTabMaskLeft,
++                width: historyTabWidth,
++                height: 1,
++                bgcolor: historyPanelBg,
++                pointerEvents: "none"
++              }
+             }}
+           >
+             {activePanel}

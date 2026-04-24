@@ -1,119 +1,113 @@
 diff --git a/poggn/active/dashboard-workflow-overview-sync/implementation/index.md b/poggn/active/dashboard-workflow-overview-sync/implementation/index.md
-index c433c93..3a348f1 100644
+index 3a348f1..aacd586 100644
 --- a/poggn/active/dashboard-workflow-overview-sync/implementation/index.md
 +++ b/poggn/active/dashboard-workflow-overview-sync/implementation/index.md
 @@ -5,7 +5,7 @@ pgg:
    status: "reviewed"
    skill: "pgg-code"
    score: 96
--  updated_at: "2026-04-24T18:40:53Z"
-+  updated_at: "2026-04-24T18:45:44Z"
+-  updated_at: "2026-04-24T18:45:44Z"
++  updated_at: "2026-04-24T18:49:10Z"
    auto_mode: "on"
    archive_type: "fix"
    version_bump: "patch"
-@@ -35,6 +35,7 @@ state:
- - `시작 전`, `생성 중`, `완료`, `추가 진행` are modeled as the required user-facing statuses.
- - Completed flows with newer unresolved revision/additional requirement evidence now return to `추가 진행`; later flows remain pending until new completion evidence appears.
- - Unresolved revision status no longer resets other completed flows to `시작 전`; completed evidence and prior stage progress remain completed unless that exact flow is updating.
-+- Older revision candidates are now resolved when a later flow has newer started/updated/completed evidence, preventing stale Add `추가 진행` after Plan/Code completion.
- - Workflow/React Flow nodes can also surface `updating` status from node metadata.
- - Workflow Progress UI is more compact, removes the bordered time/status box, shows small caption text, prevents active clipping with visible rail overflow, and adds flow tooltip affordance.
- - Connector geometry now draws edge-to-edge between circle visuals at the circle center height so the line touches the next flow without crossing inside circles.
-@@ -49,6 +50,7 @@ state:
+@@ -50,7 +50,8 @@ state:
  - Overview tabs now remove the tab-group box and header/content divider; inactive tabs are text-only and the selected tab blends into the content panel.
  - Selected tab now overlaps the panel edge by 1px so the line is not visible directly under the active tab.
  - Selected tab and its content panel now share one framed surface while inactive tabs remain unboxed text controls.
-+- Content panel top border was removed so the selected tab and content are not split by a visible line.
+-- Content panel top border was removed so the selected tab and content are not split by a visible line.
++- Content panel top border is retained, but the selected-tab segment is masked so only that joined area has no line.
++- Selected tabs no longer use a separate selected background, border, shadow, or text-color effect.
  - Status/Workflow Stage/Priority/Created/Updated metadata card bar now sits under the workflow rail inside Workflow Progress.
  - ko/en locale copy was updated for generated/current, update, count, and tooltip labels.
  - Restored the Workflow Progress header icon import and migrated compact Drawer paper styling from `PaperProps` to `slotProps.paper` to remove runtime console errors.
-@@ -104,7 +106,9 @@ state:
- - source check for removed extra status stage and retained `workflowProgressStatusUpdating`: pass
- - source check for unresolved revision status overriding completed status across flow advancement: pass
+@@ -108,7 +109,7 @@ state:
  - source check for completed-flow preservation while unresolved revision is active: pass
-+- source check for stale earlier-flow revision resolution by later flow evidence: pass
+ - source check for stale earlier-flow revision resolution by later flow evidence: pass
  - source check for selected-tab-only frame with unboxed inactive tabs: pass
-+- source check for removed content panel top border under selected tabs: pass
+-- source check for removed content panel top border under selected tabs: pass
++- source check for selected-tab top-border segment masking without selected-tab visual effects: pass
  - source check for edge-to-edge connector geometry and removed center-to-center internal connector: pass
  - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
  - source check for connector gap-inclusive end offset and circle-radius top alignment: pass
 diff --git a/poggn/active/dashboard-workflow-overview-sync/reviews/code.review.md b/poggn/active/dashboard-workflow-overview-sync/reviews/code.review.md
-index 0e8de5c..21f2f05 100644
+index 21f2f05..7fce5c5 100644
 --- a/poggn/active/dashboard-workflow-overview-sync/reviews/code.review.md
 +++ b/poggn/active/dashboard-workflow-overview-sync/reviews/code.review.md
 @@ -5,7 +5,7 @@ pgg:
    status: "reviewed"
    skill: "pgg-code"
    score: 96
--  updated_at: "2026-04-24T18:40:53Z"
-+  updated_at: "2026-04-24T18:45:44Z"
+-  updated_at: "2026-04-24T18:45:44Z"
++  updated_at: "2026-04-24T18:49:10Z"
  ---
  
  # code.review
-@@ -30,6 +30,8 @@ pgg:
- | 상태 모델 리뷰어 | 96 | `추가 진행`을 현재 index에만 제한하던 조건을 제거하고, 완료 이후 더 최신 revision evidence가 있는 flow를 effective current로 승격한다. 해당 flow 이후 단계는 completion evidence가 생길 때까지 pending으로 유지된다. | none |
+@@ -31,7 +31,7 @@ pgg:
  | 상태 모델 리뷰어 | 96 | `effectiveCurrentIndex`가 다른 완료 flow를 pending으로 되돌리던 회귀를 막기 위해 완료 evidence와 current stage 이전 완료 이력을 별도로 보존했다. current 표시는 effective current에만 붙는다. | none |
  | UI 통합 리뷰어 | 96 | 탭 그룹 전체가 아니라 선택 탭과 content panel만 같은 border/background surface를 공유하게 했다. 비선택 탭은 transparent text-only 상태로 유지된다. | none |
-+| 상태 모델 리뷰어 | 96 | Add의 과거 `proposal-updated`처럼 이미 후속 flow 진행/완료로 해소된 revision 후보는 `추가 진행`으로 유지하지 않도록 later flow evidence 비교를 추가했다. | none |
-+| UI 통합 리뷰어 | 96 | content panel의 top border를 제거해 선택 탭과 콘텐츠 사이에 남던 선을 없앴다. 선택 탭과 panel은 같은 배경을 공유한다. | none |
+ | 상태 모델 리뷰어 | 96 | Add의 과거 `proposal-updated`처럼 이미 후속 flow 진행/완료로 해소된 revision 후보는 `추가 진행`으로 유지하지 않도록 later flow evidence 비교를 추가했다. | none |
+-| UI 통합 리뷰어 | 96 | content panel의 top border를 제거해 선택 탭과 콘텐츠 사이에 남던 선을 없앴다. 선택 탭과 panel은 같은 배경을 공유한다. | none |
++| UI 통합 리뷰어 | 96 | content panel의 top border는 유지하고 선택 탭 아래 segment만 panel 배경 pseudo-element로 가렸다. 선택 탭 자체의 background/border/shadow/text-color 효과는 제거했다. | none |
  
  ## Findings
  
-@@ -42,7 +44,9 @@ pgg:
- - source check for extra status stage removal, updating status keys, telemetry/status/tooltip keys: pass
- - source check for unresolved revision status overriding completed status across flow advancement: pass
+@@ -46,7 +46,7 @@ pgg:
  - source check for completed-flow preservation while unresolved revision is active: pass
-+- source check for stale earlier-flow revision resolution by later flow evidence: pass
+ - source check for stale earlier-flow revision resolution by later flow evidence: pass
  - source check for selected-tab-only frame with unboxed inactive tabs: pass
-+- source check for removed content panel top border under selected tabs: pass
+-- source check for removed content panel top border under selected tabs: pass
++- source check for selected-tab top-border segment masking without selected-tab visual effects: pass
  - source check for edge-to-edge connector geometry and removed internal connector: pass
  - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
  - source check for connector gap-inclusive end offset and circle-radius top alignment: pass
 diff --git a/poggn/active/dashboard-workflow-overview-sync/state/current.md b/poggn/active/dashboard-workflow-overview-sync/state/current.md
-index ef0b158..93635b6 100644
+index 93635b6..0de3724 100644
 --- a/poggn/active/dashboard-workflow-overview-sync/state/current.md
 +++ b/poggn/active/dashboard-workflow-overview-sync/state/current.md
-@@ -78,6 +78,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
- - Historical update events on previous flows do not keep those previous flows in update state after a newer completion evidence appears.
- - If a completed previous flow receives newer unresolved revision evidence, that flow becomes the effective current `추가 진행` flow and later flows are shown as pending.
- - Unresolved revision status must not reset other completed flows to `시작 전`; completed evidence and current-stage prior progress stay completed unless that exact flow is updating.
-+- Earlier-flow revision candidates are resolved when later flows have newer started/updated/completed evidence, so stale Add updates do not remain `추가 진행` after Plan/Code completion.
- - Runtime follow-up fixed missing `AutoGraphRounded` import and replaced compact Drawer `PaperProps` with `slotProps.paper`.
- - `add-img/8.png` follow-up fixed connector end offset to include grid gap and connector top to align with the circle visual center.
- - Workflow Progress title and donut percentage typography were reduced to match surrounding Overview density.
-@@ -91,6 +92,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
+@@ -92,7 +92,8 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
  - Tab group should not have its own border/background, inactive tabs should not look boxed, and selected tab should visually continue into the tab panel.
  - The active tab should cover the panel edge directly beneath it so no line appears under the selected tab.
  - Only the selected tab and its content panel are framed together; inactive tabs remain unboxed text controls.
-+- Content panel top border is removed so the selected tab and content are not separated by a visible line.
+-- Content panel top border is removed so the selected tab and content are not separated by a visible line.
++- Content panel top border remains visible except under the selected tab segment, which is masked by the panel background.
++- Selected tab should not have a separate selected background, border, shadow, or text-color effect.
  - Workflow Progress compact UI removes the bordered time/status box and uses caption typography.
  - Flow nodes expose hover/focus tooltip copy through locale keys.
  - Active/revision rail uses visible overflow and fixed visual sizing to avoid clipping while preserving click target.
-@@ -111,6 +113,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
- - `클릭된 탭과 하단 콘텐츠가 선으로 이어지는데 클릭된 탭의 바로 밑에 라인은 없어야 합니다.`
+@@ -114,6 +115,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
  - `워크플로우에서 특정 flow에서 완료되서 다음 플로우 차례지만 체크해보니 추가사항이 생겨서 추가 처리를 요청한 상태입니다. 근데 추가 사항 처리중인데 불구하고 완료된 처리로 보여주고 있습니다. 실시간으로 반영이 되도록 상태가 현 상황에 맞는 걸로 해야하는거 아닌가요?`
  - `오버플로우 메뉴에서 탭이 클릭되면 다른 탭은 감싸지말고 하위 컨텐츠까지 감싸서 영역 분리되는 디자인을 원햇는데 그 방식은 어려운가요? 그리고 플로우 에서 추가중에서 완료 했는데 불구하고 추가중 상태이며 이전에 완료된 작업들 상태들도 바꿔버려서 이상한 상태가 되었습니다. add 추가 진행 - plan 시작전 - code 생성중 이런 상태가 맞나요?`
-+- `탭과 컨텐츠사이에 영역에서 선이 있어서 하나로 분리된 영역처럼 안보입니다. 그리고 여전히 수정된 부분은 code쪽인데 add 추가 진행 - plan 완료 - code 완료 상태입니다. 그리고 분명히 진행이 전부 완료 되었는데 add가 설령 현 작업이 아니여도 완료로 나왔어야 합니다. 제대로된 실시간 플로우 상태 관리로 만들어주세요.`
+ - `탭과 컨텐츠사이에 영역에서 선이 있어서 하나로 분리된 영역처럼 안보입니다. 그리고 여전히 수정된 부분은 code쪽인데 add 추가 진행 - plan 완료 - code 완료 상태입니다. 그리고 분명히 진행이 전부 완료 되었는데 add가 설령 현 작업이 아니여도 완료로 나왔어야 합니다. 제대로된 실시간 플로우 상태 관리로 만들어주세요.`
++- `탭에 대해서 잘못되었습니다. 제가 원한건 선택한 탭의 border bottom 라인이 없고 선택 효과도 없는 상태이고 컨텐츠의 top 라인은 탭 영역과 이어지는 부분 제외하고 다른 라인은 있어야 합니다.`
  
  ## Audit Applicability
  
-@@ -194,7 +197,9 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
- - source check for removed extra status stage and retained updating telemetry/status/tooltip keys: pass
- - source check for unresolved revision status overriding completed status across flow advancement: pass
+@@ -199,7 +201,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
  - source check for completed-flow preservation while unresolved revision is active: pass
-+- source check for stale earlier-flow revision resolution by later flow evidence: pass
+ - source check for stale earlier-flow revision resolution by later flow evidence: pass
  - source check for selected-tab-only frame with unboxed inactive tabs: pass
-+- source check for removed content panel top border under selected tabs: pass
+-- source check for removed content panel top border under selected tabs: pass
++- source check for selected-tab top-border segment masking without selected-tab visual effects: pass
  - source check for edge-to-edge connector geometry and removed internal connector: pass
  - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
  - source check for connector gap-inclusive end offset and circle-radius top alignment: pass
+diff --git a/poggn/active/dashboard-workflow-overview-sync/state/dirty-worktree-baseline.txt b/poggn/active/dashboard-workflow-overview-sync/state/dirty-worktree-baseline.txt
+index 62591c8..3e669b4 100644
+--- a/poggn/active/dashboard-workflow-overview-sync/state/dirty-worktree-baseline.txt
++++ b/poggn/active/dashboard-workflow-overview-sync/state/dirty-worktree-baseline.txt
+@@ -3,3 +3,4 @@ add-img/5.png
+ add-img/6.png
+ add-img/7.png
+ add-img/8.png
++add-img/9.png
 diff --git a/poggn/active/dashboard-workflow-overview-sync/state/history.ndjson b/poggn/active/dashboard-workflow-overview-sync/state/history.ndjson
-index d50c982..2027e00 100644
+index 5b03173..98ede61 100644
 --- a/poggn/active/dashboard-workflow-overview-sync/state/history.ndjson
 +++ b/poggn/active/dashboard-workflow-overview-sync/state/history.ndjson
-@@ -48,3 +48,5 @@
- {"ts":"2026-04-24T18:40:53Z","stage":"implementation","event":"requirements-added","summary":"follow-up requested selected-tab-only framed content and reported updating flow reset other completed statuses","score":96,"next":"pgg-code"}
- {"ts":"2026-04-24T18:40:53Z","stage":"implementation","event":"stage-completed","summary":"framed only the selected tab with content panel and preserved completed statuses while unresolved revision is active","score":96,"next":"pgg-refactor"}
- {"ts":"2026-04-24T18:42:32Z","stage":"implementation","event":"stage-commit","archiveType":"fix","targetVersion":"2.2.3","projectLanguage":"ko","commitTitle":"fix: 2.2.3.워크플로우 탭 상태 정합","summary":"워크플로우 탭 상태 정합","why":"선택 탭과 콘텐츠만 영역으로 묶고 추가 진행 상태가 다른 완료 flow를 시작 전으로 되돌리지 않도록 정합성이 필요하다","footer":"Refs: dashboard-workflow-overview-sync"}
-+{"ts":"2026-04-24T18:45:44Z","stage":"implementation","event":"requirements-added","summary":"follow-up reported selected tab and panel still separated by a line and stale Add updating after Code completion","score":96,"next":"pgg-code"}
-+{"ts":"2026-04-24T18:45:44Z","stage":"implementation","event":"stage-completed","summary":"removed panel top border and resolved stale earlier-flow revision status when later flow evidence is newer","score":96,"next":"pgg-refactor"}
+@@ -51,3 +51,5 @@
+ {"ts":"2026-04-24T18:45:44Z","stage":"implementation","event":"requirements-added","summary":"follow-up reported selected tab and panel still separated by a line and stale Add updating after Code completion","score":96,"next":"pgg-code"}
+ {"ts":"2026-04-24T18:45:44Z","stage":"implementation","event":"stage-completed","summary":"removed panel top border and resolved stale earlier-flow revision status when later flow evidence is newer","score":96,"next":"pgg-refactor"}
+ {"ts":"2026-04-24T18:48:16Z","stage":"implementation","event":"stage-commit","archiveType":"fix","targetVersion":"2.2.3","projectLanguage":"ko","commitTitle":"fix: 2.2.3.워크플로우 상태 해소 정리","summary":"워크플로우 상태 해소 정리","why":"선택 탭과 콘텐츠 사이 선을 없애고 후속 flow 완료 후에도 이전 Add revision이 추가 진행으로 남지 않게 해야 한다","footer":"Refs: dashboard-workflow-overview-sync"}
++{"ts":"2026-04-24T18:49:10Z","stage":"implementation","event":"requirements-added","summary":"follow-up clarified content top border should remain except under selected tab and selected tab should have no visual effect","score":96,"next":"pgg-code"}
++{"ts":"2026-04-24T18:49:10Z","stage":"implementation","event":"stage-completed","summary":"masked only the selected-tab segment of the content top border and removed selected-tab visual effects","score":96,"next":"pgg-refactor"}
