@@ -22,7 +22,6 @@ import { startTransition, useDeferredValue, useEffect, useMemo, useState } from 
 import { ArtifactDetailDialog } from "../features/artifact-inspector/ArtifactDetailDialog";
 import { InsightsRail } from "../features/backlog/InsightsRail";
 import { CategoryManagementPanel } from "../features/project-list/CategoryManagementPanel";
-import { ProjectListBoard } from "../features/project-list/ProjectListBoard";
 import { ProjectDetailWorkspace } from "../features/project-detail/ProjectDetailWorkspace";
 import { SettingsWorkspace } from "../features/settings/SettingsWorkspace";
 import {
@@ -72,7 +71,6 @@ export default function DashboardApp() {
   const activeSidebarItem = useDashboardStore((state) => state.activeSidebarItem);
   const projectDetailOpen = useDashboardStore((state) => state.projectDetailOpen);
   const activeDetailSection = useDashboardStore((state) => state.activeDetailSection);
-  const workflowViewMode = useDashboardStore((state) => state.workflowViewMode);
   const activeSettingsView = useDashboardStore((state) => state.activeSettingsView);
   const selectedProjectId = useDashboardStore((state) => state.selectedProjectId);
   const selectedTopicKey = useDashboardStore((state) => state.selectedTopicKey);
@@ -82,7 +80,6 @@ export default function DashboardApp() {
   const setActiveSidebarItem = useDashboardStore((state) => state.setActiveSidebarItem);
   const setProjectDetailOpen = useDashboardStore((state) => state.setProjectDetailOpen);
   const setActiveDetailSection = useDashboardStore((state) => state.setActiveDetailSection);
-  const setWorkflowViewMode = useDashboardStore((state) => state.setWorkflowViewMode);
   const setActiveSettingsView = useDashboardStore((state) => state.setActiveSettingsView);
   const themeMode = useDashboardStore((state) => state.themeMode);
   const setSelectedProjectId = useDashboardStore((state) => state.setSelectedProjectId);
@@ -102,7 +99,6 @@ export default function DashboardApp() {
   const [fileSelection, setFileSelection] = useState<ArtifactSelection | null>(null);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [sidebarDrawerOpen, setSidebarDrawerOpen] = useState(false);
-  const [projectBoardFilter, setProjectBoardFilter] = useState("");
   const [projectSelectorOpen, setProjectSelectorOpen] = useState(false);
 
   const snapshotQuery = useQuery({
@@ -485,15 +481,13 @@ export default function DashboardApp() {
   };
 
   const focusProjectContext = (projectId: string) => {
-    const nextSection: DashboardDetailSection = projectDetailOpen ? activeDetailSection : "main";
     const shouldResetSelection = selectedProjectId !== projectId;
     markDashboardInteraction("project-switch", "start");
     startTransition(() => {
       setSelectedProjectId(projectId);
       setActiveTopMenu("projects");
-      setActiveSidebarItem("board");
       setProjectDetailOpen(true);
-      setActiveDetailSection(nextSection);
+      setActiveDetailSection("main");
       if (shouldResetSelection) {
         resetProjectSurfaceSelection();
       }
@@ -513,7 +507,6 @@ export default function DashboardApp() {
     startTransition(() => {
       setSelectedProjectId(projectId);
       setActiveTopMenu("projects");
-      setActiveSidebarItem("board");
       setProjectDetailOpen(true);
       setActiveDetailSection(section);
     });
@@ -678,17 +671,11 @@ export default function DashboardApp() {
           selectedTopicKey={nextVisibleTopicKey}
           topicFilter={topicFilter}
           activeSection={activeDetailSection}
-          workflowViewMode={workflowViewMode}
           detailSelection={detailSelection}
           fileSelection={fileSelection}
           dictionary={dictionary}
           isLiveMode={isLiveMode}
           fileMutationPending={saveFileMutation.isPending || deleteFileMutation.isPending}
-          onBack={() => {
-            setProjectDetailOpen(false);
-            setActiveSidebarItem("board");
-            setDetailDialogOpen(false);
-          }}
           onTopicFilterChange={handleTopicFilterChange}
           onSelectTopic={setSelectedTopicKey}
           onSelectArtifact={(entry) => {
@@ -706,12 +693,6 @@ export default function DashboardApp() {
             markDashboardInteraction("detail-open", "start");
             setDetailDialogOpen(true);
           }}
-          onWorkflowNodeClick={(selection) => {
-            markDashboardInteraction("detail-open", "start");
-            setDetailSelection(selection);
-            setDetailDialogOpen(true);
-          }}
-          onWorkflowViewModeChange={setWorkflowViewMode}
           onSelectFile={(entry) => {
             const topicKey =
               resolveTopicKeyFromSourcePath(entry.sourcePath) ??
@@ -730,24 +711,49 @@ export default function DashboardApp() {
     }
 
     return (
-      <ProjectListBoard
-        categories={categories}
-        projects={snapshot?.projects ?? []}
-        currentProjectId={currentProject?.id ?? null}
-        selectedProjectId={selectedProjectId}
-        latestActiveProjectId={latestActiveProject?.id ?? null}
+      <ProjectDetailWorkspace
+        project={boardContextProject}
+        selectedTopic={selectedTopic}
+        activeTopics={activeTopics}
+        archivedTopics={archivedTopics}
+        selectedTopicKey={nextVisibleTopicKey}
+        topicFilter={topicFilter}
+        activeSection="main"
+        detailSelection={detailSelection}
+        fileSelection={fileSelection}
         dictionary={dictionary}
-        projectFilter={projectBoardFilter}
         isLiveMode={isLiveMode}
-        insightsOpen={insightsRailOpen}
-        onAddProject={() => setProjectDialogOpen(true)}
-        onProjectFilterChange={setProjectBoardFilter}
-        onToggleInsights={() => setInsightsRailOpen(!insightsRailOpen)}
-        onOpenProject={focusProjectContext}
-        onDeleteProject={(projectId) => {
-          setPendingDeleteProjectId(projectId);
-          setDangerousDeleteRoot(false);
+        fileMutationPending={saveFileMutation.isPending || deleteFileMutation.isPending}
+        onTopicFilterChange={handleTopicFilterChange}
+        onSelectTopic={setSelectedTopicKey}
+        onSelectArtifact={(entry) => {
+          const topicKey =
+            resolveTopicKeyFromSourcePath(entry.sourcePath) ??
+            (selectedTopic ? buildTopicKey(selectedTopic) : null);
+
+          if (!topicKey) {
+            return;
+          }
+
+          handleSelectArtifact(entry.sourcePath, createArtifactSelection(topicKey, entry));
         }}
+        onOpenDetailDialog={() => {
+          markDashboardInteraction("detail-open", "start");
+          setDetailDialogOpen(true);
+        }}
+        onSelectFile={(entry) => {
+          const topicKey =
+            resolveTopicKeyFromSourcePath(entry.sourcePath) ??
+            (selectedTopic ? buildTopicKey(selectedTopic) : null);
+
+          if (!topicKey) {
+            return;
+          }
+
+          setFileSelection(createArtifactSelection(topicKey, entry));
+        }}
+        onSaveSelection={(content) => saveFileMutation.mutate(content)}
+        onDeleteSelection={() => deleteFileMutation.mutate()}
       />
     );
   };
@@ -770,13 +776,10 @@ export default function DashboardApp() {
         dictionary={dictionary}
         activeTopMenu={activeTopMenu}
         compactShell={isCompactShell}
-        showProjectControls={activeTopMenu === "projects" && !projectDetailOpen}
-        projectSearchValue={projectBoardFilter}
         onOpenProjects={() => setActiveTopMenu("projects")}
         onOpenSettings={() => setActiveTopMenu("settings")}
         onToggleSidebar={() => setSidebarDrawerOpen(true)}
         onToggleInsights={() => setInsightsRailOpen(!insightsRailOpen)}
-        onProjectSearchChange={setProjectBoardFilter}
         onAddProject={() => setProjectDialogOpen(true)}
       />
 

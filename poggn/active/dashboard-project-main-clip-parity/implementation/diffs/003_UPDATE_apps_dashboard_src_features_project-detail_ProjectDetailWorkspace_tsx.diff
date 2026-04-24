@@ -1,0 +1,468 @@
+diff --git a/apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx b/apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx
+index f9c73e3..9ee3aad 100644
+--- a/apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx
++++ b/apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx
+@@ -24,9 +24,7 @@ import {
+   Typography
+ } from "@mui/material";
+ import ArchiveRounded from "@mui/icons-material/ArchiveRounded";
+-import ArrowBackRounded from "@mui/icons-material/ArrowBackRounded";
+ import BoltRounded from "@mui/icons-material/BoltRounded";
+-import CheckCircleRounded from "@mui/icons-material/CheckCircleRounded";
+ import ChevronRightRounded from "@mui/icons-material/ChevronRightRounded";
+ import DownloadRounded from "@mui/icons-material/DownloadRounded";
+ import DescriptionRounded from "@mui/icons-material/DescriptionRounded";
+@@ -37,18 +35,12 @@ import FilterListRounded from "@mui/icons-material/FilterListRounded";
+ import FolderRounded from "@mui/icons-material/FolderRounded";
+ import SearchRounded from "@mui/icons-material/SearchRounded";
+ import SellRounded from "@mui/icons-material/SellRounded";
+-import { Background, Controls, MiniMap, ReactFlow } from "@xyflow/react";
+-import {
+-  resolveDashboardFlowStatusLabel,
+-  resolveDashboardHealthLabel,
+-  resolveDashboardStageLabel
+-} from "../../shared/locale/dashboardLocale";
++import { resolveDashboardStageLabel } from "../../shared/locale/dashboardLocale";
+ import type {
+   ArtifactDocumentEntry,
+   ArtifactSelection,
+   DashboardDetailSection,
+   DashboardLocale,
+-  DashboardWorkflowViewMode,
+   ProjectSnapshot,
+   TopicSummary
+ } from "../../shared/model/dashboard";
+@@ -56,12 +48,9 @@ import {
+   buildTopicFileArtifactEntry,
+   buildTopicFileTree,
+   buildTopicKey,
+-  buildWorkflowModel,
+   collectAncestorFolders,
+-  createTopicArtifactSelection,
+   formatDate,
+   getPreferredArtifactEntry,
+-  getStatusColor,
+   type TopicFileTreeNode
+ } from "../../shared/utils/dashboard";
+ import { ArtifactDocumentContent } from "../../shared/ui/ArtifactDocumentContent";
+@@ -75,34 +64,20 @@ type ProjectDetailWorkspaceProps = {
+   selectedTopicKey: string | null;
+   topicFilter: string;
+   activeSection: DashboardDetailSection;
+-  workflowViewMode: DashboardWorkflowViewMode;
+   detailSelection: ArtifactSelection | null;
+   fileSelection: ArtifactSelection | null;
+   dictionary: DashboardLocale;
+   isLiveMode: boolean;
+   fileMutationPending: boolean;
+-  onBack: () => void;
+   onTopicFilterChange: (value: string) => void;
+   onSelectTopic: (topicKey: string) => void;
+   onSelectArtifact: (entry: ArtifactDocumentEntry) => void;
+   onOpenDetailDialog: () => void;
+-  onWorkflowNodeClick: (selection: ArtifactSelection) => void;
+-  onWorkflowViewModeChange: (value: DashboardWorkflowViewMode) => void;
+   onSelectFile: (entry: ArtifactDocumentEntry) => void;
+   onSaveSelection: (content: string) => void;
+   onDeleteSelection: () => void;
+ };
+ 
+-type TimelineItem = {
+-  id: string;
+-  title: string;
+-  sourcePath: string | null;
+-  status: "done" | "current" | "upcoming";
+-  detail: ArtifactSelection["detail"];
+-  positionX: number;
+-  positionY: number;
+-};
+-
+ type ReportFilter = "all" | "qa" | "review";
+ 
+ type MetricEntry = {
+@@ -166,29 +141,11 @@ function resolveReportFilterLabel(filter: ReportFilter, dictionary: DashboardLoc
+ }
+ 
+ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
+-  const theme = useTheme();
+   const language = props.project?.language ?? "en";
+   const visibleTopics = useMemo(
+     () => [...props.activeTopics, ...props.archivedTopics],
+     [props.activeTopics, props.archivedTopics]
+   );
+-  const workflowModel =
+-    props.selectedTopic?.workflow ? buildWorkflowModel(props.selectedTopic.workflow, props.selectedTopic.stage, theme) : null;
+-  const timelineItems = useMemo<TimelineItem[]>(
+-    () =>
+-      (workflowModel?.nodes ?? [])
+-        .map((node) => ({
+-          id: node.id,
+-          title: node.data.title,
+-          sourcePath: node.data.sourcePath,
+-          status: node.data.status,
+-          detail: node.data.detail,
+-          positionX: node.position.x,
+-          positionY: node.position.y
+-        }))
+-        .sort((left, right) => left.positionX - right.positionX || left.positionY - right.positionY),
+-    [workflowModel]
+-  );
+   const reportTopics = useMemo(
+     () =>
+       visibleTopics.filter((topic) =>
+@@ -209,10 +166,6 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
+     return selectedTopicFiles.filter((file) => file.relativePath.toLowerCase().includes(query));
+   }, [fileFilter, selectedTopicFiles]);
+   const fileTree = useMemo(() => buildTopicFileTree(filteredTopicFiles), [filteredTopicFiles]);
+-  const currentWorkflowItem = useMemo(
+-    () => timelineItems.find((item) => item.status === "current") ?? null,
+-    [timelineItems]
+-  );
+   const [editorValue, setEditorValue] = useState("");
+   const [editingPath, setEditingPath] = useState<string | null>(null);
+   const [expandedFolders, setExpandedFolders] = useState<string[]>([]);
+@@ -266,19 +219,6 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
+     [filteredReportTopics, reportPage, reportRowsPerPage]
+   );
+   const currentReportFilterLabel = resolveReportFilterLabel(reportFilter, props.dictionary);
+-  const createWorkflowSelection = (
+-    title: string,
+-    detail: ArtifactSelection["detail"],
+-    sourcePath: string | null
+-  ) =>
+-    props.selectedTopic
+-      ? createTopicArtifactSelection(props.selectedTopic, {
+-          title,
+-          detail,
+-          sourcePath,
+-          editable: true
+-        })
+-      : null;
+   const openArtifactEntry = (entry: ArtifactDocumentEntry | null) => {
+     if (!entry) {
+       return;
+@@ -315,217 +255,10 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
+ 
+   return (
+     <Stack spacing={3}>
+-      <WorkspaceHeader project={props.project} dictionary={props.dictionary} onBack={props.onBack} />
+-
+       {props.activeSection === "main" ? (
+         <ProjectInfoSection project={props.project} dictionary={props.dictionary} />
+       ) : null}
+ 
+-      {props.activeSection === "workflow" ? (
+-        <Box
+-          sx={{
+-            display: "grid",
+-            gap: 3,
+-            gridTemplateColumns: { xs: "1fr", xl: "280px minmax(0, 1fr)" }
+-          }}
+-        >
+-          <TopicSidebarPanel
+-            topics={visibleTopics}
+-            selectedTopicKey={props.selectedTopicKey}
+-            topicFilter={props.topicFilter}
+-            dictionary={props.dictionary}
+-            onTopicFilterChange={props.onTopicFilterChange}
+-            onSelectTopic={props.onSelectTopic}
+-          />
+-
+-          <Stack
+-            spacing={3}
+-            sx={{
+-              "@keyframes workflowPulse": {
+-                "0%": { boxShadow: `0 0 0 0 ${alpha(theme.palette.primary.main, 0.28)}` },
+-                "70%": { boxShadow: `0 0 0 12px ${alpha(theme.palette.primary.main, 0)}` },
+-                "100%": { boxShadow: `0 0 0 0 ${alpha(theme.palette.primary.main, 0)}` }
+-              },
+-              "& .workflow-node-current": {
+-                animation: "workflowPulse 2s ease-in-out infinite"
+-              },
+-              "& .workflow-timeline-current .workflow-timeline-paper": {
+-                animation: "workflowPulse 2s ease-in-out infinite"
+-              },
+-              "@media (prefers-reduced-motion: reduce)": {
+-                "& .workflow-node-current": {
+-                  animation: "none"
+-                },
+-                "& .workflow-timeline-current .workflow-timeline-paper": {
+-                  animation: "none"
+-                }
+-              }
+-            }}
+-          >
+-            <Paper sx={{ p: 2.25, borderRadius: 1 }}>
+-              <Stack spacing={1.5}>
+-                <Stack direction={{ xs: "column", lg: "row" }} spacing={1.5} sx={{ justifyContent: "space-between" }}>
+-                  <Box>
+-                    <Typography variant="h6">{props.dictionary.workflow}</Typography>
+-                    <Typography variant="body2" color="text.secondary">
+-                      {props.dictionary.workflowHint}
+-                    </Typography>
+-                  </Box>
+-                  <Tabs
+-                    value={props.workflowViewMode}
+-                    onChange={(_event, value: DashboardWorkflowViewMode) => props.onWorkflowViewModeChange(value)}
+-                  >
+-                    <Tab value="timeline" label={props.dictionary.timelineView} />
+-                    <Tab value="flow" label={props.dictionary.flowView} />
+-                  </Tabs>
+-                </Stack>
+-
+-                {props.selectedTopic ? (
+-                  <>
+-                    <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
+-                      <Chip
+-                        size="small"
+-                        color="primary"
+-                        label={resolveDashboardStageLabel(props.selectedTopic.stage, props.dictionary)}
+-                      />
+-                      <Chip
+-                        size="small"
+-                        label={resolveDashboardHealthLabel(props.selectedTopic.health, props.dictionary)}
+-                      />
+-                      {typeof props.selectedTopic.score === "number" ? (
+-                        <Chip size="small" color="success" label={`${props.dictionary.scoreLabel} ${props.selectedTopic.score}`} />
+-                      ) : null}
+-                      {currentWorkflowItem ? (
+-                        <Chip
+-                          size="small"
+-                          color="warning"
+-                          label={`${props.dictionary.currentFocus}: ${currentWorkflowItem.title}`}
+-                        />
+-                      ) : null}
+-                    </Stack>
+-
+-                    <Paper
+-                      variant="outlined"
+-                      sx={{
+-                        p: 1.5,
+-                        borderRadius: 1,
+-                        backgroundColor: alpha(theme.palette.primary.main, 0.05)
+-                      }}
+-                    >
+-                      <Stack spacing={0.75}>
+-                        <Typography variant="subtitle2">{props.dictionary.initialQuestionRecordTitle}</Typography>
+-                        <Typography variant="caption" color="text.secondary">
+-                          {props.dictionary.initialQuestionRecordHint}
+-                        </Typography>
+-                        {props.selectedTopic.userQuestionRecord.length ? (
+-                          props.selectedTopic.userQuestionRecord.map((entry) => (
+-                            <Typography key={entry} variant="caption" sx={{ lineHeight: 1.7 }}>
+-                              {entry}
+-                            </Typography>
+-                          ))
+-                        ) : (
+-                          <Typography variant="caption" color="text.secondary">
+-                            {props.dictionary.noQuestionRecord}
+-                          </Typography>
+-                        )}
+-                      </Stack>
+-                    </Paper>
+-                  </>
+-                ) : (
+-                  <Alert severity="info">{props.dictionary.noTopics}</Alert>
+-                )}
+-              </Stack>
+-            </Paper>
+-
+-            {props.selectedTopic && workflowModel ? (
+-              props.workflowViewMode === "flow" ? (
+-                <Paper sx={{ p: 1.5, borderRadius: 1 }}>
+-                  <Box
+-                    sx={{
+-                      height: 560,
+-                      borderRadius: 1,
+-                      overflow: "hidden",
+-                      backgroundColor: alpha(theme.palette.background.paper, theme.palette.mode === "dark" ? 0.84 : 0.72)
+-                    }}
+-                  >
+-                    <ReactFlow
+-                      fitView
+-                      nodes={workflowModel.nodes}
+-                      edges={workflowModel.edges}
+-                      nodesDraggable={false}
+-                      nodesConnectable={false}
+-                      elementsSelectable={false}
+-                      onNodeClick={(_event, node) => {
+-                        const selection = createWorkflowSelection(
+-                          node.data.title,
+-                          node.data.detail,
+-                          node.data.sourcePath
+-                        );
+-                        if (selection) {
+-                          props.onWorkflowNodeClick(selection);
+-                        }
+-                      }}
+-                    >
+-                      <MiniMap pannable zoomable nodeColor={(node) => getStatusColor(node.data.status, theme)} />
+-                      <Controls />
+-                      <Background gap={24} color={alpha(theme.palette.primary.main, 0.08)} />
+-                    </ReactFlow>
+-                  </Box>
+-                </Paper>
+-              ) : (
+-                <Stack spacing={1.25}>
+-                  {timelineItems.map((item) => (
+-                    <ButtonBase
+-                      key={item.id}
+-                      className={item.status === "current" ? "workflow-timeline-current" : undefined}
+-                      onClick={() => {
+-                        const selection = createWorkflowSelection(item.title, item.detail, item.sourcePath);
+-                        if (selection) {
+-                          props.onWorkflowNodeClick(selection);
+-                        }
+-                      }}
+-                      sx={{ width: "100%", textAlign: "left" }}
+-                    >
+-                      <Paper
+-                        className="workflow-timeline-paper"
+-                        variant="outlined"
+-                        sx={{
+-                          width: "100%",
+-                          p: 1.5,
+-                          borderRadius: 1,
+-                          borderColor: alpha(getStatusColor(item.status, theme), 0.42),
+-                          background: `linear-gradient(180deg, ${alpha(getStatusColor(item.status, theme), 0.12)}, ${alpha(theme.palette.background.paper, 0.96)})`,
+-                          boxShadow:
+-                            item.status === "current"
+-                              ? `0 0 0 2px ${alpha(theme.palette.primary.main, 0.18)}`
+-                              : "none"
+-                        }}
+-                      >
+-                        <Stack spacing={0.75}>
+-                          <Stack direction="row" spacing={1} sx={{ justifyContent: "space-between", alignItems: "center" }}>
+-                            <Typography variant="subtitle2">{item.title}</Typography>
+-                            <Chip
+-                              size="small"
+-                              color={item.status === "current" ? "primary" : item.status === "done" ? "success" : "warning"}
+-                              label={resolveDashboardFlowStatusLabel(item.status, props.dictionary)}
+-                            />
+-                          </Stack>
+-                          <Typography variant="caption" color="text.secondary">
+-                            {item.sourcePath ?? props.dictionary.detailUnavailable}
+-                          </Typography>
+-                        </Stack>
+-                      </Paper>
+-                    </ButtonBase>
+-                  ))}
+-                </Stack>
+-              )
+-            ) : (
+-              <Alert severity="info">{props.dictionary.noWorkflow}</Alert>
+-            )}
+-          </Stack>
+-        </Box>
+-      ) : null}
+-
+       {props.activeSection === "history" ? (
+         <HistoryWorkspace
+           project={props.project}
+@@ -794,66 +527,6 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
+   );
+ }
+ 
+-function WorkspaceHeader(props: {
+-  project: ProjectSnapshot;
+-  dictionary: DashboardLocale;
+-  onBack: () => void;
+-}) {
+-  const theme = useTheme();
+-
+-  return (
+-    <Paper sx={{ p: 2.5, borderRadius: 1, overflow: "hidden", position: "relative" }}>
+-      <Box
+-        sx={{
+-          position: "absolute",
+-          inset: 0,
+-          background:
+-            theme.palette.mode === "dark"
+-              ? "radial-gradient(circle at top left, rgba(251, 191, 36, 0.14), transparent 32%), linear-gradient(135deg, rgba(56, 189, 248, 0.12), transparent 56%)"
+-              : "radial-gradient(circle at top left, rgba(251, 191, 36, 0.18), transparent 28%), linear-gradient(135deg, rgba(56, 189, 248, 0.12), transparent 52%)"
+-        }}
+-      />
+-      <Stack spacing={2} sx={{ position: "relative" }}>
+-        <Stack direction={{ xs: "column", xl: "row" }} spacing={2} sx={{ justifyContent: "space-between" }}>
+-          <Box>
+-            <Typography variant="overline" color="primary.main">
+-              {props.dictionary.workspace}
+-            </Typography>
+-            <Typography variant="h4" sx={{ mb: 0.5 }}>
+-              {props.project.name}
+-            </Typography>
+-            <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 760 }}>
+-              {props.dictionary.workspaceHint}
+-            </Typography>
+-          </Box>
+-          <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap", alignSelf: "flex-start" }}>
+-            <Button variant="contained" size="small" startIcon={<ArrowBackRounded />} onClick={props.onBack}>
+-              {props.dictionary.backToBoard}
+-            </Button>
+-            <Chip label={`${props.dictionary.provider}: ${props.project.provider}`} />
+-            <Chip label={`${props.dictionary.language}: ${props.project.language}`} />
+-            <Chip label={`${props.dictionary.pggVersion}: ${props.project.pggVersion ?? props.dictionary.unknown}`} />
+-            <Chip label={`${props.dictionary.projectVersion}: ${props.project.projectVersion ?? props.dictionary.unknown}`} />
+-            <Chip
+-              icon={<CheckCircleRounded />}
+-              color={props.project.missingRoot ? "warning" : "success"}
+-              label={props.project.missingRoot ? props.dictionary.missing : props.dictionary.ok}
+-            />
+-          </Stack>
+-        </Stack>
+-
+-        <Typography
+-          variant="body2"
+-          color="text.secondary"
+-          sx={{ wordBreak: "break-word", overflowWrap: "anywhere", fontFamily: '"IBM Plex Mono", "SFMono-Regular", monospace' }}
+-        >
+-          {props.project.rootDir}
+-        </Typography>
+-      </Stack>
+-    </Paper>
+-  );
+-}
+-
+ function ProjectInfoSection(props: { project: ProjectSnapshot; dictionary: DashboardLocale }) {
+   const language = props.project.language;
+   const latestActivityLabel = props.project.latestActivityAt
+@@ -909,6 +582,39 @@ function ProjectInfoSection(props: { project: ProjectSnapshot; dictionary: Dashb
+ 
+   return (
+     <Stack spacing={3}>
++      <Paper sx={{ p: 2, borderRadius: 1 }}>
++        <Stack direction={{ xs: "column", lg: "row" }} spacing={1.5} sx={{ justifyContent: "space-between" }}>
++          <Box sx={{ minWidth: 0 }}>
++            <Typography variant="h5" sx={{ fontWeight: 800, overflowWrap: "anywhere" }}>
++              {props.project.name}
++            </Typography>
++            <Typography
++              variant="caption"
++              color="text.secondary"
++              sx={{
++                display: "block",
++                mt: 0.5,
++                fontFamily: '"IBM Plex Mono", "SFMono-Regular", monospace',
++                overflowWrap: "anywhere",
++                wordBreak: "break-word"
++              }}
++            >
++              {props.project.rootDir}
++            </Typography>
++          </Box>
++          <Stack direction="row" spacing={0.75} useFlexGap sx={{ flexWrap: "wrap", alignSelf: "flex-start" }}>
++            <Chip size="small" label={`${props.dictionary.provider}: ${props.project.provider}`} />
++            <Chip size="small" label={`${props.dictionary.language}: ${props.project.language}`} />
++            <Chip size="small" label={`${props.dictionary.pggVersion}: ${props.project.pggVersion ?? props.dictionary.unknown}`} />
++            <Chip
++              size="small"
++              color={props.project.missingRoot ? "warning" : "success"}
++              label={props.project.missingRoot ? props.dictionary.missing : props.dictionary.ok}
++            />
++          </Stack>
++        </Stack>
++      </Paper>
++
+       <Paper sx={{ p: 2.25, borderRadius: 1 }}>
+         <Stack spacing={1.8}>
+           <Box>

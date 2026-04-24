@@ -1,0 +1,5 @@
+{"ts":"2026-04-24T06:34:10Z","stage":"proposal","event":"topic-created"}
+{"ts":"2026-04-24T06:34:40Z","stage":"proposal","event":"proposal-reviewed","score":95,"next":"pgg-plan"}
+{"ts":"2026-04-24T06:44:56Z","stage":"plan","event":"plan-reviewed","score":96,"next":"pgg-code"}
+{"ts":"2026-04-24T07:06:24Z","stage":"implementation","event":"code-reviewed","score":95,"verification":"pnpm --filter @pgg/dashboard build passed","next":"pgg-refactor"}
+{"ts":"2026-04-24T07:10:47Z","stage":"implementation","event":"stage-commit","archiveType":"feat","targetVersion":"2.1.0","projectLanguage":"ko","commitTitle":"feat: 2.1.0.Project 화면과 Clip 정리","summary":"Project 화면과 Clip 정리","why":"Project 기본 화면을 Main으로 고정하고 Board/Workflow 중복 surface를 제거하며 Clip 계열을 reference 기준으로 정리했다","footer":"Refs: dashboard-project-main-clip-parity"}

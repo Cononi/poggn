@@ -1,0 +1,39 @@
+diff --git a/apps/dashboard/src/shared/model/dashboard.ts b/apps/dashboard/src/shared/model/dashboard.ts
+index 8be659d..a38e515 100644
+--- a/apps/dashboard/src/shared/model/dashboard.ts
++++ b/apps/dashboard/src/shared/model/dashboard.ts
+@@ -178,17 +178,14 @@ export type DashboardThemeMode = "light" | "dark";
+ 
+ export type DashboardPrimaryMenu = "projects" | "settings";
+ 
+-export type DashboardSidebarItem = "board" | "category";
++export type DashboardSidebarItem = "category";
+ 
+ export type DashboardDetailSection =
+   | "main"
+-  | "workflow"
+   | "history"
+   | "report"
+   | "files";
+ 
+-export type DashboardWorkflowViewMode = "flow" | "timeline";
+-
+ export type DashboardSettingsView = "main" | "refresh" | "git" | "system";
+ 
+ export type DashboardWorkspaceFilterState = {
+@@ -242,7 +239,6 @@ export type DashboardStore = {
+   activeSidebarItem: DashboardSidebarItem;
+   projectDetailOpen: boolean;
+   activeDetailSection: DashboardDetailSection;
+-  workflowViewMode: DashboardWorkflowViewMode;
+   activeSettingsView: DashboardSettingsView;
+   themeMode: DashboardThemeMode;
+   selectedProjectId: string | null;
+@@ -254,7 +250,6 @@ export type DashboardStore = {
+   setActiveSidebarItem: (value: DashboardSidebarItem) => void;
+   setProjectDetailOpen: (value: boolean) => void;
+   setActiveDetailSection: (value: DashboardDetailSection) => void;
+-  setWorkflowViewMode: (value: DashboardWorkflowViewMode) => void;
+   setActiveSettingsView: (value: DashboardSettingsView) => void;
+   setThemeMode: (value: DashboardThemeMode) => void;
+   setSelectedProjectId: (value: string | null) => void;

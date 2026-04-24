@@ -353,11 +353,11 @@ function ToneChip(props: {
       label={props.label}
       size="small"
       sx={{
-        height: 32,
-        fontSize: 12,
+        height: 22,
+        fontSize: 11,
         fontWeight: 700,
-        borderRadius: 1,
-        letterSpacing: "0.04em",
+        borderRadius: 0.5,
+        letterSpacing: 0,
         color: props.outlined ? token.background : token.color,
         bgcolor: props.outlined ? alpha(token.background, 0.12) : token.background,
         border: props.outlined ? `1px solid ${alpha(token.background, 0.36)}` : "none"

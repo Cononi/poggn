@@ -211,8 +211,8 @@ function RailChip(props: { label: string; tone: "primary" | "success" }) {
       sx={{
         px: 0.9,
         py: 0.3,
-        borderRadius: 999,
-        fontSize: 12,
+        borderRadius: 0.5,
+        fontSize: 11,
         fontWeight: 700,
         color,
         backgroundColor: alpha(color, 0.16)

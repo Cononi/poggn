@@ -177,9 +177,54 @@ export function createDashboardTheme(mode: DashboardThemeMode) {
       MuiChip: {
         styleOverrides: {
           root: {
-            borderRadius: 1,
-            height: 26,
-            fontWeight: 700
+            borderRadius: 4,
+            height: 24,
+            fontWeight: 700,
+            fontSize: 12,
+            lineHeight: 1,
+            letterSpacing: 0,
+            backgroundColor: isDark ? alpha(navSurface, 0.9) : alpha("#d8e7f4", 0.72),
+            border: `1px solid ${alpha(primary, isDark ? 0.16 : 0.12)}`
+          },
+          sizeSmall: {
+            height: 22,
+            fontSize: 11,
+            "& .MuiChip-label": {
+              paddingInline: 7
+            },
+            "& .MuiChip-icon": {
+              width: 15,
+              height: 15,
+              marginLeft: 5,
+              marginRight: -3
+            }
+          },
+          label: {
+            paddingInline: 8
+          },
+          colorPrimary: {
+            color: isDark ? "#7dd3fc" : "#ffffff",
+            backgroundColor: isDark ? alpha(primary, 0.18) : primary,
+            borderColor: alpha(primary, isDark ? 0.34 : 0.2)
+          },
+          colorSuccess: {
+            color: isDark ? "#34d399" : "#ffffff",
+            backgroundColor: isDark ? alpha("#2fd07f", 0.16) : "#2c7a4b",
+            borderColor: alpha("#2fd07f", isDark ? 0.32 : 0.2)
+          },
+          colorWarning: {
+            color: isDark ? "#ffb076" : "#ffffff",
+            backgroundColor: isDark ? alpha("#ff8a3d", 0.18) : "#b26b00",
+            borderColor: alpha("#ff8a3d", isDark ? 0.34 : 0.2)
+          },
+          colorSecondary: {
+            color: isDark ? "#c4b5fd" : "#ffffff",
+            backgroundColor: isDark ? alpha("#8b5cf6", 0.2) : "#6d28d9",
+            borderColor: alpha("#8b5cf6", isDark ? 0.34 : 0.18)
+          },
+          outlined: {
+            backgroundColor: isDark ? alpha(navSurface, 0.52) : alpha("#e8f2fb", 0.68),
+            borderColor: alpha(primary, isDark ? 0.26 : 0.18)
           }
         }
       },

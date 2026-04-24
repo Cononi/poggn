@@ -178,16 +178,13 @@ export type DashboardThemeMode = "light" | "dark";
 
 export type DashboardPrimaryMenu = "projects" | "settings";
 
-export type DashboardSidebarItem = "board" | "category";
+export type DashboardSidebarItem = "category";
 
 export type DashboardDetailSection =
   | "main"
-  | "workflow"
   | "history"
   | "report"
   | "files";
-
-export type DashboardWorkflowViewMode = "flow" | "timeline";
 
 export type DashboardSettingsView = "main" | "refresh" | "git" | "system";
 
@@ -242,7 +239,6 @@ export type DashboardStore = {
   activeSidebarItem: DashboardSidebarItem;
   projectDetailOpen: boolean;
   activeDetailSection: DashboardDetailSection;
-  workflowViewMode: DashboardWorkflowViewMode;
   activeSettingsView: DashboardSettingsView;
   themeMode: DashboardThemeMode;
   selectedProjectId: string | null;
@@ -254,7 +250,6 @@ export type DashboardStore = {
   setActiveSidebarItem: (value: DashboardSidebarItem) => void;
   setProjectDetailOpen: (value: boolean) => void;
   setActiveDetailSection: (value: DashboardDetailSection) => void;
-  setWorkflowViewMode: (value: DashboardWorkflowViewMode) => void;
   setActiveSettingsView: (value: DashboardSettingsView) => void;
   setThemeMode: (value: DashboardThemeMode) => void;
   setSelectedProjectId: (value: string | null) => void;
