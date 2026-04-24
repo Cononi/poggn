@@ -132,8 +132,7 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
             spacing={1}
             sx={{
               px: 1.5,
-              pt: 1.5,
-              borderBottom: `1px solid ${alpha(theme.palette.divider, 0.7)}`
+              pt: 1.5
             }}
           >
             <Stack
@@ -166,22 +165,23 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
               sx={{
                 alignSelf: "flex-start",
                 minHeight: 38,
-                p: 0.35,
-                borderRadius: 1,
-                border: `1px solid ${alpha(theme.palette.primary.main, 0.16)}`,
-                bgcolor: alpha(theme.palette.background.default, theme.palette.mode === "dark" ? 0.28 : 0.56),
-                "& .MuiTabs-flexContainer": { gap: 0.35 },
+                mt: 0.2,
+                mb: -0.05,
+                "& .MuiTabs-flexContainer": { gap: 0.25 },
                 "& .MuiTab-root": {
-                  minHeight: 32,
+                  minHeight: 36,
                   px: 2,
-                  borderRadius: 0.8,
+                  borderTopLeftRadius: 1,
+                  borderTopRightRadius: 1,
+                  borderBottomLeftRadius: 0,
+                  borderBottomRightRadius: 0,
                   color: "text.secondary",
-                  fontWeight: 700
+                  fontWeight: 700,
+                  bgcolor: "transparent"
                 },
                 "& .Mui-selected": {
                   color: "primary.main",
-                  bgcolor: alpha(theme.palette.background.paper, 0.92),
-                  boxShadow: `0 1px 0 ${alpha(theme.palette.common.white, 0.04)}, 0 8px 18px ${alpha(theme.palette.common.black, 0.08)}`
+                  bgcolor: alpha(theme.palette.background.default, theme.palette.mode === "dark" ? 0.18 : 0.34)
                 }
               }}
             >
