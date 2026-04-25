@@ -12,6 +12,7 @@
 - proposal 단계에서 `archive_type`, `version_bump`, `target_version`, branch naming, `project_scope`를 확정하고, `archive_type`는 change category/commit convention, `version_bump`는 semver impact로 구분한다.
 - pgg가 생성·관리하는 `.codex/sh/*.sh` helper만 workflow 내부 trusted script로 보고 추가 허락 없이 실행한다.
 - `pgg git`이 `on`이면 `.codex/sh/pgg-stage-commit.sh`로 task 완료와 QA final completion commit을 남기고, publish commit은 `state/current.md` 또는 `qa/report.md`의 `Git Publish Message` 섹션으로 제목/상세 body/footer를 관리하며 `{convention}: {version}.{commit message}` 형식, `pgg lang` 기반 메시지 언어, 제목 50자 이하, 명령형 금지, 마침표 금지, 로그가 곧 문서 원칙을 지킨다.
+- 모든 flow 상태는 `시작 전`, `진행 중`, `추가 진행`, `완료` 4상태로 기록하고 dashboard가 같은 기준으로 표시할 수 있게 stage event evidence를 유지한다.
 - 대상 프로젝트 검증 명령은 선언된 current-project verification contract가 있을 때만 자동 실행 후보가 되며, 없으면 `manual verification required`로 남긴다.
 - 파일 생성/수정/삭제는 `implementation/index.md`와 `implementation/diffs/*.diff`에 기록한다.
 - 검증이 통과된 topic은 version 기록 후 `poggn/archive/<topic>`으로 이동한다.

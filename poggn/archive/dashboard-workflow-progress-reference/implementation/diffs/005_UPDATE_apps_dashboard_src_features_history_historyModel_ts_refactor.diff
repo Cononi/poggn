@@ -1,0 +1,46 @@
+diff --git a/apps/dashboard/src/features/history/historyModel.ts b/apps/dashboard/src/features/history/historyModel.ts
+index 5706fae..f14e298 100644
+--- a/apps/dashboard/src/features/history/historyModel.ts
++++ b/apps/dashboard/src/features/history/historyModel.ts
+@@ -2,7 +2,7 @@ import type { TopicSummary } from "../../shared/model/dashboard";
+ import { buildTopicKey, formatDate } from "../../shared/utils/dashboard";
+ 
+ export type HistoryLanguage = "ko" | "en";
+-export type WorkflowStatus = "completed" | "current" | "next" | "pending";
++export type WorkflowStatus = "completed" | "current" | "pending";
+ export type FileChangeKind = "A" | "M" | "D";
+ export type RelationKind = "depends" | "blocks" | "related" | "implements" | "mentioned";
+ export type HistoryChipColor = "primary" | "secondary" | "success" | "warning" | "default";
+@@ -252,8 +252,7 @@ function extractTaskIdsFromText(value: string | null | undefined): string[] {
+   return Array.from(ids);
+ }
+ 
+-function activeTaskIdsForFlow(topic: TopicSummary, flow: WorkflowFlowDefinition): string[] {
+-  const isCurrentFlow = flow.id === normalizeFlowId(topic.stage);
++function taskEvidenceSourcesForFlow(topic: TopicSummary, flow: WorkflowFlowDefinition): Array<string | null | undefined> {
+   const flowRefs = [
+     ...flowNodes(topic, flow).flatMap((node) => [
+       node.id,
+@@ -265,12 +264,18 @@ function activeTaskIdsForFlow(topic: TopicSummary, flow: WorkflowFlowDefinition)
+     ]),
+     ...flowFiles(topic, flow).flatMap((file) => [file.relativePath, file.sourcePath])
+   ];
+-  const currentRefs = isCurrentFlow
+-    ? [topic.nextAction, topic.goal, topic.blockingIssues, topic.status, topic.stage]
+-    : [];
++
++  if (flow.id !== normalizeFlowId(topic.stage)) {
++    return flowRefs;
++  }
++
++  return [topic.nextAction, topic.goal, topic.blockingIssues, topic.status, topic.stage, ...flowRefs];
++}
++
++function activeTaskIdsForFlow(topic: TopicSummary, flow: WorkflowFlowDefinition): string[] {
+   const ids = new Set<string>();
+ 
+-  for (const source of [...currentRefs, ...flowRefs]) {
++  for (const source of taskEvidenceSourcesForFlow(topic, flow)) {
+     for (const id of extractTaskIdsFromText(source)) {
+       ids.add(id);
+     }

@@ -1,0 +1,22 @@
+diff --git a/apps/dashboard/src/shared/locale/dashboardLocale.ts b/apps/dashboard/src/shared/locale/dashboardLocale.ts
+index fd4b4b6..83b6457 100644
+--- a/apps/dashboard/src/shared/locale/dashboardLocale.ts
++++ b/apps/dashboard/src/shared/locale/dashboardLocale.ts
+@@ -295,7 +295,7 @@ export const dashboardLocale = {
+     flowUpdating: "추가 진행",
+     flowUpcoming: "예정",
+     workflowProgressStatusPending: "시작 전",
+-    workflowProgressStatusCurrent: "생성 중",
++    workflowProgressStatusCurrent: "진행 중",
+     workflowProgressStatusUpdating: "추가 진행",
+     workflowProgressStatusCompleted: "완료",
+     workflowProgressCountCompleted: "완료",
+@@ -621,7 +621,7 @@ export const dashboardLocale = {
+     flowUpdating: "updating",
+     flowUpcoming: "upcoming",
+     workflowProgressStatusPending: "Not started",
+-    workflowProgressStatusCurrent: "Generating",
++    workflowProgressStatusCurrent: "In progress",
+     workflowProgressStatusUpdating: "Additional updates",
+     workflowProgressStatusCompleted: "Completed",
+     workflowProgressCountCompleted: "Completed",

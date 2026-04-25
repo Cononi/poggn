@@ -1,0 +1,94 @@
+diff --git a/apps/dashboard/src/shared/locale/dashboardLocale.ts b/apps/dashboard/src/shared/locale/dashboardLocale.ts
+index 3ca3b65..fd4b4b6 100644
+--- a/apps/dashboard/src/shared/locale/dashboardLocale.ts
++++ b/apps/dashboard/src/shared/locale/dashboardLocale.ts
+@@ -22,15 +22,12 @@ export function resolveDashboardStageLabel(stage: string | null, dictionary: Rec
+ }
+ 
+ export function resolveDashboardFlowStatusLabel(
+-  status: "done" | "current" | "finishing" | "updating" | "upcoming",
++  status: "done" | "current" | "updating" | "upcoming",
+   dictionary: Record<string, string>
+ ): string {
+   if (status === "done") {
+     return dictionary.flowDone;
+   }
+-  if (status === "finishing") {
+-    return dictionary.flowFinishing;
+-  }
+   if (status === "updating") {
+     return dictionary.flowUpdating;
+   }
+@@ -295,17 +292,14 @@ export const dashboardLocale = {
+     statusDone: "완료",
+     flowDone: "완료",
+     flowCurrent: "현재",
+-    flowFinishing: "마무리 중",
+     flowUpdating: "추가 진행",
+     flowUpcoming: "예정",
+     workflowProgressStatusPending: "시작 전",
+     workflowProgressStatusCurrent: "생성 중",
+-    workflowProgressStatusFinishing: "마무리 중",
+     workflowProgressStatusUpdating: "추가 진행",
+     workflowProgressStatusCompleted: "완료",
+     workflowProgressCountCompleted: "완료",
+     workflowProgressCountCurrent: "생성 중",
+-    workflowProgressCountFinishing: "마무리 중",
+     workflowProgressCountUpdating: "추가 진행",
+     workflowProgressCountPending: "시작 전",
+     workflowProgressCompletedSummary: "완료",
+@@ -624,17 +618,14 @@ export const dashboardLocale = {
+     statusDone: "DONE",
+     flowDone: "done",
+     flowCurrent: "current",
+-    flowFinishing: "finishing",
+     flowUpdating: "updating",
+     flowUpcoming: "upcoming",
+     workflowProgressStatusPending: "Not started",
+     workflowProgressStatusCurrent: "Generating",
+-    workflowProgressStatusFinishing: "Finishing",
+     workflowProgressStatusUpdating: "Additional updates",
+     workflowProgressStatusCompleted: "Completed",
+     workflowProgressCountCompleted: "Completed",
+     workflowProgressCountCurrent: "Generating",
+-    workflowProgressCountFinishing: "Finishing",
+     workflowProgressCountUpdating: "Additional updates",
+     workflowProgressCountPending: "Not started",
+     workflowProgressCompletedSummary: "completed",
+diff --git a/apps/dashboard/src/shared/model/dashboard.ts b/apps/dashboard/src/shared/model/dashboard.ts
+index d3bdbd6..6ce8830 100644
+--- a/apps/dashboard/src/shared/model/dashboard.ts
++++ b/apps/dashboard/src/shared/model/dashboard.ts
+@@ -211,7 +211,7 @@ export type DashboardWorkspaceFilterState = {
+ 
+ export type DashboardTone = "primary" | "success" | "warning" | "danger" | "neutral";
+ 
+-export type FlowStatus = "done" | "current" | "finishing" | "updating" | "upcoming";
++export type FlowStatus = "done" | "current" | "updating" | "upcoming";
+ 
+ export type FlowNodeData = {
+   label: ReactNode;
+diff --git a/apps/dashboard/src/shared/utils/dashboard.tsx b/apps/dashboard/src/shared/utils/dashboard.tsx
+index 36a4898..d4cad7f 100644
+--- a/apps/dashboard/src/shared/utils/dashboard.tsx
++++ b/apps/dashboard/src/shared/utils/dashboard.tsx
+@@ -486,9 +486,6 @@ function inferNodeStatus(node: WorkflowNode, topicStage: string | null): FlowSta
+   if (/revis|updated|revision|additional|updat(e|ing)|추가/i.test(explicitStatus)) {
+     return "updating";
+   }
+-  if (/finish|finaliz|closing|wrap|마무리/i.test(explicitStatus)) {
+-    return "finishing";
+-  }
+   if (/done|complete|completed|reviewed|approved/i.test(explicitStatus)) {
+     return "done";
+   }
+@@ -646,9 +643,6 @@ export function getStatusColor(status: FlowStatus, theme: Theme): string {
+   if (status === "updating") {
+     return theme.palette.secondary.main;
+   }
+-  if (status === "finishing") {
+-    return theme.palette.warning.main;
+-  }
+   if (status === "current") {
+     return theme.palette.primary.main;
+   }

@@ -1,0 +1,90 @@
+diff --git a/poggn/active/dashboard-workflow-overview-sync/implementation/index.md b/poggn/active/dashboard-workflow-overview-sync/implementation/index.md
+index 56f196a..138fbef 100644
+--- a/poggn/active/dashboard-workflow-overview-sync/implementation/index.md
++++ b/poggn/active/dashboard-workflow-overview-sync/implementation/index.md
+@@ -70,6 +70,8 @@ state:
+ - `pgg init/update` now distributes the same four-status flow contract through generated AGENTS, WOKR-FLOW, and STATE-CONTRACT assets.
+ - Workflow Progress UI reads each step's shared `status` for labels, colors, icons, connectors, chart, and counts across every rendered flow.
+ - Active/current flow labels now display `진행 중` / `In progress` to match the four-status contract.
++- Refactor centralized unresolved flow index selection for active/updating status so both use the same later-flow evidence resolution.
++- Refactor centralized generated ko/en flow status contract strings and verified `pgg update` output remains unchanged.
+ - Status/Workflow Stage/Progress/Priority/Created/Updated metadata now renders as a fixed six-column row under the workflow rail so it does not wrap or overlap.
+ - ko/en locale copy was updated for generated/current, update, count, and tooltip labels.
+ - Restored the Workflow Progress header icon import and migrated compact Drawer paper styling from `PaperProps` to `slotProps.paper` to remove runtime console errors.
+@@ -89,6 +91,7 @@ state:
+ | UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | `implementation/diffs/001_UPDATE_apps_dashboard_src_features_history_historyModel_ts.diff` |
+ | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `implementation/diffs/002_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.diff` |
+ | UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | `implementation/diffs/010_UPDATE_dashboard_flow_status_labels.diff` |
++| UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | `implementation/diffs/011_UPDATE_workflow_status_refactor_helpers.diff` |
+ | UPDATE | `.codex/add/WOKR-FLOW.md` | `implementation/diffs/007_UPDATE_pgg_workflow_contracts.diff` |
+ | UPDATE | `.pgg/project.json` | `implementation/diffs/008_UPDATE_pgg_update_workflow_template.diff` |
+ | UPDATE | `AGENTS.md` | `implementation/diffs/009_UPDATE_pgg_flow_status_contracts.diff` |
+@@ -101,6 +104,9 @@ state:
+ | UPDATE | `packages/core/src/templates.ts` | `implementation/diffs/009_UPDATE_pgg_flow_status_contracts.diff` |
+ | UPDATE | `packages/core/dist/templates.js` | `implementation/diffs/009_UPDATE_pgg_flow_status_contracts.diff` |
+ | UPDATE | `packages/core/dist/templates.js.map` | `implementation/diffs/009_UPDATE_pgg_flow_status_contracts.diff` |
++| UPDATE | `packages/core/src/templates.ts` | `implementation/diffs/011_UPDATE_workflow_status_refactor_helpers.diff` |
++| UPDATE | `packages/core/dist/templates.js` | `implementation/diffs/011_UPDATE_workflow_status_refactor_helpers.diff` |
++| UPDATE | `packages/core/dist/templates.js.map` | `implementation/diffs/011_UPDATE_workflow_status_refactor_helpers.diff` |
+ | UPDATE | `poggn/active/dashboard-workflow-overview-sync/plan.md` | `implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
+ | UPDATE | `poggn/active/dashboard-workflow-overview-sync/task.md` | `implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
+ | UPDATE | `poggn/active/dashboard-workflow-overview-sync/spec/model/flow-timestamp-and-status-source.md` | `implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
+@@ -112,6 +118,8 @@ state:
+ | UPDATE | `poggn/active/dashboard-workflow-overview-sync/state/dirty-worktree-baseline.txt` | `implementation/diffs/005_UPDATE_poggn_active_dashboard_workflow_overview_sync_topic_state.diff` |
+ | UPDATE | `poggn/active/dashboard-workflow-overview-sync/state/history.ndjson` | `implementation/diffs/005_UPDATE_poggn_active_dashboard_workflow_overview_sync_topic_state.diff` |
+ | UPDATE | `poggn/active/dashboard-workflow-overview-sync/workflow.reactflow.json` | `implementation/diffs/005_UPDATE_poggn_active_dashboard_workflow_overview_sync_topic_state.diff` |
++| UPDATE | `poggn/active/dashboard-workflow-overview-sync/implementation/index.md` | `implementation/diffs/012_UPDATE_pgg_refactor_records.diff` |
++| UPDATE | `poggn/active/dashboard-workflow-overview-sync/reviews/refactor.review.md` | `implementation/diffs/012_UPDATE_pgg_refactor_records.diff` |
+ | CREATE | `poggn/active/dashboard-workflow-overview-sync/reviews/refactor.review.md` | |
+ | CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/index.md` | |
+ | CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/001_UPDATE_apps_dashboard_src_features_history_historyModel_ts.diff` | |
+@@ -138,8 +146,10 @@ state:
+ - `pnpm build`: pass
+ - `node packages/cli/dist/index.js update`: pass; `.codex/add/WOKR-FLOW.md` remained unchanged and `.pgg/project.json` checksum updated
+ - `node packages/cli/dist/index.js update`: pass; AGENTS, WOKR-FLOW, STATE-CONTRACT, and manifest updated with four-status flow contract
++- `node packages/cli/dist/index.js update`: pass; unchanged after template helper refactor
+ - `./.codex/sh/pgg-gate.sh pgg-code dashboard-workflow-overview-sync`: pass
+ - `./.codex/sh/pgg-gate.sh pgg-refactor dashboard-workflow-overview-sync`: pass
++- `./.codex/sh/pgg-gate.sh pgg-refactor dashboard-workflow-overview-sync`: pass
+ - source check for removed extra status stage and retained `workflowProgressStatusUpdating`: pass
+ - source check for unresolved revision status overriding completed status across flow advancement: pass
+ - source check for completed-flow preservation while unresolved revision is active: pass
+@@ -155,6 +165,7 @@ state:
+ - source check for generated four-status flow contract in AGENTS/WOKR-FLOW/STATE-CONTRACT and ko/en templates: pass
+ - source check for Workflow Progress UI status consumers using `step.status`: pass
+ - source check for visible `진행 중` / `In progress` active labels: pass
++- source check for shared unresolved flow index helper and generated flow status rule helpers: pass
+ - source check for edge-to-edge connector geometry and removed center-to-center internal connector: pass
+ - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
+ - source check for connector gap-inclusive end offset and circle-radius top alignment: pass
+diff --git a/poggn/active/dashboard-workflow-overview-sync/reviews/refactor.review.md b/poggn/active/dashboard-workflow-overview-sync/reviews/refactor.review.md
+index 2790f07..7af53f0 100644
+--- a/poggn/active/dashboard-workflow-overview-sync/reviews/refactor.review.md
++++ b/poggn/active/dashboard-workflow-overview-sync/reviews/refactor.review.md
+@@ -5,7 +5,7 @@ pgg:
+   status: "reviewed"
+   skill: "pgg-refactor"
+   score: 96
+-  updated_at: "2026-04-24T22:42:02Z"
++  updated_at: "2026-04-24T23:10:46Z"
+ ---
+ 
+ # refactor.review
+@@ -17,6 +17,9 @@ pgg:
+ | Software architect | 96 | Refactor scope stayed inside `HistoryWorkspace.tsx` and did not expand product behavior. Tab geometry constants and bound calculation are now centralized. | none |
+ | Senior backend engineer | 96 | The six Workflow Progress metadata cards now render from a single data array, reducing repeated JSX while preserving the existing card order and values. | none |
+ | Code reviewer | 96 | No dead code or unused imports were introduced; the full workspace build passed after the refactor. | none |
++| Software architect | 96 | Active/updating unresolved flow selection now shares one helper path in `historyModel.ts`, preserving later-flow evidence semantics while removing repeated filtering and sorting. | none |
++| Senior backend engineer | 96 | Generated four-status contract strings now live behind language-aware template helpers, so AGENTS/WOKR-FLOW/STATE-CONTRACT keep one source of truth without changing generated output. | none |
++| Code reviewer | 96 | `pnpm build`, `pgg update`, and `pgg-code` gate passed after refactor; no product behavior was intentionally changed. | none |
+ 
+ ## Decision
+ 
+@@ -25,5 +28,7 @@ Approved for `pgg-qa`.
+ ## Notes
+ 
+ - Product behavior was not intentionally changed.
++- `pgg update` returned unchanged after template helper extraction, confirming generated assets keep the same content.
++- `./.codex/sh/pgg-gate.sh pgg-refactor dashboard-workflow-overview-sync` passed.
+ - Visual rules from `add-img/9.png`, `add-img/10.png`, and `add-img/11.png` remain implementation requirements for QA.
+ - `pnpm build` passed after the refactor.

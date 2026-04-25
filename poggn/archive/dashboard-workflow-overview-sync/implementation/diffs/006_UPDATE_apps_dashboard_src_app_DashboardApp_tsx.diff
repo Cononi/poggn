@@ -1,0 +1,38 @@
+diff --git a/apps/dashboard/src/app/DashboardApp.tsx b/apps/dashboard/src/app/DashboardApp.tsx
+index 86822ae..2a12e14 100644
+--- a/apps/dashboard/src/app/DashboardApp.tsx
++++ b/apps/dashboard/src/app/DashboardApp.tsx
+@@ -806,10 +806,12 @@ export default function DashboardApp() {
+       <Drawer
+         open={isCompactShell && sidebarDrawerOpen}
+         onClose={() => setSidebarDrawerOpen(false)}
+-        PaperProps={{
+-          sx: {
+-            width: 292,
+-            backgroundColor: "background.paper"
++        slotProps={{
++          paper: {
++            sx: {
++              width: 292,
++              backgroundColor: "background.paper"
++            }
+           }
+         }}
+       >
+@@ -846,10 +848,12 @@ export default function DashboardApp() {
+         anchor="right"
+         open={isCompactShell && activeTopMenu === "projects" && insightsRailOpen}
+         onClose={() => setInsightsRailOpen(false)}
+-        PaperProps={{
+-          sx: {
+-            width: { xs: "100%", sm: 360 },
+-            backgroundColor: "background.default"
++        slotProps={{
++          paper: {
++            sx: {
++              width: { xs: "100%", sm: 360 },
++              backgroundColor: "background.default"
++            }
+           }
+         }}
+       >

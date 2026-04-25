@@ -1,0 +1,63 @@
+diff --git a/apps/dashboard/src/features/history/HistoryWorkspace.tsx b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
+index 750722e..bce6f1f 100644
+--- a/apps/dashboard/src/features/history/HistoryWorkspace.tsx
++++ b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
+@@ -492,7 +492,7 @@ function buildProgressOverview(steps: WorkflowStep[]) {
+   const completed = steps.filter((step) => step.status === "completed").length;
+   const active = steps.filter(isActiveWorkflowStep).length;
+   const pending = steps.filter((step) => step.status === "pending").length;
+-  const current = steps.find((step) => step.status === "current") ?? steps.find((step) => step.status === "next") ?? steps[0] ?? null;
++  const current = steps.find((step) => step.status === "current") ?? steps[0] ?? null;
+ 
+   return {
+     completed,
+@@ -708,16 +708,20 @@ function WorkflowStepNode(props: {
+ }
+ 
+ function isActiveWorkflowStep(step: WorkflowStep): boolean {
+-  return step.status === "current" || step.status === "next";
++  return step.status === "current";
++}
++
++function buildProgressChartData(theme: Theme, dictionary: DashboardLocale, counts: { completed: number; active: number; pending: number }) {
++  return [
++    { id: "completed", value: counts.completed, label: dictionary.workflowProgressStatusCompleted, color: theme.palette.success.main },
++    { id: "active", value: counts.active, label: dictionary.workflowProgressStatusCurrent, color: theme.palette.primary.main },
++    { id: "pending", value: counts.pending, label: dictionary.workflowProgressStatusPending, color: alpha("#94a3b8", 0.72) }
++  ].filter((item) => item.value > 0);
+ }
+ 
+ function WorkflowProgressChart(props: { completed: number; active: number; pending: number; completion: number; dictionary: DashboardLocale }) {
+   const theme = useTheme();
+-  const data = [
+-    { id: "completed", value: props.completed, label: props.dictionary.workflowProgressStatusCompleted, color: theme.palette.success.main },
+-    { id: "active", value: props.active, label: props.dictionary.workflowProgressStatusCurrent, color: theme.palette.primary.main },
+-    { id: "pending", value: props.pending, label: props.dictionary.workflowProgressStatusPending, color: alpha("#94a3b8", 0.72) }
+-  ].filter((item) => item.value > 0);
++  const data = buildProgressChartData(theme, props.dictionary, props);
+ 
+   return (
+     <Box sx={{ width: 166, height: 166, position: "relative", flexShrink: 0 }}>
+@@ -750,13 +754,17 @@ function WorkflowProgressChart(props: { completed: number; active: number; pendi
+   );
+ }
+ 
++function buildProgressCountItems(theme: Theme, dictionary: DashboardLocale, counts: { completed: number; active: number; pending: number }) {
++  return [
++    { id: "done", color: theme.palette.success.main, value: counts.completed, label: dictionary.workflowProgressCountCompleted },
++    { id: "active", color: theme.palette.primary.main, value: counts.active, label: dictionary.workflowProgressCountCurrent },
++    { id: "waiting", color: alpha("#94a3b8", 0.9), value: counts.pending, label: dictionary.workflowProgressCountPending }
++  ];
++}
++
+ function WorkflowProgressCounts(props: { completed: number; active: number; pending: number; dictionary: DashboardLocale }) {
+   const theme = useTheme();
+-  const counts = [
+-    { id: "done", color: theme.palette.success.main, value: props.completed, label: props.dictionary.workflowProgressCountCompleted },
+-    { id: "active", color: theme.palette.primary.main, value: props.active, label: props.dictionary.workflowProgressCountCurrent },
+-    { id: "waiting", color: alpha("#94a3b8", 0.9), value: props.pending, label: props.dictionary.workflowProgressCountPending }
+-  ];
++  const counts = buildProgressCountItems(theme, props.dictionary, props);
+ 
+   return (
+     <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap", justifyContent: "center", minWidth: 0 }}>

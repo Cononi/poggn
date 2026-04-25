@@ -1,0 +1,54 @@
+diff --git a/apps/dashboard/src/features/history/HistoryWorkspace.tsx b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
+index cef8427..750722e 100644
+--- a/apps/dashboard/src/features/history/HistoryWorkspace.tsx
++++ b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
+@@ -203,12 +203,14 @@ function HistoryTopicSelector(props: {
+           value={props.topicFilter}
+           onChange={(event) => props.onTopicFilterChange(event.target.value)}
+           placeholder={props.dictionary.searchPlaceholder}
+-          InputProps={{
+-            startAdornment: (
+-              <InputAdornment position="start">
+-                <SearchRounded fontSize="small" />
+-              </InputAdornment>
+-            )
++          slotProps={{
++            input: {
++              startAdornment: (
++                <InputAdornment position="start">
++                  <SearchRounded fontSize="small" />
++                </InputAdornment>
++              )
++            }
+           }}
+         />
+         <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
+@@ -313,6 +315,7 @@ function HistoryOverview(props: {
+   language: "ko" | "en";
+   dictionary: DashboardLocale;
+ }) {
++  const theme = useTheme();
+   const [selectedStep, setSelectedStep] = useState<WorkflowStep | null>(null);
+   const steps = buildWorkflowSteps(props.topic, props.language);
+   const stepCount = Math.max(steps.length, 1);
+@@ -939,12 +942,14 @@ function HistoryTimeline(props: { topic: TopicSummary; language: "ko" | "en"; di
+               value={fileFilter}
+               onChange={(event) => setFileFilter(event.target.value)}
+               placeholder="Search files..."
+-              InputProps={{
+-                startAdornment: (
+-                  <InputAdornment position="start">
+-                    <SearchRounded fontSize="small" />
+-                  </InputAdornment>
+-                )
++              slotProps={{
++                input: {
++                  startAdornment: (
++                    <InputAdornment position="start">
++                      <SearchRounded fontSize="small" />
++                    </InputAdornment>
++                  )
++                }
+               }}
+               sx={{ flexGrow: 1 }}
+             />

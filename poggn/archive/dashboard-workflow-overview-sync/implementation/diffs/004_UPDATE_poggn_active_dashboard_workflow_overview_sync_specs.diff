@@ -1,0 +1,13 @@
+diff --git a/poggn/active/dashboard-workflow-overview-sync/spec/qa/workflow-overview-sync-acceptance.md b/poggn/active/dashboard-workflow-overview-sync/spec/qa/workflow-overview-sync-acceptance.md
+index 585e0d8..75ed304 100644
+--- a/poggn/active/dashboard-workflow-overview-sync/spec/qa/workflow-overview-sync-acceptance.md
++++ b/poggn/active/dashboard-workflow-overview-sync/spec/qa/workflow-overview-sync-acceptance.md
+@@ -32,6 +32,8 @@ Workflow Overview sync 변경의 visual, model, telemetry, i18n, accessibility a
+ - The content panel top border is one continuous line, and the selected tab masks only the inner bottom segment so both tab side borders connect cleanly to the panel line.
+ - No panel top line is visible between the selected tab and content; the remaining top border outside the selected tab stays connected.
+ - The selected-tab inner mask must remain visible outside the tab bounds so the result matches `add-img/10.png`, not the clipped `add-img/12.png` shape.
++- The selected tab bottom area has no panel line; the panel top line is drawn only on the left and right outside the selected tab.
++- The left/right panel top-line segments must not visually cross into the selected tab bottom area.
+ - Only the selected tab and its content panel are framed together; inactive tabs are not boxed.
+ - The content panel keeps its top border except for the segment directly under the selected tab.
+ - Status, Workflow Stage, Progress, Priority, Created, and Updated appear as a compact six-card row under the workflow rail inside Workflow Progress.

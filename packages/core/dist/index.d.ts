@@ -123,7 +123,17 @@ export interface TopicSummary {
     artifactCompleteness: "complete" | "partial";
     health: "ok" | "partial";
     userQuestionRecord: string[];
+    historyEvents: TopicHistoryEvent[];
     files: TopicFileEntry[];
+}
+export interface TopicHistoryEvent {
+    ts: string | null;
+    stage: string | null;
+    event: string | null;
+    flow?: string | null;
+    task?: string | null;
+    summary?: string | null;
+    source?: string | null;
 }
 export interface DashboardRecentActivityEntry {
     id: string;
@@ -177,6 +187,7 @@ export interface WorkflowNodeData {
     label?: string;
     path?: string;
     stage?: string;
+    status?: string;
     crud?: string;
     diffRef?: string;
     detail?: WorkflowDetailPayload | null;
@@ -206,7 +217,11 @@ export interface WorkflowDetailPayload {
     sourcePath: string;
     content: string;
     contentType: string;
+    startedAt?: string | null;
     updatedAt: string | null;
+    completedAt?: string | null;
+    summary?: string | null;
+    status?: string | null;
 }
 export interface ProjectSnapshot {
     id: string;

@@ -50,6 +50,21 @@ function auditApplicabilityStateRule(language) {
         ? "- `Audit Applicability` 섹션의 상태와 짧은 근거를 최소 컨텍스트에 유지한다."
         : "- Preserve the `Audit Applicability` section with status and rationale in the minimum handoff.";
 }
+function flowStatusAgentRule(language) {
+    return language === "ko"
+        ? "- 모든 flow 상태는 `시작 전`, `진행 중`, `추가 진행`, `완료` 4상태로 기록하고 dashboard가 같은 기준으로 표시할 수 있게 stage event evidence를 유지한다."
+        : "- Keep stage event evidence so every flow can be shown with the same four statuses: `not started`, `in progress`, `updating`, and `completed`.";
+}
+function flowStatusWorkflowRule(language) {
+    return language === "ko"
+        ? "- 모든 flow는 같은 상태 모델을 따른다: 시작 전은 start evidence 없음, 진행 중은 `stage-started` 또는 `stage-progress`, 추가 진행은 완료 후 unresolved `requirements-added`/revision, 완료는 `stage-commit` 또는 verified/final `stage-completed`/archive/later-flow evidence다."
+        : "- Every flow follows the same status model: `not started` has no start evidence, `in progress` uses `stage-started` or `stage-progress`, `updating` uses unresolved post-completion `requirements-added`/revision evidence, and `completed` uses `stage-commit`, verified/final `stage-completed`, archive, or later-flow evidence.";
+}
+function flowStatusStateRule(language) {
+    return language === "ko"
+        ? "- 모든 flow 상태 evidence는 동일 규격으로 유지한다: start evidence 없음은 `시작 전`, `stage-started`/`stage-progress`는 `진행 중`, 완료 후 unresolved `requirements-added`/revision은 `추가 진행`, `stage-commit` 또는 verified/final `stage-completed`/archive/later-flow evidence는 `완료`다."
+        : "- Preserve flow status evidence with one shared contract: no start evidence means `not started`; `stage-started`/`stage-progress` means `in progress`; unresolved post-completion `requirements-added`/revision evidence means `updating`; `stage-commit`, verified/final `stage-completed`, archive, or later-flow evidence means `completed`.";
+}
 function manifestGitModeShellFunction(manifestReference) {
     return [
         "manifest_git_mode() {",
@@ -340,6 +355,7 @@ function agentsMd(input) {
             "- proposal 단계에서 `archive_type`, `version_bump`, `target_version`, branch naming, `project_scope`를 확정하고, `archive_type`는 change category/commit convention, `version_bump`는 semver impact로 구분한다.",
             "- pgg가 생성·관리하는 `.codex/sh/*.sh` helper만 workflow 내부 trusted script로 보고 추가 허락 없이 실행한다.",
             "- `pgg git`이 `on`이면 `.codex/sh/pgg-stage-commit.sh`로 task 완료와 QA final completion commit을 남기고, publish commit은 `state/current.md` 또는 `qa/report.md`의 `Git Publish Message` 섹션으로 제목/상세 body/footer를 관리하며 `{convention}: {version}.{commit message}` 형식, `pgg lang` 기반 메시지 언어, 제목 50자 이하, 명령형 금지, 마침표 금지, 로그가 곧 문서 원칙을 지킨다.",
+            flowStatusAgentRule(input.language),
             verificationContractRule(input.language),
             "- 파일 생성/수정/삭제는 `implementation/index.md`와 `implementation/diffs/*.diff`에 기록한다.",
             "- 검증이 통과된 topic은 version 기록 후 `poggn/archive/<topic>`으로 이동한다.",
@@ -377,6 +393,7 @@ function agentsMd(input) {
         "- Resolve `archive_type`, `version_bump`, `target_version`, branch naming, and `project_scope` during the proposal stage, keeping `archive_type` as the change category/commit convention and `version_bump` as the semver impact.",
         "- Treat only pgg-generated and managed `.codex/sh/*.sh` helpers as trusted workflow scripts that can run without extra approval.",
         "- When `pgg git` is `on`, use `.codex/sh/pgg-stage-commit.sh` for task completion and final QA completion commits, then manage publish commit title, detailed body, and footer through the `Git Publish Message` section in `state/current.md` or `qa/report.md` with the `{convention}: {version}.{commit message}` subject format, `pgg lang` localized message text, 50-character limit, non-imperative phrasing, no period, and logs-as-documentation rules.",
+        flowStatusAgentRule(input.language),
         verificationContractRule(input.language),
         "- Record file creation, updates, and deletions in `implementation/index.md` and `implementation/diffs/*.diff`.",
         "- Move verified topics to `poggn/archive/<topic>` only after recording the archive version.",
@@ -416,6 +433,10 @@ function workFlowMd(input) {
             "- interactive 변경 명령은 변경 경로 또는 no-op/cancel 상태를 출력한 뒤 종료한다.",
             "- 구현 전에는 `proposal.md`, `plan.md`, `task.md`를 기준으로 범위와 완료 조건을 확인한다.",
             "- 모든 작업은 `poggn/active/<topic>` 문서를 따라 진행한다.",
+            flowStatusWorkflowRule(input.language),
+            "- active topic 진행 중 사용자가 새 요구사항 또는 수정사항을 추가하면, 해당 stage 작업을 시작하기 전에 `state/history.ndjson`에 `requirements-added` event를 append해 dashboard workflow가 즉시 `추가 진행` 상태를 계산할 수 있게 한다.",
+            "- 작업 중간 산출물 정리나 검증 전 상태는 `stage-progress`로만 기록하고, `stage-completed`는 검증이 끝난 최종 완료 시점에만 `source:\"verified\"` 계열 evidence로 남긴다.",
+            "- `pgg git=on`인 stage는 `.codex/sh/pgg-stage-commit.sh`가 남기는 `stage-commit` evidence를 완료 기준으로 삼아 `추가 진행` 상태를 해소한다.",
             "- proposal 단계에서 `archive_type`, `version_bump`, `target_version`, branch naming, `project_scope`를 확정하고, `archive_type`는 change category, `version_bump`는 semver impact로 구분해 다음 stage와 archive helper가 같은 값을 사용하게 한다.",
             "- 대상 프로젝트 검증은 선언된 current-project verification command contract만 사용하고, framework 명령을 추론 실행하지 않는다.",
             "- QA를 통과한 topic만 archive로 이동한다.",
@@ -490,6 +511,10 @@ function workFlowMd(input) {
         "- Interactive change commands print changed paths or a no-op/cancel status before exit.",
         "- Confirm scope and exit criteria from `proposal.md`, `plan.md`, and `task.md` before implementation.",
         "- Execute work through `poggn/active/<topic>` documents.",
+        flowStatusWorkflowRule(input.language),
+        "- When a user adds a new requirement or correction while an active topic is in progress, append a `requirements-added` event to `state/history.ndjson` before starting that stage work so the dashboard workflow can immediately calculate the `updating` state.",
+        "- Record in-progress artifact cleanup or pre-verification work only as `stage-progress`; reserve `stage-completed` for final verified completion with `source:\"verified\"` evidence.",
+        "- When `pgg git=on`, treat `.codex/sh/pgg-stage-commit.sh` `stage-commit` evidence as the completion boundary that resolves the `updating` state.",
         "- Resolve `archive_type`, `version_bump`, `target_version`, branch naming, and `project_scope` during the proposal stage so later helpers use the same metadata, with `archive_type` as the change category and `version_bump` as the semver impact.",
         "- Use only declared current-project verification command contracts for project verification, and do not guess framework commands.",
         "- Move only QA-passed topics to archive.",
@@ -551,6 +576,7 @@ function stateContractMd(input) {
             "- `archive_type`, `version_bump`, `target_version`, branch naming, `project_scope`, archive 후의 version 정보는 최소 컨텍스트에 유지한다.",
             "- proposal 단계에서는 사용자 입력 질문 기록 섹션의 위치 또는 ref와 `version_bump`, `target_version` 선택 결과를 최소 컨텍스트에 유지한다.",
             auditApplicabilityStateRule(input.language),
+            flowStatusStateRule(input.language),
             "- `pgg git=on`이면 `Git Publish Message` 섹션 또는 그 ref를 최소 컨텍스트에 유지한다.",
             "- `pgg-state-pack.sh` 출력은 최소한 `archive_type`, `version_bump`, `target_version`, `short_name`, branch naming, `Git Publish Message` 정보를 key/value 형태로 드러내야 한다.",
             "- 변경 파일은 `Changed Files` 섹션에 CRUD와 diff 경로로 기록한다.",
@@ -590,6 +616,7 @@ function stateContractMd(input) {
         "- Preserve `archive_type`, `version_bump`, `target_version`, branch naming, `project_scope`, and archive version data in the minimum handoff.",
         "- Preserve the user-question record section or reference plus the `version_bump` and `target_version` decision outcome from the proposal stage in the minimum handoff.",
         auditApplicabilityStateRule(input.language),
+        flowStatusStateRule(input.language),
         "- Preserve the `Git Publish Message` section or its reference in the minimum handoff when `pgg git=on`.",
         "- `.codex/sh/pgg-state-pack.sh` output must expose at least `archive_type`, `version_bump`, `target_version`, `short_name`, branch naming, and `Git Publish Message` data as key/value handoff fields.",
         "- Record CRUD and diff paths in the `Changed Files` section.",

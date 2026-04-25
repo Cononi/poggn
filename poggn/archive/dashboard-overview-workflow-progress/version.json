@@ -1,0 +1,14 @@
+{
+  "topic": "dashboard-overview-workflow-progress",
+  "changeType": "feat",
+  "versionBump": "minor",
+  "version": "2.2.0",
+  "targetVersion": "2.2.0",
+  "previousVersion": "2.1.0",
+  "shortName": "dashboard-overview-progress",
+  "workingBranch": "ai/feat/2.2.0-dashboard-overview-progress",
+  "releaseBranch": "release/2.2.0-dashboard-overview-progress",
+  "projectScope": "current-project",
+  "archivedAt": "2026-04-24T11:34:37Z",
+  "history": "poggn/version-history.ndjson"
+}

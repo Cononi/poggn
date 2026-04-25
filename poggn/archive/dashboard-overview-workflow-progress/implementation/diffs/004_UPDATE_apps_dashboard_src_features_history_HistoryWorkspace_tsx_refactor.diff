@@ -1,0 +1,100 @@
+diff --git a/apps/dashboard/src/features/history/HistoryWorkspace.tsx b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
+index d730833..147826a 100644
+--- a/apps/dashboard/src/features/history/HistoryWorkspace.tsx
++++ b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
+@@ -315,11 +315,7 @@ function HistoryOverview(props: {
+   const theme = useTheme();
+   const [selectedStep, setSelectedStep] = useState<WorkflowStep | null>(null);
+   const steps = buildWorkflowSteps(props.topic, props.language);
+-  const completed = steps.filter((step) => step.status === "completed").length;
+-  const active = steps.filter((step) => step.status === "current" || step.status === "next").length;
+-  const pending = steps.filter((step) => step.status === "pending").length;
+-  const current = steps.find((step) => step.status === "current") ?? steps.find((step) => step.status === "next") ?? steps[0];
+-  const completion = Math.round((completed / Math.max(steps.length, 1)) * 100);
++  const progress = buildProgressOverview(steps);
+   const updatedLabel = formatTopicDate(props.topic, props.language, props.dictionary.unknown);
+   const activity = buildActivitySummary(props.topic, props.language);
+ 
+@@ -333,7 +329,7 @@ function HistoryOverview(props: {
+         }}
+       >
+         <OverviewStat title="Status" value={topicStatus(props.topic)} helper={props.topic.bucket === "archive" ? "Archived" : "In Progress"} tone="success" />
+-        <OverviewStat title="Workflow Stage" value={current?.label ?? "Add"} helper={`${Math.min(completed + active, steps.length)} of ${steps.length} steps`} tone="primary" />
++        <OverviewStat title="Workflow Stage" value={progress.current?.label ?? "Add"} helper={`${progress.position} of ${steps.length} steps`} tone="primary" />
+         <OverviewStat title="Type" value={topicType(props.topic)} helper="Feature" tone="primary" />
+         <OverviewStat title="Priority" value="High" helper="" tone="danger" />
+         <OverviewStat title="Created" value={updatedLabel} helper="by john.doe" />
+@@ -361,11 +357,11 @@ function HistoryOverview(props: {
+               </Stack>
+             </Box>
+             <Stack direction="row" spacing={2} sx={{ alignItems: "center", justifyContent: "center", minWidth: 0 }}>
+-              <WorkflowProgressChart completed={completed} active={active} pending={pending} completion={completion} />
++              <WorkflowProgressChart completed={progress.completed} active={progress.active} pending={progress.pending} completion={progress.completion} />
+               <Stack spacing={1}>
+-                <LegendDot color={theme.palette.success.main} label="Completed" value={completed} />
+-                <LegendDot color={theme.palette.primary.main} label="In Progress" value={active} />
+-                <LegendDot color={theme.palette.text.secondary} label="Pending" value={steps.filter((step) => step.status === "pending").length} />
++                <LegendDot color={theme.palette.success.main} label="Completed" value={progress.completed} />
++                <LegendDot color={theme.palette.primary.main} label="In Progress" value={progress.active} />
++                <LegendDot color={theme.palette.text.secondary} label="Pending" value={progress.pending} />
+               </Stack>
+             </Stack>
+           </Box>
+@@ -433,6 +429,22 @@ function HistoryOverview(props: {
+   );
+ }
+ 
++function buildProgressOverview(steps: WorkflowStep[]) {
++  const completed = steps.filter((step) => step.status === "completed").length;
++  const active = steps.filter(isActiveWorkflowStep).length;
++  const pending = steps.filter((step) => step.status === "pending").length;
++  const current = steps.find((step) => step.status === "current") ?? steps.find((step) => step.status === "next") ?? steps[0] ?? null;
++
++  return {
++    completed,
++    active,
++    pending,
++    current,
++    completion: Math.round((completed / Math.max(steps.length, 1)) * 100),
++    position: Math.min(completed + active, steps.length)
++  };
++}
++
+ function OverviewStat(props: {
+   title: string;
+   value: string;
+@@ -465,12 +477,7 @@ function OverviewStat(props: {
+ 
+ function WorkflowStepNode(props: { step: WorkflowStep; first: boolean; onSelect: () => void }) {
+   const theme = useTheme();
+-  const color =
+-    props.step.status === "completed"
+-      ? theme.palette.success.main
+-      : props.step.status === "current" || props.step.status === "next"
+-        ? theme.palette.primary.main
+-        : theme.palette.text.secondary;
++  const color = workflowStepColor(theme, props.step);
+   const Icon = props.step.status === "pending" ? RadioButtonUncheckedRounded : CheckCircleRounded;
+ 
+   return (
+@@ -519,6 +526,20 @@ function WorkflowStepNode(props: { step: WorkflowStep; first: boolean; onSelect:
+   );
+ }
+ 
++function isActiveWorkflowStep(step: WorkflowStep): boolean {
++  return step.status === "current" || step.status === "next";
++}
++
++function workflowStepColor(theme: Theme, step: WorkflowStep): string {
++  if (step.status === "completed") {
++    return theme.palette.success.main;
++  }
++  if (isActiveWorkflowStep(step)) {
++    return theme.palette.primary.main;
++  }
++  return theme.palette.text.secondary;
++}
++
+ function WorkflowProgressChart(props: { completed: number; active: number; pending: number; completion: number }) {
+   const theme = useTheme();
+   const data = [

@@ -6,13 +6,18 @@ export type WorkflowDetailPayload = {
   sourcePath: string;
   content: string;
   contentType: string;
+  startedAt?: string | null;
   updatedAt: string | null;
+  completedAt?: string | null;
+  summary?: string | null;
+  status?: string | null;
 };
 
 export type WorkflowNodeData = {
   label?: string;
   path?: string;
   stage?: string;
+  status?: string;
   crud?: string;
   diffRef?: string;
   detail?: WorkflowDetailPayload | null;
@@ -96,7 +101,18 @@ export type TopicSummary = {
   artifactCompleteness: "complete" | "partial";
   health: "ok" | "partial";
   userQuestionRecord: string[];
+  historyEvents?: TopicHistoryEvent[];
   files: TopicFileEntry[];
+};
+
+export type TopicHistoryEvent = {
+  ts: string | null;
+  stage: string | null;
+  event: string | null;
+  flow?: string | null;
+  task?: string | null;
+  summary?: string | null;
+  source?: string | null;
 };
 
 export type ProjectCategory = {
@@ -195,7 +211,7 @@ export type DashboardWorkspaceFilterState = {
 
 export type DashboardTone = "primary" | "success" | "warning" | "danger" | "neutral";
 
-export type FlowStatus = "done" | "current" | "upcoming";
+export type FlowStatus = "done" | "current" | "updating" | "upcoming";
 
 export type FlowNodeData = {
   label: ReactNode;

@@ -1,0 +1,32 @@
+{
+  "topic": "dashboard-workflow-overview-sync",
+  "version": "2.2.3",
+  "targetVersion": "2.2.3",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "commitTitle": "fix: 2.2.3.워크플로우 진행 동기화",
+  "commitSha": "95a568af84f965a3bb15df4dbfb00d785c34fdf4",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/2.2.3-dashboard-overview-sync",
+  "workingBranch": "ai/fix/2.2.3-dashboard-overview-sync",
+  "releaseBranch": "release/2.2.3-dashboard-overview-sync",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-24T23:29:07Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/2.2.3-dashboard-overview-sync'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "not_attempted",
+  "branchRecoveryReason": null,
+  "branchRecoveryFrom": null,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/dashboard-workflow-overview-sync",
+    "versionFile": "poggn/archive/dashboard-workflow-overview-sync/version.json"
+  }
+}

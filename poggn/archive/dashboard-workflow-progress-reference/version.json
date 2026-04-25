@@ -1,0 +1,14 @@
+{
+  "topic": "dashboard-workflow-progress-reference",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "version": "2.2.2",
+  "targetVersion": "2.2.2",
+  "previousVersion": "2.2.1",
+  "shortName": "dashboard-progress-reference",
+  "workingBranch": "ai/fix/2.2.2-dashboard-progress-reference",
+  "releaseBranch": "release/2.2.2-dashboard-progress-reference",
+  "projectScope": "current-project",
+  "archivedAt": "2026-04-24T15:49:46Z",
+  "history": "poggn/version-history.ndjson"
+}

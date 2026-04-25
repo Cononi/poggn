@@ -160,7 +160,18 @@ export interface TopicSummary {
   artifactCompleteness: "complete" | "partial";
   health: "ok" | "partial";
   userQuestionRecord: string[];
+  historyEvents: TopicHistoryEvent[];
   files: TopicFileEntry[];
+}
+
+export interface TopicHistoryEvent {
+  ts: string | null;
+  stage: string | null;
+  event: string | null;
+  flow?: string | null;
+  task?: string | null;
+  summary?: string | null;
+  source?: string | null;
 }
 
 export interface DashboardRecentActivityEntry {
@@ -230,6 +241,7 @@ export interface WorkflowNodeData {
   label?: string;
   path?: string;
   stage?: string;
+  status?: string;
   crud?: string;
   diffRef?: string;
   detail?: WorkflowDetailPayload | null;
@@ -263,7 +275,11 @@ export interface WorkflowDetailPayload {
   sourcePath: string;
   content: string;
   contentType: string;
+  startedAt?: string | null;
   updatedAt: string | null;
+  completedAt?: string | null;
+  summary?: string | null;
+  status?: string | null;
 }
 
 export interface ProjectSnapshot {
@@ -1895,16 +1911,17 @@ async function readWorkflowDetail(
   topicDir: string,
   node: WorkflowNode
 ): Promise<WorkflowDetailPayload | null> {
+  const existingDetail = node.data.detail ?? null;
   const diffPath = node.data.diffRef ? path.join(topicDir, node.data.diffRef) : null;
   const documentPath = node.data.path ? path.join(rootDir, node.data.path) : null;
   const targetPath = diffPath ?? documentPath;
   if (!targetPath) {
-    return null;
+    return existingDetail;
   }
 
   const content = await readTextIfExists(targetPath);
   if (content === null) {
-    return null;
+    return existingDetail;
   }
 
   const fileStat = await stat(targetPath).catch(() => null);
@@ -1915,12 +1932,45 @@ async function readWorkflowDetail(
 
   return {
     kind,
-    title: node.data.label ?? path.basename(targetPath),
+    title: existingDetail?.title ?? node.data.label ?? path.basename(targetPath),
     sourcePath: toRelativePath(rootDir, targetPath),
     content,
     contentType,
-    updatedAt: fileStat?.mtime.toISOString() ?? null
+    startedAt: existingDetail?.startedAt ?? null,
+    updatedAt: existingDetail?.updatedAt ?? fileStat?.mtime.toISOString() ?? null,
+    completedAt: existingDetail?.completedAt ?? null,
+    summary: existingDetail?.summary ?? null,
+    status: existingDetail?.status ?? node.data.status ?? null
   };
+}
+
+function parseTopicHistoryEvents(raw: string | null): TopicHistoryEvent[] {
+  if (!raw) {
+    return [];
+  }
+
+  return raw
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .flatMap((line) => {
+      try {
+        const parsed = JSON.parse(line) as Partial<TopicHistoryEvent>;
+        return [
+          {
+            ts: typeof parsed.ts === "string" ? parsed.ts : null,
+            stage: typeof parsed.stage === "string" ? parsed.stage : null,
+            event: typeof parsed.event === "string" ? parsed.event : null,
+            flow: typeof parsed.flow === "string" ? parsed.flow : null,
+            task: typeof parsed.task === "string" ? parsed.task : null,
+            summary: typeof parsed.summary === "string" ? parsed.summary : null,
+            source: typeof parsed.source === "string" ? parsed.source : null
+          }
+        ];
+      } catch {
+        return [];
+      }
+    });
 }
 
 function normalizeWorkflowNodePath(topicDir: string, node: WorkflowNode): WorkflowNode {
@@ -2156,6 +2206,7 @@ async function listTopicSummaries(rootDir: string, bucket: "active" | "archive")
     const statePath = path.join(topicDir, "state", "current.md");
     const proposalPath = path.join(topicDir, "proposal.md");
     const stateMarkdown = await readTextIfExists(statePath);
+    const historyEvents = parseTopicHistoryEvents(await readTextIfExists(path.join(topicDir, "state", "history.ndjson")));
     const proposalMarkdown = await readTextIfExists(proposalPath);
     const workflow = await readWorkflow(path.join(topicDir, "workflow.reactflow.json"), rootDir, topicDir);
     const release = await readTopicVersion(topicDir);
@@ -2206,6 +2257,7 @@ async function listTopicSummaries(rootDir: string, bucket: "active" | "archive")
           : "complete",
       health: stateMarkdown && workflow ? "ok" : "partial",
       userQuestionRecord,
+      historyEvents,
       files
     });
   }

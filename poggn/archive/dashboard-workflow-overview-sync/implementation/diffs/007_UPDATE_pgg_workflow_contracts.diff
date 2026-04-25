@@ -1,0 +1,14 @@
+diff --git a/.codex/add/WOKR-FLOW.md b/.codex/add/WOKR-FLOW.md
+index b26c08b..d45282e 100644
+--- a/.codex/add/WOKR-FLOW.md
++++ b/.codex/add/WOKR-FLOW.md
+@@ -13,7 +13,8 @@ pgg는 core workflow와 필요할 때만 여는 optional audit로 delivery를 
+ - 구현 전에는 `proposal.md`, `plan.md`, `task.md`를 기준으로 범위와 완료 조건을 확인한다.
+ - 모든 작업은 `poggn/active/<topic>` 문서를 따라 진행한다.
+ - active topic 진행 중 사용자가 새 요구사항 또는 수정사항을 추가하면, 해당 stage 작업을 시작하기 전에 `state/history.ndjson`에 `requirements-added` event를 append해 dashboard workflow가 즉시 `추가 진행` 상태를 계산할 수 있게 한다.
+-- 추가 요구 처리가 완료되면 같은 stage의 `stage-completed` 또는 `.codex/sh/pgg-stage-commit.sh`가 남기는 `stage-commit` evidence로 `추가 진행` 상태를 해소한다.
++- 작업 중간 산출물 정리나 검증 전 상태는 `stage-progress`로만 기록하고, `stage-completed`는 검증이 끝난 최종 완료 시점에만 `source:"verified"` 계열 evidence로 남긴다.
++- `pgg git=on`인 stage는 `.codex/sh/pgg-stage-commit.sh`가 남기는 `stage-commit` evidence를 완료 기준으로 삼아 `추가 진행` 상태를 해소한다.
+ - proposal 단계에서 `archive_type`, `version_bump`, `target_version`, branch naming, `project_scope`를 확정하고, `archive_type`는 change category, `version_bump`는 semver impact로 구분해 다음 stage와 archive helper가 같은 값을 사용하게 한다.
+ - 대상 프로젝트 검증은 선언된 current-project verification command contract만 사용하고, framework 명령을 추론 실행하지 않는다.
+ - QA를 통과한 topic만 archive로 이동한다.

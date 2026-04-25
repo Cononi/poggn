@@ -1,0 +1,158 @@
+diff --git a/apps/dashboard/src/features/history/historyModel.ts b/apps/dashboard/src/features/history/historyModel.ts
+index 36a97ad..654c7aa 100644
+--- a/apps/dashboard/src/features/history/historyModel.ts
++++ b/apps/dashboard/src/features/history/historyModel.ts
+@@ -28,6 +28,16 @@ export type ActivitySummary = {
+   artifactRows: Array<{ label: string; value: string }>;
+ };
+ 
++type WorkflowFlowDefinition = {
++  id: WorkflowFlowId;
++  label: string;
++  command: string | null;
++  optional?: boolean;
++  pathPatterns: RegExp[];
++};
++type WorkflowNodeEntry = NonNullable<TopicSummary["workflow"]>["nodes"][number];
++type TopicFileEntry = TopicSummary["files"][number];
++
+ export type TimelineRow = {
+   id: string;
+   step: string;
+@@ -60,13 +70,7 @@ export type RelationGroup = {
+   items: RelationItem[];
+ };
+ 
+-const workflowFlowDefinitions: Array<{
+-  id: WorkflowFlowId;
+-  label: string;
+-  command: string | null;
+-  optional?: boolean;
+-  pathPatterns: RegExp[];
+-}> = [
++const workflowFlowDefinitions: WorkflowFlowDefinition[] = [
+   {
+     id: "add",
+     label: "Add",
+@@ -159,15 +163,15 @@ function topicStageIsComplete(topic: TopicSummary): boolean {
+   return status === "reviewed" || status === "approved" || status === "done";
+ }
+ 
+-function sourcePathForNode(node: NonNullable<TopicSummary["workflow"]>["nodes"][number]): string {
++function sourcePathForNode(node: WorkflowNodeEntry): string {
+   return node.data.detail?.sourcePath ?? node.data.path ?? node.data.diffRef ?? node.data.label ?? node.id;
+ }
+ 
+-function matchesFlowPath(flow: (typeof workflowFlowDefinitions)[number], value: string): boolean {
++function matchesFlowPath(flow: WorkflowFlowDefinition, value: string): boolean {
+   return flow.pathPatterns.some((pattern) => pattern.test(value));
+ }
+ 
+-function topicHasFlowEvidence(topic: TopicSummary, flow: (typeof workflowFlowDefinitions)[number]): boolean {
++function topicHasFlowEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition): boolean {
+   const stage = normalizeFlowId(topic.stage);
+   if (stage === flow.id) {
+     return true;
+@@ -182,7 +186,7 @@ function topicHasFlowEvidence(topic: TopicSummary, flow: (typeof workflowFlowDef
+   );
+ }
+ 
+-function visibleWorkflowFlows(topic: TopicSummary): typeof workflowFlowDefinitions {
++function visibleWorkflowFlows(topic: TopicSummary): WorkflowFlowDefinition[] {
+   return workflowFlowDefinitions.filter((flow) => !flow.optional || topicHasFlowEvidence(topic, flow));
+ }
+ 
+@@ -211,18 +215,30 @@ function formatDateValue(value: string | null, language: HistoryLanguage, fallba
+   return value ? formatDate(value, language) : fallback;
+ }
+ 
+-function flowFiles(topic: TopicSummary, flow: (typeof workflowFlowDefinitions)[number]) {
++function byLatestUpdatedAt(left: TopicFileEntry, right: TopicFileEntry): number {
++  return new Date(right.updatedAt ?? "").getTime() - new Date(left.updatedAt ?? "").getTime();
++}
++
++function formatItemCount(value: number, singular: string, plural = `${singular}s`): string {
++  return `${value} ${value === 1 ? singular : plural}`;
++}
++
++function countFilesMatching(topic: TopicSummary, pattern: RegExp): number {
++  return topic.files.filter((file) => pattern.test(file.relativePath)).length;
++}
++
++function flowFiles(topic: TopicSummary, flow: WorkflowFlowDefinition): TopicFileEntry[] {
+   return topic.files.filter((file) => matchesFlowPath(flow, file.relativePath) || matchesFlowPath(flow, file.sourcePath));
+ }
+ 
+-function flowNodes(topic: TopicSummary, flow: (typeof workflowFlowDefinitions)[number]) {
++function flowNodes(topic: TopicSummary, flow: WorkflowFlowDefinition): WorkflowNodeEntry[] {
+   return (topic.workflow?.nodes ?? []).filter((node) => {
+     const nodeStage = normalizeFlowId(node.data.stage ?? null);
+     return nodeStage === flow.id || matchesFlowPath(flow, sourcePathForNode(node));
+   });
+ }
+ 
+-function flowUpdatedAt(topic: TopicSummary, flow: (typeof workflowFlowDefinitions)[number]): string | null {
++function flowUpdatedAt(topic: TopicSummary, flow: WorkflowFlowDefinition): string | null {
+   const files = flowFiles(topic, flow);
+   const nodes = flowNodes(topic, flow);
+   const artifactUpdatedAt =
+@@ -247,7 +263,7 @@ function flowUpdatedAt(topic: TopicSummary, flow: (typeof workflowFlowDefinition
+   ]);
+ }
+ 
+-function flowDetail(topic: TopicSummary, flow: (typeof workflowFlowDefinitions)[number]): string {
++function flowDetail(topic: TopicSummary, flow: WorkflowFlowDefinition): string {
+   const files = flowFiles(topic, flow);
+   const nodes = flowNodes(topic, flow);
+   const firstRef =
+@@ -269,7 +285,7 @@ function flowDetail(topic: TopicSummary, flow: (typeof workflowFlowDefinitions)[
+   return "No stage artifact";
+ }
+ 
+-function flowEvents(topic: TopicSummary, flow: (typeof workflowFlowDefinitions)[number], language: HistoryLanguage): string[] {
++function flowEvents(topic: TopicSummary, flow: WorkflowFlowDefinition, language: HistoryLanguage): string[] {
+   const updatedAt = flowUpdatedAt(topic, flow);
+   const files = flowFiles(topic, flow);
+   const events = [
+@@ -312,34 +328,28 @@ export function buildWorkflowSteps(topic: TopicSummary, language: HistoryLanguag
+ }
+ 
+ export function buildActivitySummary(topic: TopicSummary, language: HistoryLanguage): ActivitySummary {
+-  const reviewCount =
+-    topic.artifactSummary.reviewDocs.count ||
+-    topic.files.filter((file) => /^reviews\//.test(file.relativePath)).length;
+-  const qaCount =
+-    topic.artifactSummary.qaDocs.count ||
+-    topic.files.filter((file) => /^qa\//.test(file.relativePath)).length;
+-  const implementationCount =
+-    topic.artifactSummary.implementationDocs.count ||
+-    topic.files.filter((file) => /^implementation\//.test(file.relativePath)).length;
++  const reviewCount = topic.artifactSummary.reviewDocs.count || countFilesMatching(topic, /^reviews\//);
++  const qaCount = topic.artifactSummary.qaDocs.count || countFilesMatching(topic, /^qa\//);
++  const implementationCount = topic.artifactSummary.implementationDocs.count || countFilesMatching(topic, /^implementation\//);
+   const workflowCount = topic.workflow?.nodes.length ?? topic.artifactSummary.workflowDocs.count;
+   const artifactTotal = Object.values(topic.artifactSummary).reduce((sum, group) => sum + group.count, 0);
+   const latestFile = [...topic.files]
+     .filter((file) => file.updatedAt)
+-    .sort((left, right) => new Date(right.updatedAt ?? "").getTime() - new Date(left.updatedAt ?? "").getTime())[0] ?? null;
++    .sort(byLatestUpdatedAt)[0] ?? null;
+   const latestArtifactTime = latestDate(Object.values(topic.artifactSummary).map((group) => group.latestUpdatedAt));
+   const lastActivityTime = latestDate([topic.updatedAt, latestFile?.updatedAt, latestArtifactTime, topic.archivedAt]);
+   const lastActivity = `${formatDateValue(lastActivityTime, language, "unknown")} ${latestFile?.relativePath ?? topic.nextAction ?? topic.stage ?? "topic updated"}`;
+   const recentFiles = [...topic.files]
+     .filter((file) => file.updatedAt)
+-    .sort((left, right) => new Date(right.updatedAt ?? "").getTime() - new Date(left.updatedAt ?? "").getTime())
++    .sort(byLatestUpdatedAt)
+     .slice(0, 3);
+ 
+   return {
+     metrics: [
+       { id: "total", label: "Total Events", value: String(workflowCount + topic.files.length + artifactTotal) },
+       { id: "workflow", label: "Workflow Nodes", value: String(workflowCount) },
+-      { id: "code", label: "Code Changes", value: `${implementationCount} item${implementationCount === 1 ? "" : "s"}` },
+-      { id: "files", label: "Files Changed", value: `${topic.files.length} file${topic.files.length === 1 ? "" : "s"}` },
++      { id: "code", label: "Code Changes", value: formatItemCount(implementationCount, "item") },
++      { id: "files", label: "Files Changed", value: formatItemCount(topic.files.length, "file") },
+       { id: "reviews", label: "Review Requests", value: String(reviewCount) },
+       { id: "qa", label: "QA Items", value: String(qaCount) }
+     ],

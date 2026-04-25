@@ -1,0 +1,151 @@
+{
+  "topic": "dashboard-workflow-overview-sync",
+  "nodes": [
+    {
+      "id": "proposal",
+      "type": "doc",
+      "data": {
+        "label": "proposal.md",
+        "stage": "proposal",
+        "status": "reviewed",
+        "path": "poggn/active/dashboard-workflow-overview-sync/proposal.md",
+        "detail": {
+          "title": "Workflow Overview sync proposal",
+          "sourcePath": "poggn/active/dashboard-workflow-overview-sync/proposal.md",
+          "updatedAt": "2026-04-24T16:05:03Z"
+        }
+      },
+      "position": { "x": 0, "y": 0 }
+    },
+    {
+      "id": "proposal-review",
+      "type": "review",
+      "data": {
+        "label": "proposal.review.md",
+        "stage": "proposal",
+        "status": "reviewed",
+        "path": "poggn/active/dashboard-workflow-overview-sync/reviews/proposal.review.md",
+        "detail": {
+          "title": "Proposal expert review",
+          "sourcePath": "poggn/active/dashboard-workflow-overview-sync/reviews/proposal.review.md",
+          "updatedAt": "2026-04-24T16:05:03Z"
+        }
+      },
+      "position": { "x": 220, "y": 0 }
+    },
+    {
+      "id": "plan",
+      "type": "doc",
+      "data": {
+        "label": "plan.md",
+        "stage": "plan",
+        "status": "reviewed",
+        "path": "poggn/active/dashboard-workflow-overview-sync/plan.md",
+        "detail": {
+          "title": "Workflow Overview sync plan",
+          "sourcePath": "poggn/active/dashboard-workflow-overview-sync/plan.md",
+          "updatedAt": "2026-04-24T16:07:38Z",
+          "completedAt": "2026-04-24T16:07:38Z"
+        }
+      },
+      "position": { "x": 440, "y": 0 }
+    },
+    {
+      "id": "task",
+      "type": "task",
+      "data": {
+        "label": "task.md",
+        "stage": "task",
+        "status": "reviewed",
+        "path": "poggn/active/dashboard-workflow-overview-sync/task.md",
+        "detail": {
+          "title": "Workflow Overview sync tasks",
+          "sourcePath": "poggn/active/dashboard-workflow-overview-sync/task.md",
+          "updatedAt": "2026-04-24T16:07:38Z",
+          "completedAt": "2026-04-24T16:07:38Z"
+        }
+      },
+      "position": { "x": 660, "y": 0 }
+    },
+    {
+      "id": "plan-review",
+      "type": "review",
+      "data": {
+        "label": "plan.review.md",
+        "stage": "plan",
+        "status": "reviewed",
+        "path": "poggn/active/dashboard-workflow-overview-sync/reviews/plan.review.md",
+        "detail": {
+          "title": "Plan expert review",
+          "sourcePath": "poggn/active/dashboard-workflow-overview-sync/reviews/plan.review.md",
+          "updatedAt": "2026-04-24T16:07:38Z",
+          "completedAt": "2026-04-24T16:07:38Z"
+        }
+      },
+      "position": { "x": 880, "y": 0 }
+    },
+    {
+      "id": "task-review",
+      "type": "review",
+      "data": {
+        "label": "task.review.md",
+        "stage": "task",
+        "status": "reviewed",
+        "path": "poggn/active/dashboard-workflow-overview-sync/reviews/task.review.md",
+        "detail": {
+          "title": "Task expert review",
+          "sourcePath": "poggn/active/dashboard-workflow-overview-sync/reviews/task.review.md",
+          "updatedAt": "2026-04-24T16:07:38Z",
+          "completedAt": "2026-04-24T16:07:38Z"
+        }
+      },
+      "position": { "x": 1100, "y": 0 }
+    },
+    {
+      "id": "implementation",
+      "type": "doc",
+      "data": {
+        "label": "implementation/index.md",
+        "stage": "implementation",
+        "status": "reviewed",
+        "path": "poggn/active/dashboard-workflow-overview-sync/implementation/index.md",
+        "detail": {
+          "title": "Workflow Overview sync implementation",
+          "sourcePath": "poggn/active/dashboard-workflow-overview-sync/implementation/index.md",
+          "updatedAt": "2026-04-24T17:18:16Z",
+          "completedAt": "2026-04-24T17:18:16Z",
+          "summary": "Tightened connector edge geometry, reduced status model to required live states, and constrained per-flow timestamp fallback.",
+          "status": "completed"
+        }
+      },
+      "position": { "x": 1320, "y": 0 }
+    },
+    {
+      "id": "code-review",
+      "type": "review",
+      "data": {
+        "label": "code.review.md",
+        "stage": "implementation",
+        "status": "reviewed",
+        "path": "poggn/active/dashboard-workflow-overview-sync/reviews/code.review.md",
+        "detail": {
+          "title": "Code expert review",
+          "sourcePath": "poggn/active/dashboard-workflow-overview-sync/reviews/code.review.md",
+          "updatedAt": "2026-04-24T17:18:16Z",
+          "completedAt": "2026-04-24T17:18:16Z",
+          "status": "completed"
+        }
+      },
+      "position": { "x": 1540, "y": 0 }
+    }
+  ],
+  "edges": [
+    { "id": "proposal-proposal-review", "source": "proposal", "target": "proposal-review" },
+    { "id": "proposal-review-plan", "source": "proposal-review", "target": "plan" },
+    { "id": "plan-task", "source": "plan", "target": "task" },
+    { "id": "task-plan-review", "source": "task", "target": "plan-review" },
+    { "id": "plan-review-task-review", "source": "plan-review", "target": "task-review" },
+    { "id": "task-review-implementation", "source": "task-review", "target": "implementation" },
+    { "id": "implementation-code-review", "source": "implementation", "target": "code-review" }
+  ]
+}

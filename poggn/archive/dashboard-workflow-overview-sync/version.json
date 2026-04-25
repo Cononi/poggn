@@ -1,0 +1,14 @@
+{
+  "topic": "dashboard-workflow-overview-sync",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "version": "2.2.3",
+  "targetVersion": "2.2.3",
+  "previousVersion": "2.2.2",
+  "shortName": "dashboard-overview-sync",
+  "workingBranch": "ai/fix/2.2.3-dashboard-overview-sync",
+  "releaseBranch": "release/2.2.3-dashboard-overview-sync",
+  "projectScope": "current-project",
+  "archivedAt": "2026-04-24T23:29:00Z",
+  "history": "poggn/version-history.ndjson"
+}

@@ -1,0 +1,182 @@
+diff --git a/poggn/active/dashboard-workflow-overview-sync/qa/report.md b/poggn/active/dashboard-workflow-overview-sync/qa/report.md
+new file mode 100644
+index 0000000..21387d8
+--- /dev/null
++++ b/poggn/active/dashboard-workflow-overview-sync/qa/report.md
+@@ -0,0 +1,85 @@
++---
++pgg:
++  topic: "dashboard-workflow-overview-sync"
++  stage: "qa"
++  status: "done"
++  skill: "pgg-qa"
++  score: 96
++  updated_at: "2026-04-24T23:25:43Z"
++  archive_type: "fix"
++  version_bump: "patch"
++  target_version: "2.2.3"
++  short_name: "dashboard-overview-sync"
++  project_scope: "current-project"
++---
++
++# qa/report
++
++## Scope
++
++- Topic: `dashboard-workflow-overview-sync`
++- Target version: `2.2.3`
++- Working branch: `ai/fix/2.2.3-dashboard-overview-sync`
++- Release branch: `release/2.2.3-dashboard-overview-sync`
++- QA basis: `proposal.md`, `plan.md`, `task.md`, `spec/qa/workflow-overview-sync-acceptance.md`, `implementation/index.md`, `reviews/code.review.md`, `reviews/refactor.review.md`
++
++## Audit Applicability
++
++- [pgg-token]: [not_required] | handoff token 최적화가 아니라 dashboard workflow progress 표시와 telemetry 계약 정합이 핵심이다.
++- [pgg-performance]: [not_required] | UI geometry와 timestamp parsing 변경이며 별도 성능 계측이 필요한 데이터 규모 변경은 없다.
++
++## Test Plan
++
++| Area | Method | Expected |
++|---|---|---|
++| pgg gate | `./.codex/sh/pgg-gate.sh pgg-qa dashboard-workflow-overview-sync` | QA 진입 산출물과 required audit 조건이 통과한다 |
++| build | `pnpm build` | dashboard/core/cli production build가 통과한다 |
++| status model | source review | 모든 flow가 `시작 전`, `진행 중`, `추가 진행`, `완료` 4상태 evidence 계약을 따른다 |
++| timestamp model | source review | `startedAt`, `updatedAt`, `completedAt`이 분리되고 topic-wide updatedAt이 flow 완료 시간으로 반복되지 않는다 |
++| visual structure | source review against `add-img/5.png`, `add-img/8.png`, `add-img/9.png`, `add-img/10.png`, `add-img/11.png`, `add-img/12.png` | connector, selected tab, metadata row, caption surface가 acceptance 조건을 만족한다 |
++| i18n/interaction | source review | status/tooltip/count copy가 ko/en locale key를 통과하고 click modal path가 유지된다 |
++| global workflow | `pgg update` evidence and source review | `pgg init/update` 생성물에 동일한 4상태 workflow 계약이 유지된다 |
++
++## Results
++
++| Check | Result | Evidence |
++|---|---|---|
++| QA gate | pass | `./.codex/sh/pgg-gate.sh pgg-qa dashboard-workflow-overview-sync` returned `{"gate":"pass","stage":"pgg-qa"}` |
++| Workspace build | pass | `pnpm build` completed successfully for dashboard, core, and cli |
++| Dashboard build warning | non-blocking | Vite reported the existing large chunk warning after successful build |
++| Required audits | pass | `pgg-token` and `pgg-performance` are `not_required`; no blocking audit report is required |
++| Status model | pass | `WorkflowStatus` is `completed | current | updating | pending`; `stage-started`/`stage-progress`, unresolved revision, and trusted completion events feed status calculation |
++| Completion evidence | pass | current flow completion requires `stage-commit`, archive, or verified/final `stage-completed`; unverified completion does not resolve work early |
++| Timestamp independence | pass | `WorkflowStep` exposes `startTime`, `updatedTime`, `completedTime`, and the model keeps a `FlowTimestampBundle` with separate `startedAt`, `updatedAt`, `completedAt` |
++| Connector visual logic | pass | connector is rendered as `WorkflowStepNode` pseudo-element between circle outer edges with live/completed/pending color treatment and no internal circle crossing |
++| Active clipping | pass | workflow track and selected-tab mask use visible overflow; active/update circle glow and focus outline are not clipped by the track container |
++| Compact caption | pass | bordered status/time box is removed; flow date/status is rendered as `Typography variant="caption"` under the flow label |
++| Metadata cards | pass | Status, Workflow Stage, Progress, Priority, Created, Updated render from one six-item row with `minmax(0, 1fr)`, `minWidth: 0`, and `noWrap` truncation |
++| Tab shape | pass | MUI `Tabs`/`Tab` selected underline is not used; custom `ButtonBase` tabs and panel line masking preserve the selected-tab shape without a bottom line |
++| Runtime warning fix | pass | `PaperProps` is absent from `HistoryWorkspace.tsx`; `AutoGraphRounded` is imported and used |
++| Locale keys | pass | ko/en status labels and tooltip keys include `시작 전`, `진행 중`, `추가 진행`, `완료`, and English equivalents |
++| Global workflow generation | pass | `packages/core/src/templates.ts` centralizes ko/en flow status contract helpers used by generated AGENTS, WOKR-FLOW, and STATE-CONTRACT assets |
++| Visual browser check | manual verification required | No declared current-project browser/screenshot verification contract exists; QA used build plus source-level visual acceptance review |
++
++## Expert Notes
++
++| Expert | Score | Summary | Blocking |
++|---|---:|---|---|
++| QA/테스트 엔지니어 | 96 | QA gate, workspace build, required audit applicability, and acceptance-source checks passed. Browser screenshot verification remains manual because the topic declares `manual verification required`. | none |
++| 코드 리뷰어 | 96 | 상태 계산은 trusted evidence 중심으로 정리되어 `reviewed`만으로 현재 flow가 완료되지 않고, unresolved revision은 최신 flow evidence 비교로 해소된다. Refactor는 동작 변경 없이 중복 helper를 줄였다. | none |
++| SRE / 운영 엔지니어 | 96 | `pgg init/update` 생성 template에 workflow 4상태 계약이 들어가 다른 프로젝트에도 같은 규격이 배포된다. Build 성공 외 런타임 운영 blocker는 발견되지 않았다. | none |
++
++## Residual Risks
++
++- Manual visual QA is still useful for pixel-level comparison against `add-img/9.png`/`add-img/10.png`, because the project declares no automated browser/screenshot verification contract.
++- Vite large chunk warning remains non-blocking and pre-existing for this QA scope.
++
++## Decision
++
++pass
++
++## Git Publish Message
++
++- title: fix: 2.2.3.워크플로우 진행 동기화
++- why: Project Workflow Overview에서 connector가 원에 정확히 연결되고, flow별 시작/완료 시간이 독립적으로 표시되며, AI stage 진행 이벤트와 상태별 색상이 dashboard workflow에 일관되게 반영되어야 한다.
++- footer: Refs: dashboard-workflow-overview-sync
+diff --git a/poggn/active/dashboard-workflow-overview-sync/state/current.md b/poggn/active/dashboard-workflow-overview-sync/state/current.md
+index 5700e21..b2516f4 100644
+--- a/poggn/active/dashboard-workflow-overview-sync/state/current.md
++++ b/poggn/active/dashboard-workflow-overview-sync/state/current.md
+@@ -6,7 +6,7 @@ dashboard-workflow-overview-sync
+ 
+ ## Current Stage
+ 
+-refactor
++qa
+ 
+ ## Goal
+ 
+@@ -16,6 +16,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
+ 추가로 4상태 flow 규격을 `pgg init/update` 생성물인 AGENTS, WOKR-FLOW, STATE-CONTRACT에 배포했다.
+ 추가로 dashboard 화면의 active flow label을 전역 계약과 맞춰 `진행 중`으로 표시하도록 정리했다.
+ 리팩터링으로 unresolved flow index 계산과 generated flow status contract 문자열을 공통 helper로 정리했다.
++QA에서 gate, build, source-level acceptance review를 통과했고, declared current-project verification contract가 없어 browser/screenshot check는 manual verification required로 기록했다.
+ 
+ ## Document Refs
+ 
+@@ -28,6 +29,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
+ - implementation index: `poggn/active/dashboard-workflow-overview-sync/implementation/index.md`
+ - code review: `poggn/active/dashboard-workflow-overview-sync/reviews/code.review.md`
+ - refactor review: `poggn/active/dashboard-workflow-overview-sync/reviews/refactor.review.md`
++- qa report: `poggn/active/dashboard-workflow-overview-sync/qa/report.md`
+ - spec:
+   - `poggn/active/dashboard-workflow-overview-sync/spec/model/flow-timestamp-and-status-source.md`
+   - `poggn/active/dashboard-workflow-overview-sync/spec/model/revision-status-model.md`
+@@ -129,6 +131,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
+ - The active/current status label now displays `진행 중` / `In progress` instead of the older generation wording.
+ - Refactor keeps behavior unchanged while centralizing repeated unresolved active/updating flow selection in `historyModel.ts`.
+ - Refactor keeps generated file output unchanged while centralizing ko/en flow status contract strings in `packages/core/src/templates.ts`.
++- QA pass is based on pgg gate, latest workspace build, source-level visual/model/telemetry/i18n checks, and required audit applicability; pixel-level browser comparison remains manual because no automated verification contract is declared.
+ 
+ ## User Question Record
+ 
+@@ -237,16 +240,19 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
+ | UPDATE | `poggn/active/dashboard-workflow-overview-sync/state/dirty-worktree-baseline.txt` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/005_UPDATE_poggn_active_dashboard_workflow_overview_sync_topic_state.diff` |
+ | UPDATE | `poggn/active/dashboard-workflow-overview-sync/state/history.ndjson` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/005_UPDATE_poggn_active_dashboard_workflow_overview_sync_topic_state.diff` |
+ | UPDATE | `poggn/active/dashboard-workflow-overview-sync/workflow.reactflow.json` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/005_UPDATE_poggn_active_dashboard_workflow_overview_sync_topic_state.diff` |
++| CREATE | `poggn/active/dashboard-workflow-overview-sync/qa/report.md` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/013_CREATE_qa_report_and_archive_records.diff` |
++| UPDATE | `poggn/active/dashboard-workflow-overview-sync/state/current.md` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/013_CREATE_qa_report_and_archive_records.diff` |
++| UPDATE | `poggn/active/dashboard-workflow-overview-sync/state/history.ndjson` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/013_CREATE_qa_report_and_archive_records.diff` |
+ 
+ ## Last Expert Score
+ 
+-- phase: refactor
++- phase: qa
+ - score: 96
+ - blocking issues: none
+ 
+ ## Open Items
+ 
+-- status: ready_for_qa
++- status: ready_for_archive
+ 
+ ## Verification
+ 
+@@ -284,6 +290,11 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
+ - `node packages/cli/dist/index.js update`: pass; unchanged after template helper refactor
+ - `./.codex/sh/pgg-gate.sh pgg-refactor dashboard-workflow-overview-sync`: pass
+ - source check for shared unresolved flow index helper and generated flow status rule helpers: pass
++- `./.codex/sh/pgg-gate.sh pgg-qa dashboard-workflow-overview-sync`: pass
++- `pnpm build`: pass
++- QA source review for status model, connector geometry, compact caption, tab shape, metadata row, locale keys, and generated workflow contract: pass
++- required audit applicability: pass; `pgg-token` and `pgg-performance` are `not_required`
++- browser/screenshot visual verification: manual verification required; no declared automated current-project verification contract
+ - source check for edge-to-edge connector geometry and removed internal connector: pass
+ - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
+ - source check for connector gap-inclusive end offset and circle-radius top alignment: pass
+@@ -305,7 +316,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
+ 
+ ## Next Action
+ 
+-`pgg-qa`
++`pgg-archive`
+ 
+ ## Git Publish Message
+ 
+diff --git a/poggn/active/dashboard-workflow-overview-sync/state/history.ndjson b/poggn/active/dashboard-workflow-overview-sync/state/history.ndjson
+index cc59494..56f3aa9 100644
+--- a/poggn/active/dashboard-workflow-overview-sync/state/history.ndjson
++++ b/poggn/active/dashboard-workflow-overview-sync/state/history.ndjson
+@@ -102,3 +102,6 @@
+ {"ts":"2026-04-24T23:10:46Z","stage":"refactor","event":"stage-progress","summary":"centralized unresolved active/updating flow index selection and generated flow status contract strings while preserving output","score":96,"next":"pgg-qa"}
+ {"ts":"2026-04-24T23:12:02Z","stage":"refactor","event":"stage-progress","summary":"pgg-refactor gate passed after workflow status helper refactor and refactor review update","score":96,"next":"pgg-qa"}
+ {"ts":"2026-04-24T23:14:25Z","stage":"refactor","event":"stage-commit","archiveType":"fix","targetVersion":"2.2.3","projectLanguage":"ko","commitTitle":"fix: 2.2.3.워크플로우 상태 헬퍼 정리","summary":"워크플로우 상태 헬퍼 정리","why":"active/updating flow 상태 계산과 generated flow status 계약 문구의 중복을 줄여 같은 동작을 더 단순하게 유지해야 한다","footer":"Refs: dashboard-workflow-overview-sync"}
++{"ts":"2026-04-24T23:25:43Z","stage":"qa","event":"stage-started","summary":"started QA for workflow overview sync using pgg gate, build, source-level acceptance checks, and audit applicability review","score":96,"next":"pgg-qa"}
++{"ts":"2026-04-24T23:25:43Z","stage":"qa","event":"stage-progress","summary":"pgg-qa gate and workspace build passed; required audits are not required and source-level acceptance checks passed","score":96,"next":"pgg-archive"}
++{"ts":"2026-04-24T23:25:43Z","stage":"qa","event":"stage-completed","source":"qa verified","summary":"QA passed for dashboard workflow overview sync with manual visual verification noted because no automated screenshot contract is declared","score":96,"next":"pgg-archive"}

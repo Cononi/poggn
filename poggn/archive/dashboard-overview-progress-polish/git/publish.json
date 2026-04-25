@@ -1,0 +1,32 @@
+{
+  "topic": "dashboard-overview-progress-polish",
+  "version": "2.2.1",
+  "targetVersion": "2.2.1",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "commitTitle": "fix: 2.2.1.Overview 진행 UI 정리",
+  "commitSha": "f1e30cb67b64c1c30bdd9a799b89b22492747dce",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/2.2.1-dashboard-polish",
+  "workingBranch": "ai/fix/2.2.1-dashboard-polish",
+  "releaseBranch": "release/2.2.1-dashboard-polish",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-24T12:27:35Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/2.2.1-dashboard-polish'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "not_attempted",
+  "branchRecoveryReason": null,
+  "branchRecoveryFrom": null,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/dashboard-overview-progress-polish",
+    "versionFile": "poggn/archive/dashboard-overview-progress-polish/version.json"
+  }
+}

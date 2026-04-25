@@ -22,11 +22,14 @@ export function resolveDashboardStageLabel(stage: string | null, dictionary: Rec
 }
 
 export function resolveDashboardFlowStatusLabel(
-  status: "done" | "current" | "upcoming",
+  status: "done" | "current" | "updating" | "upcoming",
   dictionary: Record<string, string>
 ): string {
   if (status === "done") {
     return dictionary.flowDone;
+  }
+  if (status === "updating") {
+    return dictionary.flowUpdating;
   }
   if (status === "current") {
     return dictionary.flowCurrent;
@@ -289,7 +292,25 @@ export const dashboardLocale = {
     statusDone: "완료",
     flowDone: "완료",
     flowCurrent: "현재",
+    flowUpdating: "추가 진행",
     flowUpcoming: "예정",
+    workflowProgressStatusPending: "시작 전",
+    workflowProgressStatusCurrent: "진행 중",
+    workflowProgressStatusUpdating: "추가 진행",
+    workflowProgressStatusCompleted: "완료",
+    workflowProgressCountCompleted: "완료",
+    workflowProgressCountCurrent: "생성 중",
+    workflowProgressCountUpdating: "추가 진행",
+    workflowProgressCountPending: "시작 전",
+    workflowProgressCompletedSummary: "완료",
+    workflowProgressTooltip: "진행 상태 확인 가능",
+    workflowProgressFlowAdd: "Add",
+    workflowProgressFlowPlan: "Plan",
+    workflowProgressFlowCode: "Code",
+    workflowProgressFlowRefactor: "Refactor",
+    workflowProgressFlowPerformance: "Performance",
+    workflowProgressFlowQa: "QA",
+    workflowProgressFlowDone: "Done",
     currentFocus: "현재 포커스",
     metricDone: "완료",
     metricProgress: "진행 중",
@@ -597,7 +618,25 @@ export const dashboardLocale = {
     statusDone: "DONE",
     flowDone: "done",
     flowCurrent: "current",
+    flowUpdating: "updating",
     flowUpcoming: "upcoming",
+    workflowProgressStatusPending: "Not started",
+    workflowProgressStatusCurrent: "In progress",
+    workflowProgressStatusUpdating: "Additional updates",
+    workflowProgressStatusCompleted: "Completed",
+    workflowProgressCountCompleted: "Completed",
+    workflowProgressCountCurrent: "Generating",
+    workflowProgressCountUpdating: "Additional updates",
+    workflowProgressCountPending: "Not started",
+    workflowProgressCompletedSummary: "completed",
+    workflowProgressTooltip: "status details available",
+    workflowProgressFlowAdd: "Add",
+    workflowProgressFlowPlan: "Plan",
+    workflowProgressFlowCode: "Code",
+    workflowProgressFlowRefactor: "Refactor",
+    workflowProgressFlowPerformance: "Performance",
+    workflowProgressFlowQa: "QA",
+    workflowProgressFlowDone: "Done",
     currentFocus: "current focus",
     metricDone: "Done",
     metricProgress: "In progress",
